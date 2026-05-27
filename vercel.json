@@ -1,4 +1,6 @@
 {
+  "version": 2,
+  "framework": null,
   "buildCommand": "npx vite build && cp -r dist/server api/server",
   "outputDirectory": "dist/client",
   "rewrites": [
