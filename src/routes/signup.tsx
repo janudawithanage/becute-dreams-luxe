@@ -4,8 +4,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
-import { Eye, EyeOff, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth, fetchUserRole } from "@/lib/auth";
 import { toast } from "sonner";
 
 const schema = z
@@ -32,10 +33,11 @@ export const Route = createFileRoute("/signup")({
 
 function SignupPage() {
   const navigate = useNavigate();
+  const setSession = useAuth((s) => s.setSession);
+  const setRole = useAuth((s) => s.setRole);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [confirmed, setConfirmed] = useState(false);
 
   const {
     register,
@@ -55,7 +57,7 @@ function SignupPage() {
   const onSubmit = async ({ fullName, email, password }: FormValues) => {
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -65,45 +67,30 @@ function SignupPage() {
 
     if (error) {
       toast.error(error.message);
+      console.error("[signup] error:", error);
       setLoading(false);
       return;
     }
 
-    setConfirmed(true);
-  };
+    console.log("[signup] data.user:", data.user);
+    console.log("[signup] data.session:", data.session);
 
-  if (confirmed) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-dream px-4 py-20">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="w-full max-w-md rounded-3xl bg-card px-8 py-14 text-center shadow-luxe sm:px-12"
-        >
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blush"
-          >
-            <CheckCircle2 className="h-8 w-8 text-foreground" />
-          </motion.div>
-          <h2 className="font-display text-3xl">Check your inbox</h2>
-          <p className="mt-3 text-sm text-muted-foreground">
-            We sent a confirmation link to your email. Click it to activate your
-            account, then sign in.
-          </p>
-          <button
-            onClick={() => navigate({ to: "/login" })}
-            className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-foreground px-8 text-xs uppercase tracking-[0.25em] text-background transition hover:opacity-80"
-          >
-            Go to sign in
-          </button>
-        </motion.div>
-      </div>
-    );
-  }
+    // With email confirmation disabled, the session is returned immediately
+    if (data.session) {
+      setSession(data.session);
+      const role = await fetchUserRole(data.user!.id);
+      setRole(role);
+      toast.success("Welcome to Becute Dreams ✨");
+      navigate({ to: "/" });
+    } else if (data.user) {
+      // User created but no session — email confirmation is still on in Supabase
+      toast.info("Almost there! Check your email to confirm your account, then sign in.");
+      navigate({ to: "/login", search: { redirect: "" } });
+    } else {
+      toast.error("Something went wrong. Please try again.");
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-dream px-4 py-20">
@@ -304,6 +291,7 @@ function SignupPage() {
             Already have an account?{" "}
             <Link
               to="/login"
+              search={{ redirect: "" }}
               className="font-medium text-foreground underline-offset-4 hover:underline"
             >
               Sign in

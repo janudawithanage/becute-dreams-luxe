@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { motion, useScroll, useMotionValueEvent } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ShoppingBag, Menu, X, Search, User, LogOut, LayoutDashboard } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
@@ -17,6 +17,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { scrollY } = useScroll();
   const count = useCart((s) => s.count());
   const setCartOpen = useCart((s) => s.setOpen);
@@ -24,6 +25,10 @@ export function Navbar() {
   const role = useAuth((s) => s.role);
   const signOut = useAuth((s) => s.signOut);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useMotionValueEvent(scrollY, "change", (v) => setScrolled(v > 24));
 
@@ -78,7 +83,7 @@ export function Navbar() {
               className="relative flex h-10 w-10 items-center justify-center rounded-full text-foreground/80 transition hover:bg-foreground/5"
             >
               <ShoppingBag className="h-4 w-4" />
-              {count > 0 && (
+              {mounted && count > 0 && (
                 <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
@@ -91,7 +96,7 @@ export function Navbar() {
             </button>
 
             {/* Auth area */}
-            {user ? (
+            {mounted && user ? (
               <div className="relative hidden md:block">
                 <button
                   onClick={() => setUserMenuOpen((v) => !v)}
@@ -134,6 +139,7 @@ export function Navbar() {
             ) : (
               <Link
                 to="/login"
+                search={{ redirect: "" }}
                 className="hidden h-10 items-center justify-center rounded-full border border-foreground/20 px-5 text-xs uppercase tracking-[0.18em] text-foreground/80 transition hover:bg-foreground/5 md:flex"
               >
                 Sign in
@@ -188,7 +194,7 @@ export function Navbar() {
               transition={{ delay: 0.05 * links.length }}
               className="mt-4 border-t border-border pt-8"
             >
-              {user ? (
+              {mounted && user ? (
                 <div className="flex flex-col gap-4">
                   <p className="text-sm text-muted-foreground">{user.email}</p>
                   {role === "admin" && (
@@ -213,6 +219,7 @@ export function Navbar() {
                 <div className="flex flex-col gap-4">
                   <Link
                     to="/login"
+                    search={{ redirect: "" }}
                     onClick={() => setOpen(false)}
                     className="text-sm uppercase tracking-[0.18em]"
                   >

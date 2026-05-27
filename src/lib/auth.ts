@@ -36,11 +36,16 @@ export const useAuth = create<AuthState>((set) => ({
  * Falls back to "client" if no profile row exists yet.
  */
 export async function fetchUserRole(userId: string): Promise<UserRole> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", userId)
-    .single();
+    .maybeSingle();
+
+  if (error) {
+    // Surface the real reason instead of silently degrading to "client".
+    console.error("[auth] fetchUserRole failed:", error);
+  }
 
   return (data?.role as UserRole) ?? "client";
 }
