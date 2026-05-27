@@ -1,9 +1,17 @@
-import { Outlet } from "@tanstack/react-router";
+import { Outlet, useRouterState } from "@tanstack/react-router";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import { CartDrawer } from "./CartDrawer";
 
 export function SiteLayout() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isAdmin = pathname.startsWith("/admin");
+
+  if (isAdmin) {
+    // Admin section provides its own layout (sidebar + topbar).
+    return <Outlet />;
+  }
+
   return (
     <>
       <Navbar />
