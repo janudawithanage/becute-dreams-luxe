@@ -10,6 +10,7 @@ import {
 
 import appCss from "../styles.css?url";
 import { SiteLayout } from "@/components/layout/SiteLayout";
+import { useAuthListener } from "@/hooks/useAuthListener";
 
 function NotFoundComponent() {
   return (
@@ -85,6 +86,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useAuthListener();
   return (
     <QueryClientProvider client={queryClient}>
       <SiteLayout />
