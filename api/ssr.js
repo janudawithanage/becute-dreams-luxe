@@ -1,12 +1,13 @@
 // Vercel serverless function — bridges Node.js req/res to the TanStack Start
-// Web Fetch API handler that lives in dist/server/index.js after build.
+// Web Fetch API handler. The build step copies dist/server → api/server so
+// Vercel bundles it alongside this function automatically.
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// The built server entry is one level up from api/ inside dist/server/
-const serverEntryPath = path.resolve(__dirname, "../dist/server/server.js");
+// Copied here by the build command: `cp -r dist/server api/server`
+const serverEntryPath = path.resolve(__dirname, "./server/server.js");
 
 let handlerPromise;
 

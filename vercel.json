@@ -1,16 +1,10 @@
 {
-  "buildCommand": "npx vite build",
+  "buildCommand": "npx vite build && cp -r dist/server api/server",
   "outputDirectory": "dist/client",
   "rewrites": [
     {
       "source": "/(.*)",
       "destination": "/api/ssr"
     }
-  ],
-  "functions": {
-    "api/ssr.js": {
-      "runtime": "@vercel/node@5",
-      "includeFiles": "../dist/server/**"
-    }
-  }
+  ]
 }
