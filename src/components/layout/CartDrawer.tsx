@@ -1,10 +1,22 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { X, Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "@/lib/cart";
+import { useAuth } from "@/lib/auth";
 
 export function CartDrawer() {
   const { open, setOpen, items, setQty, remove, total } = useCart();
+  const { session } = useAuth();
+  const navigate = useNavigate();
+
+  const handleCheckout = () => {
+    setOpen(false);
+    if (session) {
+      navigate({ to: "/checkout" });
+    } else {
+      navigate({ to: "/login", search: { redirect: "/checkout" } });
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -92,13 +104,12 @@ export function CartDrawer() {
                     <span className="font-display text-3xl">${total().toFixed(2)}</span>
                   </div>
                   <p className="text-xs text-muted-foreground">Shipping & taxes calculated at checkout.</p>
-                  <Link
-                    to="/checkout"
-                    onClick={() => setOpen(false)}
+                  <button
+                    onClick={handleCheckout}
                     className="flex h-12 w-full items-center justify-center rounded-full bg-foreground text-xs uppercase tracking-[0.25em] text-background transition hover:opacity-90"
                   >
-                    Proceed to checkout
-                  </Link>
+                    {session ? "Proceed to checkout" : "Sign in to checkout"}
+                  </button>
                 </div>
               </>
             )}

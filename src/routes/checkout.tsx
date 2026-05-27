@@ -1,17 +1,43 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useCart } from "@/lib/cart";
+import { useAuth } from "@/lib/auth";
 import { MessageCircle } from "lucide-react";
 
 export const Route = createFileRoute("/checkout")({
+  // Guard: must be logged in to place an order.
+  // Cart items are preserved in localStorage so nothing is lost.
+  beforeLoad: () => {
+    const { session, loading } = useAuth.getState();
+    // If auth is still hydrating, let it through — the component
+    // will handle the redirect once loading settles.
+    if (!loading && !session) {
+      throw redirect({ to: "/login", search: { redirect: "/checkout" } });
+    }
+  },
   component: Checkout,
 });
 
 function Checkout() {
   const { items, total, clear } = useCart();
   const navigate = useNavigate();
+  const { session, loading: authLoading } = useAuth();
   const [placed, setPlaced] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", address: "" });
+
+  // Fallback guard for when auth finishes hydrating after the component mounts
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <span className="h-6 w-6 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
+      </div>
+    );
+  }
+
+  if (!session) {
+    navigate({ to: "/login", search: { redirect: "/checkout" } });
+    return null;
+  }
 
   if (items.length === 0 && !placed) {
     return (

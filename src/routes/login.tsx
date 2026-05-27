@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,11 +17,15 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect: (search.redirect as string) ?? null,
+  }),
   component: LoginPage,
 });
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { redirect: redirectTo } = useSearch({ from: "/login" });
   const setSession = useAuth((s) => s.setSession);
   const setRole = useAuth((s) => s.setRole);
   const [showPassword, setShowPassword] = useState(false);
@@ -52,7 +56,10 @@ function LoginPage() {
 
     toast.success("Welcome back ✨");
 
-    if (role === "admin") {
+    // If we were redirected here from a protected page (e.g. checkout), go back there.
+    if (redirectTo) {
+      navigate({ to: redirectTo as "/" });
+    } else if (role === "admin") {
       navigate({ to: "/admin" });
     } else {
       navigate({ to: "/" });
