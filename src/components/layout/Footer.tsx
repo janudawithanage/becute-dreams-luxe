@@ -12,26 +12,50 @@ export function Footer() {
             Live <em className="font-light">beautifully.</em>
           </h3>
           <p className="mt-6 max-w-md text-sm leading-relaxed text-background/60">
-            A modern boutique for the quietly creative. Each Becute piece is designed,
-            printed and finished in small batches.
+            A modern boutique for the quietly creative. Each Becute piece is designed, printed and
+            finished in small batches.
           </p>
         </div>
 
         <div>
           <p className="mb-5 text-xs uppercase tracking-[0.25em] text-background/40">Shop</p>
           <ul className="space-y-3 text-sm text-background/80">
-            <li><Link to="/shop" className="hover:text-background">All stickers</Link></li>
-            <li><Link to="/collections" className="hover:text-background">Collections</Link></li>
-            <li><Link to="/shop" className="hover:text-background">New arrivals</Link></li>
-            <li><Link to="/shop" className="hover:text-background">Custom orders</Link></li>
+            <li>
+              <Link to="/shop" className="hover:text-background">
+                All stickers
+              </Link>
+            </li>
+            <li>
+              <Link to="/collections" className="hover:text-background">
+                Collections
+              </Link>
+            </li>
+            <li>
+              <Link to="/shop" className="hover:text-background">
+                New arrivals
+              </Link>
+            </li>
+            <li>
+              <Link to="/shop" className="hover:text-background">
+                Custom orders
+              </Link>
+            </li>
           </ul>
         </div>
 
         <div>
           <p className="mb-5 text-xs uppercase tracking-[0.25em] text-background/40">Atelier</p>
           <ul className="space-y-3 text-sm text-background/80">
-            <li><Link to="/about" className="hover:text-background">Our story</Link></li>
-            <li><Link to="/contact" className="hover:text-background">Contact</Link></li>
+            <li>
+              <Link to="/about" className="hover:text-background">
+                Our story
+              </Link>
+            </li>
+            <li>
+              <Link to="/contact" className="hover:text-background">
+                Contact
+              </Link>
+            </li>
             <li>
               <a
                 href="https://instagram.com"

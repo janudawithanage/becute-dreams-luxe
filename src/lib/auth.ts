@@ -20,8 +20,7 @@ export const useAuth = create<AuthState>((set) => ({
   role: null,
   loading: true,
 
-  setSession: (session) =>
-    set({ session, user: session?.user ?? null }),
+  setSession: (session) => set({ session, user: session?.user ?? null }),
 
   setRole: (role) => set({ role }),
 

@@ -112,7 +112,10 @@ export function ImageUpload({
         aria-label="Image upload area"
         onClick={() => !isUploading && inputRef.current?.click()}
         onKeyDown={(e) => e.key === "Enter" && !isUploading && inputRef.current?.click()}
-        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
         onDragLeave={() => setDragging(false)}
         onDrop={handleDrop}
         className={cn(
@@ -163,7 +166,10 @@ export function ImageUpload({
           <button
             type="button"
             aria-label="Remove image"
-            onClick={(e) => { e.stopPropagation(); handleClear(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleClear();
+            }}
             className="absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-background/80 text-foreground shadow transition hover:bg-background"
           >
             <X className="h-3.5 w-3.5" />

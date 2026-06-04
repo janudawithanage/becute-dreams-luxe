@@ -44,7 +44,10 @@ export function Gallery() {
               loading="lazy"
               className="h-full w-full object-cover transition duration-[1200ms] group-hover:scale-110"
             />
-            <div className="absolute inset-0 flex items-center justify-center bg-ink/0 opacity-0 transition group-hover:opacity-100" style={{ background: "color-mix(in oklab, var(--ink) 40%, transparent)" }}>
+            <div
+              className="absolute inset-0 flex items-center justify-center bg-ink/0 opacity-0 transition group-hover:opacity-100"
+              style={{ background: "color-mix(in oklab, var(--ink) 40%, transparent)" }}
+            >
               <Instagram className="h-6 w-6 text-background" />
             </div>
           </motion.a>

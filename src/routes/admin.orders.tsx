@@ -1,10 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Search, Filter, Eye } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin/orders")({
   component: AdminOrders,
 });
+
+interface CustomerInfo {
+  name: string;
+  phone: string;
+  address: string;
+}
 
 interface Order {
   id: string;
@@ -12,30 +19,66 @@ interface Order {
   email: string;
   items: number;
   total: number;
-  status: "Pending" | "Processing" | "Fulfilled" | "Cancelled";
+  status: string;
   date: string;
 }
 
-const ORDERS: Order[] = [
-  { id: "ORD-1042", customer: "Aiko Tanaka", email: "aiko@example.com", items: 2, total: 56, status: "Fulfilled", date: "May 26, 2026" },
-  { id: "ORD-1041", customer: "Maya Chen", email: "maya@example.com", items: 1, total: 18, status: "Processing", date: "May 26, 2026" },
-  { id: "ORD-1040", customer: "Ines Moreau", email: "ines@example.com", items: 4, total: 124, status: "Pending", date: "May 25, 2026" },
-  { id: "ORD-1039", customer: "Sofia Rossi", email: "sofia@example.com", items: 1, total: 32, status: "Fulfilled", date: "May 25, 2026" },
-  { id: "ORD-1038", customer: "Lila Park", email: "lila@example.com", items: 3, total: 76, status: "Fulfilled", date: "May 24, 2026" },
-  { id: "ORD-1037", customer: "Noah Kim", email: "noah@example.com", items: 2, total: 44, status: "Cancelled", date: "May 23, 2026" },
-  { id: "ORD-1036", customer: "Eva Lindgren", email: "eva@example.com", items: 5, total: 152, status: "Fulfilled", date: "May 22, 2026" },
-  { id: "ORD-1035", customer: "Yuna Park", email: "yuna@example.com", items: 1, total: 22, status: "Processing", date: "May 22, 2026" },
-];
+interface DbOrder {
+  id: string;
+  user_id: string;
+  items: { cart?: { qty: number }[]; customer?: CustomerInfo } | null;
+  total: number;
+  status: string;
+  created_at: string | null;
+}
 
-const FILTERS = ["all", "Pending", "Processing", "Fulfilled", "Cancelled"] as const;
+const FILTERS = ["all", "pending", "processing", "fulfilled", "cancelled"] as const;
+
+function toOrder(o: DbOrder): Order {
+  const customer = o.items?.customer;
+  const cart = o.items?.cart;
+  return {
+    id: o.id.slice(0, 8).toUpperCase(),
+    customer: customer?.name ?? "Unknown",
+    email: "",
+    items: cart?.reduce((n, i) => n + (i.qty ?? 0), 0) ?? 0,
+    total: o.total,
+    status: o.status,
+    date: o.created_at
+      ? new Date(o.created_at).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })
+      : "—",
+  };
+}
 
 function AdminOrders() {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [fetching, setFetching] = useState(true);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("all");
 
+  useEffect(() => {
+    supabase
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("[admin] Failed to fetch orders:", error);
+          setOrders([]);
+        } else {
+          setOrders((data as DbOrder[]).map(toOrder));
+        }
+        setFetching(false);
+      });
+  }, []);
+
   const filtered = useMemo(
     () =>
-      ORDERS.filter((o) => {
+      orders.filter((o) => {
         if (filter !== "all" && o.status !== filter) return false;
         if (
           query &&
@@ -45,7 +88,7 @@ function AdminOrders() {
           return false;
         return true;
       }),
-    [query, filter],
+    [orders, query, filter],
   );
 
   return (
@@ -84,70 +127,75 @@ function AdminOrders() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-border bg-card">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/30 text-left text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                <th className="px-6 py-4 font-normal">Order</th>
-                <th className="px-6 py-4 font-normal">Customer</th>
-                <th className="px-6 py-4 font-normal">Date</th>
-                <th className="px-6 py-4 text-center font-normal">Items</th>
-                <th className="px-6 py-4 font-normal">Status</th>
-                <th className="px-6 py-4 text-right font-normal">Total</th>
-                <th className="px-6 py-4 text-right font-normal">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filtered.map((o) => (
-                <tr key={o.id} className="transition hover:bg-muted/20">
-                  <td className="px-6 py-4 font-mono text-xs">{o.id}</td>
-                  <td className="px-6 py-4">
-                    <p className="font-medium">{o.customer}</p>
-                    <p className="text-xs text-muted-foreground">{o.email}</p>
-                  </td>
-                  <td className="px-6 py-4 text-muted-foreground">{o.date}</td>
-                  <td className="px-6 py-4 text-center text-muted-foreground">{o.items}</td>
-                  <td className="px-6 py-4">
-                    <StatusBadge status={o.status} />
-                  </td>
-                  <td className="px-6 py-4 text-right tabular-nums">${o.total.toFixed(2)}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex justify-end">
-                      <button
-                        className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground"
-                        aria-label="View"
-                      >
-                        <Eye className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {fetching ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
         </div>
-
-        {filtered.length === 0 && (
-          <div className="px-6 py-16 text-center text-muted-foreground">
-            No orders match these filters.
+      ) : (
+        <div className="overflow-hidden rounded-2xl border border-border bg-card">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/30 text-left text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                  <th className="px-6 py-4 font-normal">Order</th>
+                  <th className="px-6 py-4 font-normal">Customer</th>
+                  <th className="px-6 py-4 font-normal">Date</th>
+                  <th className="px-6 py-4 text-center font-normal">Items</th>
+                  <th className="px-6 py-4 font-normal">Status</th>
+                  <th className="px-6 py-4 text-right font-normal">Total</th>
+                  <th className="px-6 py-4 text-right font-normal">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filtered.map((o) => (
+                  <tr key={o.id} className="transition hover:bg-muted/20">
+                    <td className="px-6 py-4 font-mono text-xs">{o.id}</td>
+                    <td className="px-6 py-4">
+                      <p className="font-medium">{o.customer}</p>
+                    </td>
+                    <td className="px-6 py-4 text-muted-foreground">{o.date}</td>
+                    <td className="px-6 py-4 text-center text-muted-foreground">{o.items}</td>
+                    <td className="px-6 py-4">
+                      <StatusBadge status={o.status} />
+                    </td>
+                    <td className="px-6 py-4 text-right tabular-nums">${o.total.toFixed(2)}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex justify-end">
+                        <button
+                          className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground"
+                          aria-label="View"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
-      </div>
+
+          {filtered.length === 0 && (
+            <div className="px-6 py-16 text-center text-muted-foreground">
+              No orders match these filters.
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-function StatusBadge({ status }: { status: Order["status"] }) {
-  const map: Record<Order["status"], string> = {
-    Fulfilled: "bg-emerald-50 text-emerald-700",
-    Processing: "bg-amber-50 text-amber-700",
-    Pending: "bg-muted text-muted-foreground",
-    Cancelled: "bg-rose-50 text-rose-700",
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, string> = {
+    fulfilled: "bg-emerald-50 text-emerald-700",
+    processing: "bg-amber-50 text-amber-700",
+    pending: "bg-muted text-muted-foreground",
+    cancelled: "bg-rose-50 text-rose-700",
   };
   return (
     <span
-      className={`rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.18em] ${map[status]}`}
+      className={`rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.18em] ${map[status] ?? "bg-muted text-muted-foreground"}`}
     >
       {status}
     </span>

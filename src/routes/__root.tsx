@@ -40,7 +40,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <h1 className="font-display text-3xl">Something didn't load softly.</h1>
         <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
         <button
-          onClick={() => { router.invalidate(); reset(); }}
+          onClick={() => {
+            router.invalidate();
+            reset();
+          }}
           className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-foreground px-8 text-xs uppercase tracking-[0.25em] text-background"
         >
           Try again
@@ -56,7 +59,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Becute Dreams — Stickers, softly reimagined" },
-      { name: "description", content: "A luxury boutique of premium designer stickers and creative accessories. Designed in calm, made with care." },
+      {
+        name: "description",
+        content:
+          "A luxury boutique of premium designer stickers and creative accessories. Designed in calm, made with care.",
+      },
       { property: "og:title", content: "Becute Dreams" },
       { property: "og:description", content: "Stickers, softly reimagined." },
       { property: "og:type", content: "website" },

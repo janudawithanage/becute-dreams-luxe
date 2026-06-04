@@ -3,9 +3,10 @@ import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 
 const schema = z
@@ -30,9 +31,41 @@ export const Route = createFileRoute("/reset-password")({
 
 function ResetPasswordPage() {
   const navigate = useNavigate();
+  const session = useAuth((s) => s.session);
+  const authLoading = useAuth((s) => s.loading);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [hydrating, setHydrating] = useState(true);
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash) {
+      setHydrating(false);
+      return;
+    }
+
+    const params = new URLSearchParams(hash.substring(1));
+    const accessToken = params.get("access_token");
+    const refreshToken = params.get("refresh_token");
+    const type = params.get("type");
+
+    if (accessToken && refreshToken && type === "recovery") {
+      supabase.auth
+        .setSession({ access_token: accessToken, refresh_token: refreshToken })
+        .then(({ error }) => {
+          if (error) {
+            toast.error("Reset link expired. Please request a new one.");
+            navigate({ to: "/forgot-password" });
+            return;
+          }
+          window.history.replaceState({}, document.title, window.location.pathname);
+          setHydrating(false);
+        });
+    } else {
+      setHydrating(false);
+    }
+  }, [navigate]);
 
   const {
     register,
@@ -62,6 +95,33 @@ function ResetPasswordPage() {
     toast.success("Password updated — you're all set.");
     navigate({ to: "/login", search: { redirect: "" } });
   };
+
+  if (authLoading || hydrating) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-dream px-4">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-dream px-4">
+        <div className="max-w-md text-center">
+          <p className="font-display text-3xl">Session expired</p>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Your reset link has expired. Please request a new one.
+          </p>
+          <Link
+            to="/forgot-password"
+            className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-foreground px-8 text-xs uppercase tracking-[0.25em] text-background"
+          >
+            Request new link
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-dream px-4 py-20">
@@ -109,11 +169,7 @@ function ResetPasswordPage() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
               {errors.password && (
@@ -165,17 +221,11 @@ function ResetPasswordPage() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
                   aria-label={showConfirm ? "Hide password" : "Show password"}
                 >
-                  {showConfirm ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
               {errors.confirmPassword && (
-                <p className="text-xs text-destructive">
-                  {errors.confirmPassword.message}
-                </p>
+                <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>
               )}
             </div>
 

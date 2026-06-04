@@ -114,7 +114,9 @@ export function Navbar() {
                   >
                     <div className="px-4 py-2 border-b border-border">
                       <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                      <p className="text-xs font-medium uppercase tracking-wider mt-0.5 capitalize">{role}</p>
+                      <p className="text-xs font-medium uppercase tracking-wider mt-0.5 capitalize">
+                        {role}
+                      </p>
                     </div>
                     {role === "admin" && (
                       <Link
@@ -208,7 +210,10 @@ export function Navbar() {
                     </Link>
                   )}
                   <button
-                    onClick={() => { handleSignOut(); setOpen(false); }}
+                    onClick={() => {
+                      handleSignOut();
+                      setOpen(false);
+                    }}
                     className="flex items-center gap-2 text-sm uppercase tracking-[0.18em] text-destructive"
                   >
                     <LogOut className="h-4 w-4" />

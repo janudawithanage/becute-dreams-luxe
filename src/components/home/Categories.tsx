@@ -13,7 +13,10 @@ export function Categories() {
             Find your <em className="font-light">aesthetic.</em>
           </h2>
         </div>
-        <Link to="/collections" className="group inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em]">
+        <Link
+          to="/collections"
+          className="group inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em]"
+        >
           View all
           <ArrowUpRight className="h-4 w-4 transition group-hover:rotate-45" />
         </Link>
@@ -40,7 +43,13 @@ export function Categories() {
                   loading="lazy"
                   className="h-full w-full object-cover transition duration-[1200ms] ease-out group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/0 to-transparent" style={{ background: "linear-gradient(to top, color-mix(in oklab, var(--ink) 65%, transparent), transparent 55%)" }} />
+                <div
+                  className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/0 to-transparent"
+                  style={{
+                    background:
+                      "linear-gradient(to top, color-mix(in oklab, var(--ink) 65%, transparent), transparent 55%)",
+                  }}
+                />
                 <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-6 text-background">
                   <div>
                     <p className="text-[10px] uppercase tracking-[0.3em] opacity-70">{c.tagline}</p>

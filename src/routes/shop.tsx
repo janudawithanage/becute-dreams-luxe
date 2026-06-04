@@ -44,7 +44,12 @@ function Shop() {
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
-              navigate({ search: (s: { category?: string; q?: string }) => ({ ...s, q: e.target.value || undefined }) });
+              navigate({
+                search: (s: { category?: string; q?: string }) => ({
+                  ...s,
+                  q: e.target.value || undefined,
+                }),
+              });
             }}
             placeholder="Search stickers…"
             className="w-56 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
@@ -55,7 +60,11 @@ function Shop() {
       {/* Filter chips */}
       <div className="mt-10 flex flex-wrap gap-2">
         <button
-          onClick={() => navigate({ search: (s: { category?: string; q?: string }) => ({ ...s, category: undefined }) })}
+          onClick={() =>
+            navigate({
+              search: (s: { category?: string; q?: string }) => ({ ...s, category: undefined }),
+            })
+          }
           className={`rounded-full border px-5 py-2 text-xs uppercase tracking-[0.2em] transition ${!category ? "border-foreground bg-foreground text-background" : "border-foreground/15 hover:border-foreground/40"}`}
         >
           All
@@ -63,7 +72,11 @@ function Shop() {
         {categories.map((c) => (
           <button
             key={c.slug}
-            onClick={() => navigate({ search: (s: { category?: string; q?: string }) => ({ ...s, category: c.slug }) })}
+            onClick={() =>
+              navigate({
+                search: (s: { category?: string; q?: string }) => ({ ...s, category: c.slug }),
+              })
+            }
             className={`rounded-full border px-5 py-2 text-xs uppercase tracking-[0.2em] transition ${category === c.slug ? "border-foreground bg-foreground text-background" : "border-foreground/15 hover:border-foreground/40"}`}
           >
             {c.name}
@@ -82,12 +95,22 @@ function Shop() {
           >
             <Link to="/product/$slug" params={{ slug: p.slug }} className="block">
               <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted">
-                <img src={p.image} alt={p.name} loading="lazy" className="h-full w-full object-cover transition duration-1000 group-hover:scale-105" />
+                <img
+                  src={p.image}
+                  alt={p.name}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition duration-1000 group-hover:scale-105"
+                />
                 {p.tag && (
-                  <span className="absolute left-3 top-3 rounded-full bg-background/90 px-3 py-1 text-[10px] uppercase tracking-[0.2em]">{p.tag}</span>
+                  <span className="absolute left-3 top-3 rounded-full bg-background/90 px-3 py-1 text-[10px] uppercase tracking-[0.2em]">
+                    {p.tag}
+                  </span>
                 )}
                 <button
-                  onClick={(e) => { e.preventDefault(); add(p); }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    add(p);
+                  }}
                   aria-label="Quick add"
                   className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-foreground text-background opacity-0 transition group-hover:opacity-100"
                 >
@@ -104,7 +127,9 @@ function Shop() {
       </div>
 
       {filtered.length === 0 && (
-        <p className="mt-24 text-center font-display text-3xl text-muted-foreground">No pieces matched.</p>
+        <p className="mt-24 text-center font-display text-3xl text-muted-foreground">
+          No pieces matched.
+        </p>
       )}
     </div>
   );

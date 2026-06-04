@@ -9,8 +9,16 @@ export function Hero() {
   return (
     <section className="relative isolate overflow-hidden bg-gradient-dream pb-24 pt-12 lg:pb-32">
       {/* Soft floating orbs */}
-      <div aria-hidden className="pointer-events-none absolute -left-32 top-20 h-96 w-96 rounded-full bg-blush/40 blur-3xl" style={{ background: "color-mix(in oklab, var(--blush) 50%, transparent)" }} />
-      <div aria-hidden className="pointer-events-none absolute -right-32 bottom-0 h-[28rem] w-[28rem] rounded-full blur-3xl" style={{ background: "color-mix(in oklab, var(--lavender) 50%, transparent)" }} />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -left-32 top-20 h-96 w-96 rounded-full bg-blush/40 blur-3xl"
+        style={{ background: "color-mix(in oklab, var(--blush) 50%, transparent)" }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-32 bottom-0 h-[28rem] w-[28rem] rounded-full blur-3xl"
+        style={{ background: "color-mix(in oklab, var(--lavender) 50%, transparent)" }}
+      />
 
       <div className="mx-auto grid max-w-[1400px] grid-cols-1 items-center gap-12 px-6 lg:grid-cols-12 lg:gap-8 lg:px-12">
         <div className="lg:col-span-6">
@@ -38,8 +46,8 @@ export function Hero() {
             transition={{ duration: 0.8, ease, delay: 0.3 }}
             className="mt-8 max-w-md text-base leading-relaxed text-foreground/70"
           >
-            Becute Dreams is a modern atelier crafting premium stickers and creative
-            accessories. Designed in calm. Made with care. Made to be loved.
+            Becute Dreams is a modern atelier crafting premium stickers and creative accessories.
+            Designed in calm. Made with care. Made to be loved.
           </motion.p>
 
           <motion.div
@@ -107,7 +115,9 @@ export function Hero() {
               transition={{ duration: 0.8, delay: 0.8 }}
               className="absolute -left-4 top-10 hidden rounded-2xl bg-background/80 p-4 shadow-soft backdrop-blur md:block float-soft"
             >
-              <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">New drop</p>
+              <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                New drop
+              </p>
               <p className="font-display text-xl">Lavender Series</p>
             </motion.div>
             <motion.div
@@ -128,8 +138,23 @@ export function Hero() {
       <div className="mt-20 overflow-hidden border-y border-foreground/10 py-5">
         <div className="marquee-track flex w-max items-center gap-16 whitespace-nowrap font-display text-3xl text-foreground/70">
           {Array.from({ length: 2 }).flatMap((_, k) =>
-            ["Hand-finished", "✦", "Small batches", "✦", "Soft shipping", "✦", "Made with care", "✦", "Designed in calm", "✦", "Limited editions", "✦"].map((s, i) => (
-              <span key={`${k}-${i}`} className="italic">{s}</span>
+            [
+              "Hand-finished",
+              "✦",
+              "Small batches",
+              "✦",
+              "Soft shipping",
+              "✦",
+              "Made with care",
+              "✦",
+              "Designed in calm",
+              "✦",
+              "Limited editions",
+              "✦",
+            ].map((s, i) => (
+              <span key={`${k}-${i}`} className="italic">
+                {s}
+              </span>
             )),
           )}
         </div>

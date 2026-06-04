@@ -52,11 +52,7 @@ function AdminSettings() {
             />
           </Field>
           <Field label="Tagline">
-            <input
-              value={tagline}
-              onChange={(e) => setTagline(e.target.value)}
-              className="input"
-            />
+            <input value={tagline} onChange={(e) => setTagline(e.target.value)} className="input" />
           </Field>
           <Field label="Support email">
             <input
@@ -139,13 +135,7 @@ function Section({
   );
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block space-y-1.5">
       <span className="block text-xs uppercase tracking-[0.18em] text-muted-foreground">

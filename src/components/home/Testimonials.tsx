@@ -1,9 +1,15 @@
 import { motion } from "framer-motion";
 
 const quotes = [
-  { q: "It feels like opening a small piece of someone's diary. Absolutely in love.", a: "Mia · Paris" },
+  {
+    q: "It feels like opening a small piece of someone's diary. Absolutely in love.",
+    a: "Mia · Paris",
+  },
   { q: "The quality is honestly unreal. Everything is so softly luxurious.", a: "Hana · Tokyo" },
-  { q: "I gift Becute packs to all my best friends. It's our love language now.", a: "Sara · Cairo" },
+  {
+    q: "I gift Becute packs to all my best friends. It's our love language now.",
+    a: "Sara · Cairo",
+  },
 ];
 
 export function Testimonials() {

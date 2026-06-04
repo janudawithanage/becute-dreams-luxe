@@ -16,14 +16,70 @@ interface Customer {
 }
 
 const CUSTOMERS: Customer[] = [
-  { id: "c1", name: "Aiko Tanaka", email: "aiko@example.com", joined: "Jan 12, 2026", orders: 8, spent: 412 },
-  { id: "c2", name: "Maya Chen", email: "maya@example.com", joined: "Feb 03, 2026", orders: 3, spent: 86 },
-  { id: "c3", name: "Ines Moreau", email: "ines@example.com", joined: "Mar 21, 2026", orders: 12, spent: 1024 },
-  { id: "c4", name: "Sofia Rossi", email: "sofia@example.com", joined: "Apr 02, 2026", orders: 4, spent: 156 },
-  { id: "c5", name: "Lila Park", email: "lila@example.com", joined: "Apr 18, 2026", orders: 6, spent: 232 },
-  { id: "c6", name: "Eva Lindgren", email: "eva@example.com", joined: "May 04, 2026", orders: 2, spent: 76 },
-  { id: "c7", name: "Yuna Park", email: "yuna@example.com", joined: "May 14, 2026", orders: 1, spent: 22 },
-  { id: "c8", name: "Noah Kim", email: "noah@example.com", joined: "May 18, 2026", orders: 1, spent: 44 },
+  {
+    id: "c1",
+    name: "Aiko Tanaka",
+    email: "aiko@example.com",
+    joined: "Jan 12, 2026",
+    orders: 8,
+    spent: 412,
+  },
+  {
+    id: "c2",
+    name: "Maya Chen",
+    email: "maya@example.com",
+    joined: "Feb 03, 2026",
+    orders: 3,
+    spent: 86,
+  },
+  {
+    id: "c3",
+    name: "Ines Moreau",
+    email: "ines@example.com",
+    joined: "Mar 21, 2026",
+    orders: 12,
+    spent: 1024,
+  },
+  {
+    id: "c4",
+    name: "Sofia Rossi",
+    email: "sofia@example.com",
+    joined: "Apr 02, 2026",
+    orders: 4,
+    spent: 156,
+  },
+  {
+    id: "c5",
+    name: "Lila Park",
+    email: "lila@example.com",
+    joined: "Apr 18, 2026",
+    orders: 6,
+    spent: 232,
+  },
+  {
+    id: "c6",
+    name: "Eva Lindgren",
+    email: "eva@example.com",
+    joined: "May 04, 2026",
+    orders: 2,
+    spent: 76,
+  },
+  {
+    id: "c7",
+    name: "Yuna Park",
+    email: "yuna@example.com",
+    joined: "May 14, 2026",
+    orders: 1,
+    spent: 22,
+  },
+  {
+    id: "c8",
+    name: "Noah Kim",
+    email: "noah@example.com",
+    joined: "May 18, 2026",
+    orders: 1,
+    spent: 44,
+  },
 ];
 
 function AdminCustomers() {

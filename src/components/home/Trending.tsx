@@ -9,14 +9,22 @@ export function Trending() {
   const list = products.slice(0, 6);
 
   return (
-    <section className="bg-cream/40 py-24 lg:py-32" style={{ background: "color-mix(in oklab, var(--cream) 60%, transparent)" }}>
+    <section
+      className="bg-cream/40 py-24 lg:py-32"
+      style={{ background: "color-mix(in oklab, var(--cream) 60%, transparent)" }}
+    >
       <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
         <div className="flex flex-col items-baseline justify-between gap-4 md:flex-row">
           <div>
             <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">Trending</p>
-            <h2 className="mt-4 font-display text-5xl tracking-tight lg:text-7xl">Currently <em className="font-light">adored.</em></h2>
+            <h2 className="mt-4 font-display text-5xl tracking-tight lg:text-7xl">
+              Currently <em className="font-light">adored.</em>
+            </h2>
           </div>
-          <Link to="/shop" className="text-xs uppercase tracking-[0.25em] underline-offset-4 hover:underline">
+          <Link
+            to="/shop"
+            className="text-xs uppercase tracking-[0.25em] underline-offset-4 hover:underline"
+          >
             Shop everything →
           </Link>
         </div>
@@ -45,7 +53,10 @@ export function Trending() {
                     </span>
                   )}
                   <button
-                    onClick={(e) => { e.preventDefault(); add(p); }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      add(p);
+                    }}
                     aria-label="Add to cart"
                     className="absolute bottom-4 right-4 flex h-12 w-12 translate-y-3 items-center justify-center rounded-full bg-foreground text-background opacity-0 transition duration-500 group-hover:translate-y-0 group-hover:opacity-100"
                   >

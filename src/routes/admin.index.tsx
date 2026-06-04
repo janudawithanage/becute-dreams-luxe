@@ -1,13 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import {
-  ArrowUpRight,
-  DollarSign,
-  Package,
-  ShoppingBag,
-  Users,
-  TrendingUp,
-} from "lucide-react";
+import { ArrowUpRight, DollarSign, Package, ShoppingBag, Users, TrendingUp } from "lucide-react";
 import { products } from "@/lib/products";
 
 export const Route = createFileRoute("/admin/")({
@@ -88,10 +81,7 @@ function AdminDashboard() {
           </div>
           <div className="divide-y divide-border">
             {RECENT_ORDERS.map((o) => (
-              <div
-                key={o.id}
-                className="flex items-center justify-between px-6 py-4 text-sm"
-              >
+              <div key={o.id} className="flex items-center justify-between px-6 py-4 text-sm">
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{o.customer}</p>
                   <p className="text-xs text-muted-foreground">
@@ -135,9 +125,24 @@ function AdminDashboard() {
 
       {/* Quick actions */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <QuickAction to="/admin/products" icon={Package} title="Add product" desc="Bring something new to the shelf." />
-        <QuickAction to="/admin/orders" icon={ShoppingBag} title="Review orders" desc="Process pending fulfilment." />
-        <QuickAction to="/admin/customers" icon={Users} title="Customers" desc="Browse the community." />
+        <QuickAction
+          to="/admin/products"
+          icon={Package}
+          title="Add product"
+          desc="Bring something new to the shelf."
+        />
+        <QuickAction
+          to="/admin/orders"
+          icon={ShoppingBag}
+          title="Review orders"
+          desc="Process pending fulfilment."
+        />
+        <QuickAction
+          to="/admin/customers"
+          icon={Users}
+          title="Customers"
+          desc="Browse the community."
+        />
       </div>
     </div>
   );

@@ -70,12 +70,12 @@ function ForgotPasswordPage() {
           {sent ? (
             <div className="text-center">
               <p className="text-sm text-foreground/80">
-                We've sent a password reset link to your email. Check your inbox
-                and follow the instructions.
+                We've sent a password reset link to your email. Check your inbox and follow the
+                instructions.
               </p>
               <Link
                 to="/login"
-                search={{ redirect: null }}
+                search={{ redirect: "" }}
                 className="mt-8 inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground underline-offset-4 hover:underline"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
@@ -85,8 +85,8 @@ function ForgotPasswordPage() {
           ) : (
             <>
               <p className="mb-6 text-sm text-muted-foreground">
-                Enter the email address associated with your account and we'll
-                send you a link to reset your password.
+                Enter the email address associated with your account and we'll send you a link to
+                reset your password.
               </p>
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
