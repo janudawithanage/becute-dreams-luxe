@@ -2,8 +2,8 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Minus, Plus, ArrowUpRight } from "lucide-react";
-import { getProduct, products } from "@/lib/products";
-import { useCart } from "@/lib/cart";
+import { getProduct, products } from "@/features/products";
+import { useCart } from "@/features/cart";
 
 export const Route = createFileRoute("/product/$slug")({
   loader: ({ params }) => {

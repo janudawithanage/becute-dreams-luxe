@@ -1,45 +1,18 @@
-import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useCart } from "@/lib/cart";
-import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
+import { useCart } from "@/features/cart";
 import { toast } from "sonner";
 import { MessageCircle } from "lucide-react";
 
 export const Route = createFileRoute("/checkout")({
-  // Guard: must be logged in to place an order.
-  // Cart items are preserved in localStorage so nothing is lost.
-  beforeLoad: () => {
-    const { session, loading } = useAuth.getState();
-    // If auth is still hydrating, let it through — the component
-    // will handle the redirect once loading settles.
-    if (!loading && !session) {
-      throw redirect({ to: "/login", search: { redirect: "/checkout" } });
-    }
-  },
   component: Checkout,
 });
 
 function Checkout() {
   const { items, total, clear } = useCart();
   const navigate = useNavigate();
-  const { session, loading: authLoading } = useAuth();
   const [placed, setPlaced] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", address: "" });
-
-  // Fallback guard for when auth finishes hydrating after the component mounts
-  if (authLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <span className="h-6 w-6 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
-      </div>
-    );
-  }
-
-  if (!session) {
-    navigate({ to: "/login", search: { redirect: "/checkout" } });
-    return null;
-  }
 
   if (items.length === 0 && !placed) {
     return (
@@ -86,9 +59,8 @@ function Checkout() {
     );
   }
 
-  const submit = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!session?.user) return;
 
     const orderItems = items.map((i) => ({
       id: i.product.id,
@@ -101,19 +73,12 @@ function Checkout() {
     const orderData = {
       cart: orderItems,
       customer: { name: form.name, phone: form.phone, address: form.address },
+      total: total(),
     };
 
-    const { error } = await supabase.from("orders").insert({
-      user_id: session.user.id,
-      items: orderData,
-      total: total(),
-      status: "pending",
-    });
-
-    if (error) {
-      toast.error("Something went wrong. Please try again.");
-      return;
-    }
+    // Simulate order placement (no backend)
+    console.log("Order placed:", orderData);
+    toast.success("Order details saved locally");
 
     setPlaced(true);
     clear();

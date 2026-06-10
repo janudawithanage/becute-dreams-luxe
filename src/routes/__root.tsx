@@ -9,8 +9,7 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
-import { SiteLayout } from "@/components/layout/SiteLayout";
-import { useAuthListener } from "@/hooks/useAuthListener";
+import { SiteLayout } from "@/shared/components/layout/SiteLayout";
 
 function NotFoundComponent() {
   return (
@@ -93,7 +92,6 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  useAuthListener();
   return (
     <QueryClientProvider client={queryClient}>
       <SiteLayout />

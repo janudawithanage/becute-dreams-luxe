@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { categories } from "@/lib/products";
+import { categories } from "@/features/products";
 import { ArrowUpRight } from "lucide-react";
 
 export const Route = createFileRoute("/collections")({

@@ -3,8 +3,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search, ShoppingBag } from "lucide-react";
 import { z } from "zod";
-import { products, categories } from "@/lib/products";
-import { useCart } from "@/lib/cart";
+import { products, categories } from "@/features/products";
+import { useCart } from "@/features/cart";
 
 const searchSchema = z.object({
   category: z.string().optional(),
