@@ -1,14 +1,10 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useCart } from "@/features/cart";
 import { toast } from "sonner";
 import { MessageCircle } from "lucide-react";
 
-export const Route = createFileRoute("/checkout")({
-  component: Checkout,
-});
-
-function Checkout() {
+export function Checkout() {
   const { items, total, clear } = useCart();
   const navigate = useNavigate();
   const [placed, setPlaced] = useState(false);

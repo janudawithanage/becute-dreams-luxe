@@ -16,7 +16,6 @@ export * from "./select";
 export * from "./separator";
 export * from "./sheet";
 export * from "./tabs";
-export * from "./toast";
 export * from "./tooltip";
 export * from "./avatar";
 export * from "./checkbox";

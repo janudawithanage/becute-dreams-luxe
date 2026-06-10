@@ -1,6 +1,6 @@
 # Becute Dreams Luxe - Frontend Demo
 
-A luxury sticker boutique e-commerce frontend built with React, TanStack Start, and Tailwind CSS.
+A luxury sticker boutique e-commerce frontend built with **React**, **React Router**, and **Tailwind CSS**.
 
 ## 🎨 Features
 
@@ -9,6 +9,7 @@ This is a **frontend-only demo** showcasing premium UI/UX design for an e-commer
 - ✨ Beautiful animated homepage with hero section
 - 🛍️ Product catalog with categories and filtering
 - 🛒 Shopping cart with localStorage persistence
+- 🔐 Authentication pages (Sign In, Sign Up, Forgot Password) - UI only
 - 📱 Fully responsive design
 - 🎭 Smooth animations with Framer Motion
 - 🎨 Custom design system with Tailwind CSS
@@ -51,17 +52,22 @@ npm run preview
 ```
 src/
 ├── assets/           # Images and static assets
-├── components/       # React components
-│   ├── home/        # Homepage sections
-│   ├── layout/      # Layout components (Navbar, Footer, Cart)
-│   └── ui/          # shadcn/ui components
-├── hooks/           # Custom React hooks
-├── lib/             # Utility functions and stores
-│   ├── cart.ts      # Cart state management (Zustand)
-│   ├── products.ts  # Product data
-│   └── utils.ts     # Helper functions
-├── routes/          # Page routes (TanStack Router)
-└── styles.css       # Global styles
+├── pages/            # Page components
+│   ├── Home.tsx
+│   ├── Shop.tsx
+│   ├── About.tsx
+│   └── ...
+├── features/         # Feature modules
+│   ├── cart/        # Shopping cart feature
+│   └── products/    # Product catalog feature
+├── shared/          # Shared code
+│   ├── components/  # Reusable components
+│   │   ├── layout/ # Layout components (Navbar, Footer)
+│   │   └── ui/     # shadcn/ui components
+│   ├── hooks/      # Custom React hooks
+│   └── utils/      # Helper functions
+├── App.tsx          # React Router setup
+└── main.tsx         # Application entry point
 ```
 
 ## 🛒 Cart Functionality
@@ -79,28 +85,29 @@ The shopping cart uses **Zustand** with localStorage persistence:
 The checkout page collects order information but **does not process payments**. Order data is logged to the browser console for demo purposes.
 
 ### Product Data
-All product information is hardcoded in `src/lib/products.ts`. In a production app, this would come from a CMS or API.
+All product information is hardcoded in `src/features/products/products.data.ts`. In a production app, this would come from a CMS or API.
 
 ### No Authentication
-This demo has **no user authentication**. All features are accessible without login.
+This demo includes **authentication UI pages** (sign in, sign up, forgot password) but has **no actual authentication system**. The forms are for demonstration only and don't connect to a backend.
 
 ## 🛠️ Tech Stack
 
-- **Framework**: React 19 + TanStack Start
+- **Framework**: React 19
+- **Routing**: React Router 7
 - **Styling**: Tailwind CSS 4
 - **Animations**: Framer Motion
 - **State**: Zustand
 - **UI Components**: shadcn/ui (Radix UI)
 - **Icons**: Lucide React
 - **Forms**: React Hook Form + Zod
-- **Router**: TanStack Router
+- **Build Tool**: Vite
 
 ## 📦 Key Dependencies
 
 ```json
 {
   "react": "^19.2.0",
-  "@tanstack/react-start": "^1.167.50",
+  "react-router-dom": "^7.1.3",
   "tailwindcss": "^4.2.1",
   "framer-motion": "^12.40.0",
   "zustand": "^5.0.13"
@@ -126,12 +133,15 @@ The project uses a custom design system with:
 - `/checkout` - Checkout (demo only)
 - `/about` - About page
 - `/contact` - Contact page
+- `/sign-in` - Sign in page (UI only)
+- `/sign-up` - Sign up page (UI only)
+- `/forgot-password` - Password reset page (UI only)
 
 ## 🚧 What's Missing (Intentionally Removed)
 
-This is a **frontend-only demo**. The following features have been removed:
+This is a **frontend-only demo**. The following features have been removed or are UI-only:
 
-- ❌ User authentication (login/signup)
+- ❌ User authentication backend (UI pages exist but don't authenticate)
 - ❌ Backend API integration
 - ❌ Database connectivity
 - ❌ Admin panel
@@ -141,6 +151,7 @@ This is a **frontend-only demo**. The following features have been removed:
 - ❌ Real-time features
 
 See `BACKEND_REMOVAL_SUMMARY.md` for complete details.
+See `AUTH_PAGES.md` for authentication UI documentation.
 
 ## 💡 Future Enhancements
 

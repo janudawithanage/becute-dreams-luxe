@@ -1,21 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import about from "@/assets/about.jpg";
 
-export const Route = createFileRoute("/about")({
-  head: () => ({
-    meta: [
-      { title: "Atelier — Becute Dreams" },
-      {
-        name: "description",
-        content: "Inside the Becute Dreams atelier — a quiet boutique for the softly creative.",
-      },
-    ],
-  }),
-  component: About,
-});
-
-function About() {
+export function About() {
   return (
     <div>
       <section className="mx-auto max-w-[1400px] px-6 py-20 lg:px-12 lg:py-32">

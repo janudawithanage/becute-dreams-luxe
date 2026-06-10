@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { categories } from "@/features/products";
 import { ArrowUpRight } from "lucide-react";
 
@@ -32,8 +32,7 @@ export function Categories() {
             transition={{ duration: 0.8, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
           >
             <Link
-              to="/shop"
-              search={{ category: c.slug }}
+              to={`/shop?category=${c.slug}`}
               className="group block overflow-hidden rounded-3xl bg-muted"
             >
               <div className="relative aspect-[4/5] overflow-hidden">

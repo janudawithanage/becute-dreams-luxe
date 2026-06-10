@@ -1,11 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { Instagram, Mail, MessageCircle } from "lucide-react";
 
-export const Route = createFileRoute("/contact")({
-  component: Contact,
-});
-
-function Contact() {
+export function Contact() {
   return (
     <div className="mx-auto max-w-[1400px] px-6 py-20 lg:px-12 lg:py-32">
       <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">Get in touch</p>

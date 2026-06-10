@@ -1,24 +1,16 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Search, ShoppingBag } from "lucide-react";
-import { z } from "zod";
 import { products, categories } from "@/features/products";
 import { useCart } from "@/features/cart";
+import { Link } from "react-router-dom";
 
-const searchSchema = z.object({
-  category: z.string().optional(),
-  q: z.string().optional(),
-});
-
-export const Route = createFileRoute("/shop")({
-  validateSearch: searchSchema,
-  component: Shop,
-});
-
-function Shop() {
-  const { category, q } = Route.useSearch();
-  const navigate = Route.useNavigate();
+export function Shop() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const category = searchParams.get("category") || undefined;
+  const q = searchParams.get("q") || undefined;
   const [query, setQuery] = useState(q ?? "");
   const add = useCart((s) => s.add);
 
@@ -27,6 +19,28 @@ function Shop() {
     if (query && !p.name.toLowerCase().includes(query.toLowerCase())) return false;
     return true;
   });
+
+  const updateSearch = (updates: { category?: string; q?: string }) => {
+    const newParams = new URLSearchParams(searchParams);
+    
+    if (updates.category !== undefined) {
+      if (updates.category) {
+        newParams.set("category", updates.category);
+      } else {
+        newParams.delete("category");
+      }
+    }
+    
+    if (updates.q !== undefined) {
+      if (updates.q) {
+        newParams.set("q", updates.q);
+      } else {
+        newParams.delete("q");
+      }
+    }
+    
+    setSearchParams(newParams);
+  };
 
   return (
     <div className="mx-auto max-w-[1400px] px-6 py-16 lg:px-12 lg:py-24">
@@ -44,12 +58,7 @@ function Shop() {
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
-              navigate({
-                search: (s: { category?: string; q?: string }) => ({
-                  ...s,
-                  q: e.target.value || undefined,
-                }),
-              });
+              updateSearch({ q: e.target.value || undefined });
             }}
             placeholder="Search stickers…"
             className="w-56 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
@@ -60,11 +69,7 @@ function Shop() {
       {/* Filter chips */}
       <div className="mt-10 flex flex-wrap gap-2">
         <button
-          onClick={() =>
-            navigate({
-              search: (s: { category?: string; q?: string }) => ({ ...s, category: undefined }),
-            })
-          }
+          onClick={() => updateSearch({ category: undefined })}
           className={`rounded-full border px-5 py-2 text-xs uppercase tracking-[0.2em] transition ${!category ? "border-foreground bg-foreground text-background" : "border-foreground/15 hover:border-foreground/40"}`}
         >
           All
@@ -72,11 +77,7 @@ function Shop() {
         {categories.map((c) => (
           <button
             key={c.slug}
-            onClick={() =>
-              navigate({
-                search: (s: { category?: string; q?: string }) => ({ ...s, category: c.slug }),
-              })
-            }
+            onClick={() => updateSearch({ category: c.slug })}
             className={`rounded-full border px-5 py-2 text-xs uppercase tracking-[0.2em] transition ${category === c.slug ? "border-foreground bg-foreground text-background" : "border-foreground/15 hover:border-foreground/40"}`}
           >
             {c.name}
@@ -93,7 +94,7 @@ function Shop() {
             transition={{ duration: 0.6, delay: i * 0.03 }}
             className="group"
           >
-            <Link to="/product/$slug" params={{ slug: p.slug }} className="block">
+            <Link to={`/product/${p.slug}`} className="block">
               <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted">
                 <img
                   src={p.image}

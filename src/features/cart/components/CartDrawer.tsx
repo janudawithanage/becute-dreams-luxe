@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { X, Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "@/features/cart";
 
@@ -9,7 +9,7 @@ export function CartDrawer() {
 
   const handleCheckout = () => {
     setOpen(false);
-    navigate({ to: "/checkout" });
+    navigate("/checkout");
   };
 
   return (

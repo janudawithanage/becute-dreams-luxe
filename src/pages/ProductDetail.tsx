@@ -1,28 +1,32 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useParams, Link, Navigate } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Minus, Plus, ArrowUpRight } from "lucide-react";
 import { getProduct, products } from "@/features/products";
 import { useCart } from "@/features/cart";
 
-export const Route = createFileRoute("/product/$slug")({
-  loader: ({ params }) => {
-    const p = getProduct(params.slug);
-    if (!p) throw notFound();
-    return p;
-  },
-  notFoundComponent: () => (
-    <div className="flex min-h-[60vh] items-center justify-center">
-      <p className="font-display text-3xl">Piece not found.</p>
-    </div>
-  ),
-  component: ProductPage,
-});
-
-function ProductPage() {
-  const product = Route.useLoaderData();
+export function ProductDetail() {
+  const { slug } = useParams<{ slug: string }>();
+  const product = slug ? getProduct(slug) : null;
   const [qty, setQty] = useState(1);
   const add = useCart((s) => s.add);
+
+  if (!product) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <p className="font-display text-3xl">Piece not found.</p>
+          <Link
+            to="/shop"
+            className="mt-8 inline-flex h-12 items-center rounded-full bg-foreground px-8 text-xs uppercase tracking-[0.25em] text-background"
+          >
+            Back to shop
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   const related = products
     .filter((p) => p.category === product.category && p.id !== product.id)
     .slice(0, 4);
@@ -114,8 +118,7 @@ function ProductPage() {
             {related.map((p) => (
               <Link
                 key={p.id}
-                to="/product/$slug"
-                params={{ slug: p.slug }}
+                to={`/product/${p.slug}`}
                 className="group block"
               >
                 <div className="aspect-[4/5] overflow-hidden rounded-2xl bg-muted">

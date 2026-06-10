@@ -1,13 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { categories } from "@/features/products";
 import { ArrowUpRight } from "lucide-react";
 
-export const Route = createFileRoute("/collections")({
-  component: Collections,
-});
-
-function Collections() {
+export function Collections() {
   return (
     <div className="mx-auto max-w-[1400px] px-6 py-16 lg:px-12 lg:py-24">
       <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">Collections</p>
@@ -28,8 +24,7 @@ function Collections() {
             transition={{ duration: 0.7, delay: i * 0.04 }}
           >
             <Link
-              to="/shop"
-              search={{ category: c.slug }}
+              to={`/shop?category=${c.slug}`}
               className="group grid grid-cols-1 items-center gap-8 overflow-hidden rounded-3xl bg-muted md:grid-cols-12"
             >
               <div className="md:col-span-5">

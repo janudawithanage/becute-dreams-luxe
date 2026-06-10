@@ -1,7 +1,7 @@
-import { Link } from "@tanstack/react-router";
+import { Link, NavLink } from "react-router-dom";
 import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import { useState, useEffect } from "react";
-import { ShoppingBag, Menu, X, Search } from "lucide-react";
+import { ShoppingBag, Menu, X, Search, User } from "lucide-react";
 import { useCart } from "@/features/cart";
 import { cn } from "@/shared/utils";
 
@@ -46,15 +46,19 @@ export function Navbar() {
 
           <div className="hidden items-center gap-10 md:flex">
             {links.map((l) => (
-              <Link
+              <NavLink
                 key={l.to}
                 to={l.to}
-                className="group relative text-sm uppercase tracking-[0.18em] text-foreground/80 transition hover:text-foreground"
-                activeProps={{ className: "text-foreground" }}
+                className={({ isActive }) =>
+                  cn(
+                    "group relative text-sm uppercase tracking-[0.18em] text-foreground/80 transition hover:text-foreground",
+                    isActive && "text-foreground"
+                  )
+                }
               >
                 {l.label}
                 <span className="absolute -bottom-1 left-0 h-px w-0 bg-foreground transition-all duration-500 group-hover:w-full" />
-              </Link>
+              </NavLink>
             ))}
           </div>
 
@@ -65,6 +69,13 @@ export function Navbar() {
             >
               <Search className="h-4 w-4" />
             </button>
+            <Link
+              to="/sign-in"
+              aria-label="Account"
+              className="hidden h-10 w-10 items-center justify-center rounded-full text-foreground/80 transition hover:bg-foreground/5 md:flex"
+            >
+              <User className="h-4 w-4" />
+            </Link>
             <button
               onClick={() => setCartOpen(true)}
               aria-label="Open cart"
@@ -125,6 +136,19 @@ export function Navbar() {
                 </Link>
               </motion.div>
             ))}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.05 * links.length }}
+            >
+              <Link
+                to="/sign-in"
+                onClick={() => setOpen(false)}
+                className="font-display text-5xl tracking-tight"
+              >
+                Account
+              </Link>
+            </motion.div>
           </div>
         </motion.div>
       )}

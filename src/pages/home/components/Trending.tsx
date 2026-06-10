@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { products } from "@/features/products";
 import { useCart } from "@/features/cart";
 import { ShoppingBag } from "lucide-react";
@@ -39,7 +39,7 @@ export function Trending() {
               transition={{ duration: 0.7, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
               className="group"
             >
-              <Link to="/product/$slug" params={{ slug: p.slug }} className="block">
+              <Link to={`/product/${p.slug}`} className="block">
                 <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted">
                   <img
                     src={p.image}

@@ -50,12 +50,16 @@ src/
 │   ├── cart/        # Shopping cart
 │   └── products/    # Product catalog
 ├── pages/           # Page components
-│   └── home/        # Homepage sections
-├── routes/          # Route definitions
+│   ├── Home.tsx
+│   ├── Shop.tsx
+│   ├── About.tsx
+│   └── ...
 ├── shared/          # Shared code
 │   ├── components/  # Reusable components
 │   ├── hooks/       # Custom hooks
 │   └── utils/       # Utilities
+├── App.tsx          # React Router setup
+├── main.tsx         # Entry point
 └── styles.css       # Global styles
 ```
 
