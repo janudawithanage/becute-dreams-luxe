@@ -1,4 +1,4 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import { useState, useEffect } from "react";
 import { ShoppingBag, Menu, X, Search, User } from "lucide-react";
@@ -8,7 +8,7 @@ import { cn } from "@/shared/utils";
 const links = [
   { to: "/shop", label: "Shop" },
   { to: "/collections", label: "Collections" },
-  { to: "/about", label: "Atelier" },
+  { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
 ];
 
@@ -38,55 +38,58 @@ export function Navbar() {
         )}
       >
         <nav className="mx-auto flex h-20 max-w-[1400px] items-center justify-between px-6 lg:px-12">
-          <Link to="/" className="group flex items-center gap-2">
+          {/* Logo - Left */}
+          <Link to="/" className="group flex items-center gap-2 flex-shrink-0">
             <span className="font-display text-2xl tracking-tight">
               Becute<span className="italic text-muted-foreground"> Dreams</span>
             </span>
           </Link>
 
-          <div className="hidden items-center gap-10 md:flex">
+          {/* Navigation Links - Center on Desktop */}
+          <div className="hidden items-center gap-8 md:flex">
             {links.map((l) => (
-              <NavLink
+              <Link
                 key={l.to}
                 to={l.to}
-                className={({ isActive }) =>
-                  cn(
-                    "group relative text-sm uppercase tracking-[0.18em] text-foreground/80 transition hover:text-foreground",
-                    isActive && "text-foreground"
-                  )
-                }
+                className="group relative text-sm uppercase tracking-[0.18em] text-foreground/80 transition hover:text-foreground"
               >
                 {l.label}
                 <span className="absolute -bottom-1 left-0 h-px w-0 bg-foreground transition-all duration-500 group-hover:w-full" />
-              </NavLink>
+              </Link>
             ))}
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Actions - Right */}
+          <div className="flex items-center gap-1">
+            {/* Search - Desktop only */}
             <button
               aria-label="Search"
-              className="hidden h-10 w-10 items-center justify-center rounded-full text-foreground/80 transition hover:bg-foreground/5 md:flex"
+              className="hidden h-10 w-10 items-center justify-center rounded-full text-foreground/80 transition hover:bg-foreground/5 hover:text-foreground md:flex"
             >
               <Search className="h-4 w-4" />
             </button>
+
+            {/* Sign In - Desktop only */}
             <Link
               to="/sign-in"
-              aria-label="Account"
-              className="hidden h-10 w-10 items-center justify-center rounded-full text-foreground/80 transition hover:bg-foreground/5 md:flex"
+              className="hidden items-center gap-1.5 rounded-full px-4 py-2 text-sm uppercase tracking-[0.15em] text-foreground/80 transition hover:bg-foreground/5 hover:text-foreground md:flex"
             >
               <User className="h-4 w-4" />
+              <span>Sign In</span>
             </Link>
+
+            {/* Cart - All screens */}
             <button
               onClick={() => setCartOpen(true)}
               aria-label="Open cart"
-              className="relative flex h-10 w-10 items-center justify-center rounded-full text-foreground/80 transition hover:bg-foreground/5"
+              className="relative flex h-10 w-10 items-center justify-center rounded-full text-foreground/80 transition hover:bg-foreground/5 hover:text-foreground"
             >
               <ShoppingBag className="h-4 w-4" />
               {mounted && count > 0 && (
                 <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-ink text-[10px] font-medium text-background"
+                  className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-ink text-[10px] font-medium text-background"
                   style={{ background: "var(--ink)", color: "var(--background)" }}
                 >
                   {count}
@@ -94,10 +97,11 @@ export function Navbar() {
               )}
             </button>
 
+            {/* Mobile Menu - Mobile only */}
             <button
               aria-label="Menu"
               onClick={() => setOpen(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-full text-foreground/80 transition hover:bg-foreground/5 md:hidden"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-foreground/80 transition hover:bg-foreground/5 hover:text-foreground md:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -120,6 +124,7 @@ export function Navbar() {
             </button>
           </div>
           <div className="mt-16 flex flex-col gap-8">
+            {/* Main Navigation Links */}
             {links.map((l, i) => (
               <motion.div
                 key={l.to}
@@ -136,18 +141,43 @@ export function Navbar() {
                 </Link>
               </motion.div>
             ))}
+
+            {/* Divider */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.25 }}
+              className="border-t border-border"
+            />
+
+            {/* Secondary Links */}
             <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.05 * links.length }}
+              transition={{ delay: 0.3 }}
             >
               <Link
                 to="/sign-in"
                 onClick={() => setOpen(false)}
-                className="font-display text-5xl tracking-tight"
+                className="flex items-center gap-3 text-xl font-medium"
               >
-                Account
+                <User className="h-5 w-5" />
+                <span>Sign In</span>
               </Link>
+            </motion.div>
+
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+            >
+              <button
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 text-xl font-medium text-muted-foreground"
+              >
+                <Search className="h-5 w-5" />
+                <span>Search</span>
+              </button>
             </motion.div>
           </div>
         </motion.div>
