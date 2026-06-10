@@ -1,12 +1,14 @@
 # Migration Summary: TanStack Router → React Router
 
 ## Overview
+
 Successfully migrated the Becute Dreams Luxe project from **TanStack Start + TanStack Router** to **React + React Router** with Vite.
 
 ## What Changed
 
 ### Dependencies Removed
-- `@tanstack/react-router` 
+
+- `@tanstack/react-router`
 - `@tanstack/react-start`
 - `@tanstack/react-query`
 - `@tanstack/router-plugin`
@@ -14,17 +16,20 @@ Successfully migrated the Becute Dreams Luxe project from **TanStack Start + Tan
 - `vite-tsconfig-paths`
 
 ### Dependencies Added
+
 - `react-router-dom` (^7.1.3) - Client-side routing
 
 ### File Structure Changes
 
 #### Deleted Files
+
 - `src/routes/` (entire directory)
 - `src/router.tsx`
 - `src/start.ts`
 - `src/routeTree.gen.ts`
 
 #### New Files Created
+
 - `index.html` - HTML entry point for Vite
 - `src/main.tsx` - React application entry point
 - `src/App.tsx` - React Router setup
@@ -42,6 +47,7 @@ Successfully migrated the Becute Dreams Luxe project from **TanStack Start + Tan
   - `NotFound.tsx`
 
 #### Modified Files
+
 - `vite.config.ts` - Replaced Lovable config with standard Vite + React setup
 - `package.json` - Updated dependencies and scripts
 - `src/shared/components/layout/Navbar.tsx` - Updated to use React Router
@@ -55,7 +61,9 @@ Successfully migrated the Becute Dreams Luxe project from **TanStack Start + Tan
 ### Configuration Changes
 
 #### vite.config.ts
+
 **Before:**
+
 ```typescript
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
@@ -68,17 +76,18 @@ export default defineConfig({
 ```
 
 **After:**
+
 ```typescript
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
-import path from 'path';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import path from "path";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
   server: {
@@ -89,7 +98,9 @@ export default defineConfig({
 ```
 
 #### package.json Scripts
+
 **Before:**
+
 ```json
 {
   "dev": "vite dev",
@@ -99,6 +110,7 @@ export default defineConfig({
 ```
 
 **After:**
+
 ```json
 {
   "dev": "vite",
@@ -109,6 +121,7 @@ export default defineConfig({
 ### Routing Changes
 
 #### TanStack Router Pattern
+
 ```typescript
 // routes/shop.tsx
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -120,7 +133,7 @@ export const Route = createFileRoute("/shop")({
 function Shop() {
   const navigate = Route.useNavigate();
   navigate({ to: "/checkout" });
-  
+
   return (
     <Link to="/product/$slug" params={{ slug: "example" }}>
       View Product
@@ -130,6 +143,7 @@ function Shop() {
 ```
 
 #### React Router Pattern
+
 ```typescript
 // pages/Shop.tsx
 import { Link, useNavigate } from "react-router-dom";
@@ -137,7 +151,7 @@ import { Link, useNavigate } from "react-router-dom";
 export function Shop() {
   const navigate = useNavigate();
   navigate("/checkout");
-  
+
   return (
     <Link to={`/product/example`}>
       View Product
@@ -149,26 +163,32 @@ export function Shop() {
 ### Navigation Updates
 
 #### Link Components
+
 - **Before**: `<Link to="/shop" search={{ category: "anime" }}>`
 - **After**: `<Link to="/shop?category=anime">`
 
 #### Programmatic Navigation
+
 - **Before**: `navigate({ to: "/checkout" })`
 - **After**: `navigate("/checkout")`
 
 #### Route Parameters
+
 - **Before**: `<Link to="/product/$slug" params={{ slug: p.slug }}>`
 - **After**: `<Link to={`/product/${p.slug}`}>`
 
 #### Reading Route Params
+
 - **Before**: `const { slug } = Route.useParams()`
 - **After**: `const { slug } = useParams<{ slug: string }>()`
 
 #### Search Parameters
+
 - **Before**: `const { category } = Route.useSearch()`
 - **After**: `const [searchParams] = useSearchParams(); const category = searchParams.get("category")`
 
 ### Port Changes
+
 - **Development Server**: Changed from `8081` (Lovable sandbox) to `5173` (Vite default)
 - This can be customized in `vite.config.ts` if needed
 
@@ -191,12 +211,14 @@ export function Shop() {
 ## Testing
 
 Build successful:
+
 ```bash
 npm run build
 ✓ built in 1.22s
 ```
 
 Development server works:
+
 ```bash
 npm run dev
 # Server running at http://localhost:5173
@@ -214,16 +236,16 @@ npm run dev
 ## Deployment Notes
 
 This is now a **standard React SPA** that outputs to `dist/`:
+
 - Deploy to Vercel, Netlify, or any static hosting
 - Configure for client-side routing (fallback to `/index.html`)
 - No need for Node.js server
 
 Example Vercel config (vercel.json):
+
 ```json
 {
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
 ```
 

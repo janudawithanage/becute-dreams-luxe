@@ -5,65 +5,75 @@ Fast reference for the restructured codebase.
 ## 📁 Where to Find Things
 
 ### Adding Products?
+
 → `/src/features/products/products.data.ts`
 
 ### Modifying Cart Logic?
+
 → `/src/features/cart/cart.store.ts`
 
 ### Styling UI Components?
+
 → `/src/shared/components/ui/`
 
 ### Adding Homepage Sections?
+
 → `/src/pages/home/components/`
 
 ### Layout Changes (Navbar, Footer)?
+
 → `/src/shared/components/layout/`
 
 ### Route Definitions?
+
 → `/src/routes/`
 
 ### Global Constants?
+
 → `/src/core/constants/app.constants.ts`
 
 ### Utility Functions?
+
 → `/src/shared/utils/`
 
 ### Custom Hooks?
+
 → `/src/shared/hooks/`
 
 ### Assets (Images)?
+
 → `/src/assets/`
 
 ## 🔗 Common Import Patterns
 
 ```typescript
 // Cart
-import { useCart, type CartItem } from '@/features/cart';
+import { useCart, type CartItem } from "@/features/cart";
 
 // Products
-import { products, categories, getProduct } from '@/features/products';
-import type { Product, Category } from '@/features/products';
+import { products, categories, getProduct } from "@/features/products";
+import type { Product, Category } from "@/features/products";
 
 // UI Components
-import { Button } from '@/shared/components/ui/button';
-import { Card, CardHeader, CardContent } from '@/shared/components/ui/card';
+import { Button } from "@/shared/components/ui/button";
+import { Card, CardHeader, CardContent } from "@/shared/components/ui/card";
 
 // Layout
-import { Navbar, Footer } from '@/shared/components/layout';
+import { Navbar, Footer } from "@/shared/components/layout";
 
 // Utils
-import { cn } from '@/shared/utils';
-import { formatCurrency, formatDate } from '@/shared/utils';
-import { isValidEmail } from '@/shared/utils';
+import { cn } from "@/shared/utils";
+import { formatCurrency, formatDate } from "@/shared/utils";
+import { isValidEmail } from "@/shared/utils";
 
 // Hooks
-import { useIsMobile } from '@/shared/hooks';
+import { useIsMobile } from "@/shared/hooks";
 
 // Constants
-import { APP_NAME, ROUTES, CONTACT } from '@/core/constants';
+import { APP_NAME, ROUTES, CONTACT } from "@/core/constants";
 
 // Assets
-import heroImage from '@/assets/hero.jpg';
+import heroImage from "@/assets/hero.jpg";
 ```
 
 ## 🎯 Quick Tasks
@@ -114,13 +124,14 @@ export const categories: Category[] = [
 
 1. Create file: `/src/routes/my-route.tsx`
 2. Define route:
+
    ```typescript
    import { createFileRoute } from "@tanstack/react-router";
-   
+
    export const Route = createFileRoute("/my-route")({
      component: MyRoute,
    });
-   
+
    function MyRoute() {
      return <div>My Route Content</div>;
    }
@@ -151,12 +162,13 @@ export const useCart = create<CartState>()(
   persist(
     (set, get) => ({
       // Add new actions here
-      myNewAction: () => set((state) => ({
-        // update state
-      })),
+      myNewAction: () =>
+        set((state) => ({
+          // update state
+        })),
     }),
-    { name: "becute-cart" }
-  )
+    { name: "becute-cart" },
+  ),
 );
 ```
 
@@ -181,56 +193,59 @@ src/
 ## 🎨 Styling Guidelines
 
 ### Use Tailwind Classes
+
 ```tsx
 <div className="flex items-center gap-4 rounded-lg bg-card p-6" />
 ```
 
 ### Conditional Classes with cn()
-```tsx
-import { cn } from '@/shared/utils';
 
-<button 
+```tsx
+import { cn } from "@/shared/utils";
+
+<button
   className={cn(
     "px-4 py-2 rounded-md",
     isActive && "bg-primary text-white",
-    isDisabled && "opacity-50"
+    isDisabled && "opacity-50",
   )}
-/>
+/>;
 ```
 
 ## 📦 State Management
 
 ### Local State
+
 ```tsx
 const [count, setCount] = useState(0);
 ```
 
 ### Global State (Cart Example)
+
 ```tsx
 function MyComponent() {
   const { items, add, remove } = useCart();
-  
-  return (
-    <button onClick={() => add(product)}>
-      Add to Cart ({items.length})
-    </button>
-  );
+
+  return <button onClick={() => add(product)}>Add to Cart ({items.length})</button>;
 }
 ```
 
 ## 🔍 Finding Code
 
 ### By Feature
+
 - Cart functionality → `/src/features/cart/`
 - Product data → `/src/features/products/`
 
 ### By Type
+
 - React components → `/src/shared/components/` or `/src/pages/`
 - TypeScript types → `*.types.ts` files
 - State stores → `*.store.ts` files
 - Static data → `*.data.ts` files
 
 ### By Usage
+
 - Used everywhere → `/src/shared/`
 - Used on one page → `/src/pages/[page-name]/`
 - Business logic → `/src/features/`

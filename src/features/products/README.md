@@ -15,13 +15,13 @@ Product catalog data and utilities.
 ## Usage
 
 ```tsx
-import { products, getProduct, getByCategory, type Product } from '@/features/products';
+import { products, getProduct, getByCategory, type Product } from "@/features/products";
 
 function ProductPage({ slug }: { slug: string }) {
   const product = getProduct(slug);
-  
+
   if (!product) return <NotFound />;
-  
+
   return <ProductDetail product={product} />;
 }
 ```

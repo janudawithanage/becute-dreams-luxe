@@ -116,11 +116,7 @@ export function ProductDetail() {
           </h2>
           <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-6">
             {related.map((p) => (
-              <Link
-                key={p.id}
-                to={`/product/${p.slug}`}
-                className="group block"
-              >
+              <Link key={p.id} to={`/product/${p.slug}`} className="group block">
                 <div className="aspect-[4/5] overflow-hidden rounded-2xl bg-muted">
                   <img
                     src={p.image}

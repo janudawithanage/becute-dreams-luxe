@@ -82,12 +82,15 @@ The shopping cart uses **Zustand** with localStorage persistence:
 ## 🎯 Demo Features
 
 ### Checkout Flow
+
 The checkout page collects order information but **does not process payments**. Order data is logged to the browser console for demo purposes.
 
 ### Product Data
+
 All product information is hardcoded in `src/features/products/products.data.ts`. In a production app, this would come from a CMS or API.
 
 ### No Authentication
+
 This demo includes **authentication UI pages** (sign in, sign up, forgot password) but has **no actual authentication system**. The forms are for demonstration only and don't connect to a backend.
 
 ## 🛠️ Tech Stack
@@ -160,16 +163,12 @@ To make this production-ready, consider adding:
 1. **Backend Integration**
    - REST API or GraphQL
    - Supabase, Firebase, or custom backend
-   
 2. **Authentication**
    - Firebase Auth, Auth0, or Clerk
-   
 3. **Payment Processing**
    - Stripe, PayPal integration
-   
 4. **Content Management**
    - Headless CMS (Sanity, Contentful, etc.)
-   
 5. **Image Handling**
    - CDN integration (Cloudinary, imgix)
 

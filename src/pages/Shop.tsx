@@ -22,7 +22,7 @@ export function Shop() {
 
   const updateSearch = (updates: { category?: string; q?: string }) => {
     const newParams = new URLSearchParams(searchParams);
-    
+
     if (updates.category !== undefined) {
       if (updates.category) {
         newParams.set("category", updates.category);
@@ -30,7 +30,7 @@ export function Shop() {
         newParams.delete("category");
       }
     }
-    
+
     if (updates.q !== undefined) {
       if (updates.q) {
         newParams.set("q", updates.q);
@@ -38,7 +38,7 @@ export function Shop() {
         newParams.delete("q");
       }
     }
-    
+
     setSearchParams(newParams);
   };
 

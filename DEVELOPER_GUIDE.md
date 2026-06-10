@@ -68,6 +68,7 @@ src/
 ### When to Create a Feature
 
 Create a new feature module when:
+
 - ✅ It represents a distinct business domain
 - ✅ It will be reused across multiple pages
 - ✅ It has its own state management
@@ -94,36 +95,36 @@ features/my-feature/
 
 ```typescript
 // ✅ Use aliases for cleaner imports
-import { Button } from '@/shared/components/ui/button';
-import { useCart } from '@/features/cart';
-import { products } from '@/features/products';
-import { cn } from '@/shared/utils';
-import heroImage from '@/assets/hero.jpg';
+import { Button } from "@/shared/components/ui/button";
+import { useCart } from "@/features/cart";
+import { products } from "@/features/products";
+import { cn } from "@/shared/utils";
+import heroImage from "@/assets/hero.jpg";
 
 // ❌ Avoid relative paths
-import { Button } from '../../../shared/components/ui/button';
+import { Button } from "../../../shared/components/ui/button";
 ```
 
 ### Import Order
 
 ```typescript
 // 1. External libraries
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState } from "react";
+import { motion } from "framer-motion";
 
 // 2. Internal aliases (by category)
-import { Button } from '@/shared/components/ui/button';
-import { useCart } from '@/features/cart';
-import { APP_NAME } from '@/core/constants';
+import { Button } from "@/shared/components/ui/button";
+import { useCart } from "@/features/cart";
+import { APP_NAME } from "@/core/constants";
 
 // 3. Relative imports (if unavoidable)
-import { LocalComponent } from './LocalComponent';
+import { LocalComponent } from "./LocalComponent";
 
 // 4. Types
-import type { Product } from '@/features/products';
+import type { Product } from "@/features/products";
 
 // 5. Styles/assets
-import './styles.css';
+import "./styles.css";
 ```
 
 ### Barrel Exports
@@ -132,12 +133,12 @@ Each feature/module should export through `index.ts`:
 
 ```typescript
 // features/cart/index.ts
-export * from './cart.types';
-export * from './cart.store';
-export * from './components/CartDrawer';
+export * from "./cart.types";
+export * from "./cart.store";
+export * from "./components/CartDrawer";
 
 // Usage
-import { useCart, CartDrawer, type CartItem } from '@/features/cart';
+import { useCart, CartDrawer, type CartItem } from "@/features/cart";
 ```
 
 ## 📝 Naming Conventions
@@ -199,12 +200,12 @@ interface ProductCardProps {
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   // 3a. Hooks
   const [quantity, setQuantity] = useState(1);
-  
+
   // 3b. Handlers
   const handleAdd = () => {
     onAddToCart?.(product);
   };
-  
+
   // 3c. Render
   return (
     <div>
@@ -251,7 +252,7 @@ Use `useState` for component-only state:
 ```typescript
 function Counter() {
   const [count, setCount] = useState(0);
-  
+
   return <button onClick={() => setCount(c => c + 1)}>{count}</button>;
 }
 ```
@@ -262,20 +263,21 @@ For app-wide state, use Zustand:
 
 ```typescript
 // cart.store.ts
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export const useCart = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
-      add: (product) => set((state) => ({
-        items: [...state.items, { product, qty: 1 }]
-      })),
+      add: (product) =>
+        set((state) => ({
+          items: [...state.items, { product, qty: 1 }],
+        })),
       // ...
     }),
-    { name: 'cart-storage' }
-  )
+    { name: "cart-storage" },
+  ),
 );
 
 // Usage in component
@@ -296,7 +298,7 @@ function MyComponent() {
 // ✅ Use cn() for conditional classes
 import { cn } from '@/shared/utils';
 
-<button 
+<button
   className={cn(
     "px-4 py-2 rounded-md",
     isActive && "bg-primary text-white",
@@ -314,26 +316,23 @@ const cardStyles = "rounded-lg bg-card p-6 shadow-sm";
 ```typescript
 import { cva, type VariantProps } from "class-variance-authority";
 
-const buttonVariants = cva(
-  "rounded-md font-medium transition-colors",
-  {
-    variants: {
-      variant: {
-        default: "bg-primary text-white hover:bg-primary/90",
-        outline: "border border-input hover:bg-accent",
-      },
-      size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-8 px-3 text-sm",
-        lg: "h-12 px-8",
-      },
+const buttonVariants = cva("rounded-md font-medium transition-colors", {
+  variants: {
+    variant: {
+      default: "bg-primary text-white hover:bg-primary/90",
+      outline: "border border-input hover:bg-accent",
     },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
+    size: {
+      default: "h-10 px-4 py-2",
+      sm: "h-8 px-3 text-sm",
+      lg: "h-12 px-8",
     },
-  }
-);
+  },
+  defaultVariants: {
+    variant: "default",
+    size: "default",
+  },
+});
 ```
 
 ## ➕ Adding New Features
@@ -341,11 +340,13 @@ const buttonVariants = cva(
 ### Step-by-Step
 
 1. **Create feature directory**
+
    ```bash
    mkdir -p src/features/my-feature/components
    ```
 
 2. **Define types**
+
    ```typescript
    // my-feature.types.ts
    export interface MyFeatureItem {
@@ -355,33 +356,39 @@ const buttonVariants = cva(
    ```
 
 3. **Create store (if needed)**
+
    ```typescript
    // my-feature.store.ts
-   import { create } from 'zustand';
-   
+   import { create } from "zustand";
+
    export const useMyFeature = create<MyFeatureState>()((set) => ({
      // state and actions
    }));
    ```
 
 4. **Create components**
+
    ```typescript
    // components/MyFeatureCard.tsx
    export function MyFeatureCard() { ... }
    ```
 
 5. **Create barrel export**
+
    ```typescript
    // index.ts
-   export * from './my-feature.types';
-   export * from './my-feature.store';
-   export * from './components/MyFeatureCard';
+   export * from "./my-feature.types";
+   export * from "./my-feature.store";
+   export * from "./components/MyFeatureCard";
    ```
 
 6. **Add documentation**
+
    ```markdown
    // README.md
+
    # My Feature
+
    Description and usage...
    ```
 
@@ -396,7 +403,7 @@ function ProductList() {
 
   if (isLoading) return <LoadingSpinner />;
   if (products.length === 0) return <EmptyState />;
-  
+
   return <ProductGrid products={products} />;
 }
 ```

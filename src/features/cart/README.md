@@ -16,15 +16,15 @@ Shopping cart functionality with localStorage persistence.
 ## Usage
 
 ```tsx
-import { useCart, CartDrawer } from '@/features/cart';
+import { useCart, CartDrawer } from "@/features/cart";
 
 function MyComponent() {
   const { add, items, total } = useCart();
-  
+
   const handleAddToCart = () => {
     add(product, quantity);
   };
-  
+
   return (
     <>
       <button onClick={handleAddToCart}>Add to Cart</button>
