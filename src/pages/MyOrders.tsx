@@ -22,7 +22,7 @@ export function MyOrders() {
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/sign-in", {
-        state: { from: { pathname: "/my-orders" }, message: "Please sign in to view your orders" }
+        state: { from: { pathname: "/my-orders" }, message: "Please sign in to view your orders" },
       });
     }
   }, [isAuthenticated, navigate]);
@@ -63,99 +63,109 @@ export function MyOrders() {
       </motion.div>
 
       <div className="mt-12 space-y-6">
-        {orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map((order, index) => {
-          const config = statusConfig[order.status];
-          const StatusIcon = config.icon;
+        {orders
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .map((order, index) => {
+            const config = statusConfig[order.status];
+            const StatusIcon = config.icon;
 
-          return (
-            <motion.div
-              key={order.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="glass shadow-soft hover:shadow-luxe transition-all duration-500 rounded-3xl p-6 lg:p-8"
-            >
-              {/* Header */}
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-foreground/10 pb-6">
-                <div>
-                  <h3 className="font-display text-2xl">{order.orderNumber}</h3>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Placed on {new Date(order.createdAt).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
+            return (
+              <motion.div
+                key={order.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="glass shadow-soft hover:shadow-luxe transition-all duration-500 rounded-3xl p-6 lg:p-8"
+              >
+                {/* Header */}
+                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-foreground/10 pb-6">
+                  <div>
+                    <h3 className="font-display text-2xl">{order.orderNumber}</h3>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Placed on{" "}
+                      {new Date(order.createdAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </p>
+                  </div>
+                  <div className={`flex items-center gap-2 rounded-full px-4 py-2 ${config.bg}`}>
+                    <StatusIcon className={`h-4 w-4 ${config.color}`} />
+                    <span className={`text-sm font-medium ${config.color}`}>{config.label}</span>
+                  </div>
                 </div>
-                <div className={`flex items-center gap-2 rounded-full px-4 py-2 ${config.bg}`}>
-                  <StatusIcon className={`h-4 w-4 ${config.color}`} />
-                  <span className={`text-sm font-medium ${config.color}`}>{config.label}</span>
-                </div>
-              </div>
 
-              {/* Items */}
-              <div className="mt-6 space-y-4">
-                {order.items.map((item) => (
-                  <div key={item.productId} className="flex items-center gap-4">
-                    <img
-                      src={item.productImage}
-                      alt={item.productName}
-                      className="h-16 w-14 rounded-md object-cover"
-                    />
-                    <div className="flex-1">
-                      <p className="font-display text-base leading-tight">{item.productName}</p>
-                      <p className="text-xs text-muted-foreground">Qty {item.quantity}</p>
+                {/* Items */}
+                <div className="mt-6 space-y-4">
+                  {order.items.map((item) => (
+                    <div key={item.productId} className="flex items-center gap-4">
+                      <img
+                        src={item.productImage}
+                        alt={item.productName}
+                        className="h-16 w-14 rounded-md object-cover"
+                      />
+                      <div className="flex-1">
+                        <p className="font-display text-base leading-tight">{item.productName}</p>
+                        <p className="text-xs text-muted-foreground">Qty {item.quantity}</p>
+                      </div>
+                      <p className="text-sm tabular-nums">
+                        ${(item.price * item.quantity).toFixed(2)}
+                      </p>
                     </div>
-                    <p className="text-sm tabular-nums">${(item.price * item.quantity).toFixed(2)}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Footer */}
-              <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-foreground/10 pt-6">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Total</p>
-                  <p className="mt-1 font-display text-2xl">${order.total.toFixed(2)}</p>
+                  ))}
                 </div>
-                <Link
-                  to={`/order/${order.id}`}
-                  className="inline-flex h-10 items-center rounded-full border border-foreground/20 px-6 text-xs uppercase tracking-[0.2em] transition hover:bg-foreground/5"
-                >
-                  View Details
-                </Link>
-              </div>
 
-              {/* Status History */}
-              {order.statusHistory.length > 1 && (
-                <div className="mt-6 border-t border-foreground/10 pt-6">
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-4">
-                    Order Timeline
-                  </p>
-                  <div className="space-y-3">
-                    {order.statusHistory.slice().reverse().map((history, idx) => {
-                      const historyConfig = statusConfig[history.status];
-                      const HistoryIcon = historyConfig.icon;
-                      return (
-                        <div key={idx} className="flex items-start gap-3">
-                          <div className={`rounded-full p-1.5 ${historyConfig.bg}`}>
-                            <HistoryIcon className={`h-3 w-3 ${historyConfig.color}`} />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-sm font-medium">{historyConfig.label}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(history.timestamp).toLocaleString()}
-                              {history.note && ` • ${history.note}`}
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    })}
+                {/* Footer */}
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-foreground/10 pt-6">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                      Total
+                    </p>
+                    <p className="mt-1 font-display text-2xl">${order.total.toFixed(2)}</p>
                   </div>
+                  <Link
+                    to={`/order/${order.id}`}
+                    className="inline-flex h-10 items-center rounded-full border border-foreground/20 px-6 text-xs uppercase tracking-[0.2em] transition hover:bg-foreground/5"
+                  >
+                    View Details
+                  </Link>
                 </div>
-              )}
-            </motion.div>
-          );
-        })}
+
+                {/* Status History */}
+                {order.statusHistory.length > 1 && (
+                  <div className="mt-6 border-t border-foreground/10 pt-6">
+                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-4">
+                      Order Timeline
+                    </p>
+                    <div className="space-y-3">
+                      {order.statusHistory
+                        .slice()
+                        .reverse()
+                        .map((history, idx) => {
+                          const historyConfig = statusConfig[history.status];
+                          const HistoryIcon = historyConfig.icon;
+                          return (
+                            <div key={idx} className="flex items-start gap-3">
+                              <div className={`rounded-full p-1.5 ${historyConfig.bg}`}>
+                                <HistoryIcon className={`h-3 w-3 ${historyConfig.color}`} />
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-sm font-medium">{historyConfig.label}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(history.timestamp).toLocaleString()}
+                                  {history.note && ` • ${history.note}`}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            );
+          })}
       </div>
     </div>
   );

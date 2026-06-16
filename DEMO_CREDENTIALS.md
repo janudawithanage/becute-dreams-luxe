@@ -1,6 +1,7 @@
 # 🔐 Demo Credentials - Quick Reference
 
 ## Sign In Page
+
 Visit: **http://localhost:5173/sign-in**
 
 ---
@@ -15,6 +16,7 @@ Password: BecuteAdmin2024!
 ```
 
 **Access:**
+
 - Admin Dashboard (`/admin`)
 - Manage Orders (`/admin/orders`)
 - Update Order Status
@@ -34,6 +36,7 @@ Password: customer123
 ```
 
 **Pre-filled Details:**
+
 - **Name:** Demo Customer
 - **Phone:** +1 (555) 123-4567
 - **Address:** 123 Demo Street, Apt 4B
@@ -42,6 +45,7 @@ Password: customer123
 - **Country:** United States
 
 **Access:**
+
 - Shop & Browse Products
 - Add Items to Cart
 - Checkout (Protected)
@@ -55,6 +59,7 @@ Password: customer123
 ## 🎯 Quick Test Flow
 
 ### 1. Test as Customer
+
 1. Sign in with: **customer@example.com** / **customer123**
 2. Browse `/shop` and add items to cart
 3. Go to checkout
@@ -62,6 +67,7 @@ Password: customer123
 5. View order in "My Orders"
 
 ### 2. Test as Admin
+
 1. Sign out
 2. Sign in with: **admin@becutedreams.com** / **BecuteAdmin2024!**
 3. Go to `/admin/orders`
@@ -70,6 +76,7 @@ Password: customer123
 6. See timeline update
 
 ### 3. Verify Customer Sees Update
+
 1. Sign out from admin
 2. Sign in as customer again
 3. Go to "My Orders"
@@ -90,6 +97,7 @@ Password: customer123
 ## 🆕 Still Want to Register?
 
 You can also create a new customer account:
+
 1. Go to `/sign-up`
 2. Fill in all registration fields
 3. Create your own account
@@ -100,6 +108,7 @@ You can also create a new customer account:
 ## 🔄 Reset Everything
 
 To start fresh:
+
 1. Open Developer Tools (F12)
 2. Go to Application → Storage
 3. Clear all localStorage data
@@ -111,6 +120,7 @@ To start fresh:
 ## ✅ What's Stored
 
 When you sign in with demo customer:
+
 - User profile with shipping details
 - Shopping cart (if items added)
 - Orders (if placed)
@@ -123,6 +133,7 @@ All stored in browser localStorage - no server needed!
 ## 🎉 Perfect for Testing!
 
 The demo customer account makes it easy to:
+
 - ✅ Test checkout without registration
 - ✅ Demo the system to clients
 - ✅ Show order management flow

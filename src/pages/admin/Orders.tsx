@@ -49,7 +49,9 @@ export function Orders() {
     return (
       <div className="space-y-8">
         <div>
-          <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">✦ Transactions</p>
+          <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">
+            ✦ Transactions
+          </p>
           <h2 className="mt-2 font-display text-4xl tracking-tight">Orders</h2>
         </div>
         <Card className="glass border-foreground/10 shadow-soft">
@@ -146,41 +148,43 @@ export function Orders() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map((order) => (
-                  <TableRow
-                    key={order.id}
-                    className="border-foreground/5 hover:bg-foreground/[0.02] transition"
-                  >
-                    <TableCell className="font-medium">{order.orderNumber}</TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{order.customerName}</p>
-                        <p className="text-sm text-muted-foreground">{order.customerEmail}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {format(new Date(order.createdAt), "MMM dd, yyyy")}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusBadge(order.status)} className="capitalize">
-                        {order.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-display text-lg">
-                      ${order.total.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => navigate(`/admin/orders/${order.id}`)}
-                        className="h-9 w-9 rounded-lg hover:bg-foreground/5"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {filteredOrders
+                  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                  .map((order) => (
+                    <TableRow
+                      key={order.id}
+                      className="border-foreground/5 hover:bg-foreground/[0.02] transition"
+                    >
+                      <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{order.customerName}</p>
+                          <p className="text-sm text-muted-foreground">{order.customerEmail}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {format(new Date(order.createdAt), "MMM dd, yyyy")}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusBadge(order.status)} className="capitalize">
+                          {order.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-display text-lg">
+                        ${order.total.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => navigate(`/admin/orders/${order.id}`)}
+                          className="h-9 w-9 rounded-lg hover:bg-foreground/5"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
               </TableBody>
             </Table>
           </CardContent>

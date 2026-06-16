@@ -195,7 +195,9 @@ export function Customers() {
                     <TableCell>
                       <div className="flex items-center gap-2 text-sm">
                         <MapPin className="h-3 w-3 text-muted-foreground" />
-                        <span>{customer.city}, {customer.country}</span>
+                        <span>
+                          {customer.city}, {customer.country}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell>{customer.totalOrders}</TableCell>

@@ -1,7 +1,13 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export type OrderStatus = "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled";
+export type OrderStatus =
+  | "pending"
+  | "confirmed"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
 
 export interface OrderItem {
   productId: string;
@@ -41,7 +47,9 @@ export interface Order {
 
 interface OrdersState {
   orders: Order[];
-  createOrder: (order: Omit<Order, "id" | "orderNumber" | "createdAt" | "updatedAt" | "statusHistory">) => string;
+  createOrder: (
+    order: Omit<Order, "id" | "orderNumber" | "createdAt" | "updatedAt" | "statusHistory">,
+  ) => string;
   updateOrderStatus: (orderId: string, status: OrderStatus, note?: string) => void;
   getOrderById: (orderId: string) => Order | undefined;
   getOrdersByCustomer: (customerId: string) => Order[];
@@ -63,7 +71,7 @@ export const useOrdersStore = create<OrdersState>()(
       createOrder: (orderData) => {
         const orderId = `order-${Date.now()}`;
         const now = new Date().toISOString();
-        
+
         const newOrder: Order = {
           ...orderData,
           id: orderId,
@@ -103,7 +111,7 @@ export const useOrdersStore = create<OrdersState>()(
                     },
                   ],
                 }
-              : order
+              : order,
           ),
         }));
       },
@@ -128,6 +136,6 @@ export const useOrdersStore = create<OrdersState>()(
     }),
     {
       name: "orders-storage",
-    }
-  )
+    },
+  ),
 );

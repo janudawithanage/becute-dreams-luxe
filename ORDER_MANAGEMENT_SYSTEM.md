@@ -3,6 +3,7 @@
 ## ✅ System Overview
 
 A complete frontend-only order management system where:
+
 - **Customers** must sign in to place orders
 - **Extended registration** captures detailed customer information
 - **Orders** are stored locally and synced between customer/admin views
@@ -41,6 +42,7 @@ A complete frontend-only order management system where:
 ### For Admin:
 
 1. **Sign In** → `/sign-in`
+
    ```
    Email: admin@becutedreams.com
    Password: BecuteAdmin2024!
@@ -69,6 +71,7 @@ A complete frontend-only order management system where:
 ### Customer Features
 
 #### ✅ Extended Registration Form
+
 - **Personal Information:**
   - Full Name
   - Email
@@ -88,6 +91,7 @@ A complete frontend-only order management system where:
   - All fields required
 
 #### ✅ Protected Checkout
+
 - Must be signed in to access checkout
 - Automatic redirect to sign-in if not authenticated
 - Pre-filled shipping information from profile
@@ -95,6 +99,7 @@ A complete frontend-only order management system where:
 - Order confirmation with order number
 
 #### ✅ Order Tracking
+
 - **My Orders Page** (`/my-orders`)
   - List of all customer orders
   - Order number, date, status, total
@@ -114,6 +119,7 @@ A complete frontend-only order management system where:
   - Notes from admin visible to customer
 
 #### ✅ Navigation Integration
+
 - "My Orders" link in navbar (for customers)
 - Mobile menu support
 - Order count badge (optional enhancement)
@@ -121,6 +127,7 @@ A complete frontend-only order management system where:
 ### Admin Features
 
 #### ✅ Order Management Dashboard
+
 - **Orders List** (`/admin/orders`)
   - All orders in sortable table
   - Search by order number, customer name, or email
@@ -143,6 +150,7 @@ A complete frontend-only order management system where:
   - Order items with images
 
 #### ✅ Customer Management
+
 - **Customers List** (`/admin/customers`)
   - All registered customers
   - Contact information (email, phone)
@@ -152,6 +160,7 @@ A complete frontend-only order management system where:
   - Search functionality
 
 #### ✅ Dashboard Statistics
+
 - Real-time order data
 - Customer count
 - Revenue tracking
@@ -162,6 +171,7 @@ A complete frontend-only order management system where:
 ## 🎨 User Interface
 
 ### Status Colors & Icons
+
 - **Pending** → Yellow (Clock icon)
 - **Confirmed** → Blue (CheckCircle icon)
 - **Processing** → Purple (Package icon)
@@ -170,6 +180,7 @@ A complete frontend-only order management system where:
 - **Cancelled** → Red (XCircle icon)
 
 ### Design Features
+
 - Glassmorphism cards
 - Smooth animations (Framer Motion)
 - Responsive layouts (mobile-first)
@@ -182,11 +193,13 @@ A complete frontend-only order management system where:
 ## 💾 Data Storage
 
 ### LocalStorage Keys:
+
 - `auth-storage` → User authentication & customer data
 - `orders-storage` → All orders
 - `cart-storage` → Shopping cart items
 
 ### Data Persistence:
+
 - All data persists across page refreshes
 - No backend required
 - Data shared across tabs (same browser)
@@ -300,12 +313,14 @@ src/
 ⚠️ **Frontend-Only System** - This is for development/demo purposes:
 
 ### Current Implementation:
+
 - ✅ Data stored in browser localStorage
 - ✅ Basic authentication
 - ✅ No real payment processing
 - ✅ No server-side validation
 
 ### For Production:
+
 - ⚠️ Add backend API
 - ⚠️ Implement real authentication (JWT/OAuth)
 - ⚠️ Add payment gateway integration
@@ -374,51 +389,59 @@ src/
 
 ## 🎯 Key Features Summary
 
-| Feature | Customer | Admin |
-|---------|----------|-------|
-| Registration | ✅ Extended form with shipping | ❌ |
-| Sign In | ✅ | ✅ |
-| Browse Products | ✅ | ✅ (via main site) |
-| Place Orders | ✅ (requires auth) | ❌ |
-| View Own Orders | ✅ `/my-orders` | ❌ |
-| Track Order Status | ✅ Real-time | ❌ |
-| View All Orders | ❌ | ✅ `/admin/orders` |
-| Update Order Status | ❌ | ✅ With notes |
-| View Customers | ❌ | ✅ `/admin/customers` |
-| View Customer Details | ❌ | ✅ Full info |
+| Feature               | Customer                       | Admin                 |
+| --------------------- | ------------------------------ | --------------------- |
+| Registration          | ✅ Extended form with shipping | ❌                    |
+| Sign In               | ✅                             | ✅                    |
+| Browse Products       | ✅                             | ✅ (via main site)    |
+| Place Orders          | ✅ (requires auth)             | ❌                    |
+| View Own Orders       | ✅ `/my-orders`                | ❌                    |
+| Track Order Status    | ✅ Real-time                   | ❌                    |
+| View All Orders       | ❌                             | ✅ `/admin/orders`    |
+| Update Order Status   | ❌                             | ✅ With notes         |
+| View Customers        | ❌                             | ✅ `/admin/customers` |
+| View Customer Details | ❌                             | ✅ Full info          |
 
 ---
 
 ## 🛠️ Troubleshooting
 
 ### Customer Can't Place Order
+
 **Issue**: Redirected to sign-in when clicking checkout
 
 **Solution**:
+
 1. ✅ Make sure you're signed in
 2. ✅ Check that `/checkout` route works
 3. ✅ Clear browser data and sign in again
 
 ### Orders Not Showing
+
 **Issue**: Order placed but not in "My Orders"
 
 **Solution**:
+
 1. ✅ Check localStorage for `orders-storage`
 2. ✅ Verify you're signed in with correct account
 3. ✅ Check order was created (look in admin panel)
 
 ### Admin Can't Update Status
+
 **Issue**: Status dropdown not working
 
 **Solution**:
+
 1. ✅ Select a status from dropdown
 2. ✅ Click "Update Order Status" button
 3. ✅ Check browser console for errors
 
 ### Status Not Updating for Customer
+
 **Issue**: Admin updated but customer doesn't see it
 
 **Solution**:
+
 1. ✅ Customer should refresh page
 2. ✅ Check localStorage is enabled
 3. ✅ Verify both using same browser/device

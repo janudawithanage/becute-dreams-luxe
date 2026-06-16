@@ -20,7 +20,7 @@ export function Checkout() {
   useEffect(() => {
     if (!isAuthenticated && items.length > 0) {
       navigate("/sign-in", {
-        state: { from: { pathname: "/checkout" }, message: "Please sign in to place your order" }
+        state: { from: { pathname: "/checkout" }, message: "Please sign in to place your order" },
       });
     }
   }, [isAuthenticated, navigate, items.length]);
@@ -47,13 +47,16 @@ export function Checkout() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6 }}
         >
-          <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">Order received</p>
+          <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">
+            Order received
+          </p>
           <h1 className="mt-6 font-display text-6xl leading-tight tracking-tight">
-            A soft thank you, <em className="font-light">{user?.name.split(" ")[0] || "friend"}.</em>
+            A soft thank you,{" "}
+            <em className="font-light">{user?.name.split(" ")[0] || "friend"}.</em>
           </h1>
           <p className="mx-auto mt-6 max-w-md text-base text-foreground/70">
-            Your order <span className="font-medium text-foreground">{orderNumber}</span> is confirmed. 
-            You can track your order status in your account.
+            Your order <span className="font-medium text-foreground">{orderNumber}</span> is
+            confirmed. You can track your order status in your account.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
             <Link
@@ -111,7 +114,7 @@ export function Checkout() {
     });
 
     const order = useOrdersStore.getState().getOrderById(orderId);
-    
+
     toast.success("Order placed successfully!");
     setOrderNumber(order?.orderNumber || "");
     setPlaced(true);
@@ -152,8 +155,10 @@ export function Checkout() {
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Address</p>
                 <p className="mt-1 text-base">
-                  {user?.address}<br />
-                  {user?.city}, {user?.postalCode}<br />
+                  {user?.address}
+                  <br />
+                  {user?.city}, {user?.postalCode}
+                  <br />
                   {user?.country}
                 </p>
               </div>

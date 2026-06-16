@@ -1,13 +1,24 @@
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, Lock, User, Eye, EyeOff, Phone, MapPin, Home, Globe, AlertCircle } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  User,
+  Eye,
+  EyeOff,
+  Phone,
+  MapPin,
+  Home,
+  Globe,
+  AlertCircle,
+} from "lucide-react";
 import { useState } from "react";
 import { useAuthStore } from "@/features/auth";
 
 export function SignUp() {
   const navigate = useNavigate();
   const { register } = useAuthStore();
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
@@ -57,8 +68,8 @@ export function SignUp() {
 
       if (result.success) {
         // Redirect to sign-in page
-        navigate("/sign-in", { 
-          state: { message: "Account created successfully! Please sign in." } 
+        navigate("/sign-in", {
+          state: { message: "Account created successfully! Please sign in." },
         });
       } else {
         setError(result.error || "Registration failed");

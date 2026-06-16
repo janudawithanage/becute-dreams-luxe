@@ -113,11 +113,15 @@ export function AdminLayout() {
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">{user?.name || "Admin User"}</p>
-                <p className="text-xs text-muted-foreground truncate">{user?.email || "admin@becute.com"}</p>
+                <p className="text-sm font-medium text-foreground truncate">
+                  {user?.name || "Admin User"}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {user?.email || "admin@becute.com"}
+                </p>
               </div>
             </div>
-            <button 
+            <button
               onClick={handleLogout}
               className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-foreground/70 hover:bg-foreground/5 hover:text-foreground transition-all"
             >

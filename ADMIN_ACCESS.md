@@ -5,12 +5,14 @@
 **URL:** http://localhost:5173/sign-in (or your deployment URL + `/sign-in`)
 
 **Admin Credentials:**
+
 ```
 Email:    admin@becutedreams.com
 Password: BecuteAdmin2024!
 ```
 
 **Demo Customer Credentials:**
+
 ```
 Email:    customer@example.com
 Password: customer123
@@ -51,12 +53,14 @@ Once logged in as admin, you have access to:
 ⚠️ **Development Only** - These credentials are for development and testing purposes only.
 
 The credentials are stored in `.env.local`:
+
 ```env
 VITE_ADMIN_EMAIL=admin@becutedreams.com
 VITE_ADMIN_PASSWORD=BecuteAdmin2024!
 ```
 
 For production deployment:
+
 - Remove the credential display from the sign-in page
 - Implement proper backend authentication
 - Use secure password hashing
@@ -66,15 +70,18 @@ For production deployment:
 ## Troubleshooting
 
 **Can't access admin panel:**
+
 - Make sure you're using the exact email and password (case-sensitive)
 - Clear browser localStorage and try again
 - Check that `.env.local` file exists in the project root
 - Restart the development server after changing `.env.local`
 
 **Logged out automatically:**
+
 - The auth state is persisted in localStorage
 - If you clear browser data, you'll need to sign in again
 
 **Admin button not showing:**
+
 - Make sure you logged in with the admin credentials
 - Check that the user role is "admin" (not "customer")

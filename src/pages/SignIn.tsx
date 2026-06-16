@@ -8,7 +8,7 @@ export function SignIn() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuthStore();
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -33,12 +33,12 @@ export function SignIn() {
 
     try {
       const success = await login(formData.email, formData.password);
-      
+
       if (success) {
         // Redirect to the page they were trying to access, or admin dashboard if they're admin
         const from = location.state?.from?.pathname;
         const isAdminEmail = formData.email === import.meta.env.VITE_ADMIN_EMAIL;
-        
+
         if (isAdminEmail) {
           navigate("/admin");
         } else {

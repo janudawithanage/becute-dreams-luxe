@@ -1,9 +1,11 @@
 # Authentication System
 
 ## Overview
+
 This application uses a simple frontend-only authentication system with Zustand for state management and localStorage for persistence.
 
 ## Admin Credentials
+
 The admin credentials are stored in the `.env.local` file:
 
 ```
@@ -16,6 +18,7 @@ VITE_ADMIN_PASSWORD=BecuteAdmin2024!
 ## Features
 
 ### Authentication Store (`auth.store.ts`)
+
 - **State Management**: Uses Zustand with persistence to localStorage
 - **User Roles**: Supports `admin` and `customer` roles
 - **Login**: Validates credentials against environment variables for admin, accepts any credentials as customer for demo
@@ -23,12 +26,15 @@ VITE_ADMIN_PASSWORD=BecuteAdmin2024!
 - **Admin Check**: Helper method to verify if current user is admin
 
 ### Protected Routes
+
 The `ProtectedRoute` component wraps routes that require authentication:
+
 - Redirects unauthenticated users to `/sign-in`
 - Supports `requireAdmin` prop to restrict access to admin users only
 - Automatically redirects non-admin users to home page
 
 ### Sign In Page
+
 - Form with email/password inputs
 - Shows admin credentials banner for easy testing
 - Validates credentials via auth store
@@ -39,11 +45,13 @@ The `ProtectedRoute` component wraps routes that require authentication:
 - Loading state during authentication
 
 ### Admin Layout
+
 - Shows current user info in sidebar
 - Functional logout button
 - Protected by `ProtectedRoute` with `requireAdmin` flag
 
 ### Navigation Integration
+
 - Shows different nav items based on auth state:
   - Not logged in: "Sign In" link
   - Logged in as customer: "Logout" button
@@ -53,6 +61,7 @@ The `ProtectedRoute` component wraps routes that require authentication:
 ## Usage
 
 ### Accessing Admin Dashboard
+
 1. Navigate to `/sign-in`
 2. Use the admin credentials shown on the page:
    - Email: `admin@becutedreams.com`
@@ -61,9 +70,11 @@ The `ProtectedRoute` component wraps routes that require authentication:
 4. You'll be redirected to `/admin`
 
 ### Customer Access
+
 For demo purposes, any email/password combination (other than admin credentials) will log you in as a customer. Customers cannot access the admin dashboard.
 
 ### Logging Out
+
 - Click the "Logout" button in the main navigation (desktop/mobile)
 - Or click "Logout" in the admin sidebar when in admin area
 - You'll be redirected to the sign-in page
@@ -88,6 +99,7 @@ src/pages/
 ## Future Enhancements
 
 For a production application, consider:
+
 - Backend API integration
 - JWT token-based authentication
 - Secure password hashing

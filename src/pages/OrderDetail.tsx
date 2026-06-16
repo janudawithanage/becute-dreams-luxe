@@ -2,7 +2,17 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/features/auth";
 import { useOrdersStore } from "@/features/orders";
 import { motion } from "framer-motion";
-import { Package, Clock, Truck, CheckCircle, XCircle, ArrowLeft, MapPin, Phone, Mail } from "lucide-react";
+import {
+  Package,
+  Clock,
+  Truck,
+  CheckCircle,
+  XCircle,
+  ArrowLeft,
+  MapPin,
+  Phone,
+  Mail,
+} from "lucide-react";
 import { useEffect } from "react";
 
 const statusConfig = {
@@ -88,7 +98,8 @@ export function OrderDetail() {
           Order <em className="font-light">{order.orderNumber}</em>
         </h1>
         <p className="mt-4 text-muted-foreground">
-          Placed on {new Date(order.createdAt).toLocaleDateString("en-US", {
+          Placed on{" "}
+          {new Date(order.createdAt).toLocaleDateString("en-US", {
             year: "numeric",
             month: "long",
             day: "numeric",
@@ -125,32 +136,35 @@ export function OrderDetail() {
       >
         <h2 className="font-display text-2xl">Order Timeline</h2>
         <div className="mt-6 space-y-4">
-          {order.statusHistory.slice().reverse().map((history, idx) => {
-            const historyConfig = statusConfig[history.status];
-            const HistoryIcon = historyConfig.icon;
-            return (
-              <div key={idx} className="flex items-start gap-4">
-                <div className={`rounded-full p-2 ${historyConfig.bg}`}>
-                  <HistoryIcon className={`h-4 w-4 ${historyConfig.color}`} />
+          {order.statusHistory
+            .slice()
+            .reverse()
+            .map((history, idx) => {
+              const historyConfig = statusConfig[history.status];
+              const HistoryIcon = historyConfig.icon;
+              return (
+                <div key={idx} className="flex items-start gap-4">
+                  <div className={`rounded-full p-2 ${historyConfig.bg}`}>
+                    <HistoryIcon className={`h-4 w-4 ${historyConfig.color}`} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium">{historyConfig.label}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(history.timestamp).toLocaleString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                    {history.note && (
+                      <p className="mt-1 text-sm text-muted-foreground italic">{history.note}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="font-medium">{historyConfig.label}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {new Date(history.timestamp).toLocaleString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
-                  {history.note && (
-                    <p className="mt-1 text-sm text-muted-foreground italic">{history.note}</p>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
       </motion.div>
 
@@ -242,8 +256,10 @@ export function OrderDetail() {
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Address</p>
                 <p className="mt-1">
-                  {order.shippingAddress.street}<br />
-                  {order.shippingAddress.city}, {order.shippingAddress.postalCode}<br />
+                  {order.shippingAddress.street}
+                  <br />
+                  {order.shippingAddress.city}, {order.shippingAddress.postalCode}
+                  <br />
                   {order.shippingAddress.country}
                 </p>
               </div>

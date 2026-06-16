@@ -68,10 +68,10 @@ export const useAuthStore = create<AuthState>()(
 
         if (email === demoCustomerEmail && password === demoCustomerPassword) {
           const { customers } = get();
-          
+
           // Check if demo customer exists, create if not
           let demoCustomer = customers.find((c) => c.email === demoCustomerEmail);
-          
+
           if (!demoCustomer) {
             demoCustomer = {
               id: "demo-customer-1",
@@ -87,7 +87,7 @@ export const useAuthStore = create<AuthState>()(
             };
             set({ customers: [...customers, demoCustomer] });
           }
-          
+
           set({ user: demoCustomer, isAuthenticated: true });
           return true;
         }
@@ -151,6 +151,6 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "auth-storage",
-    }
-  )
+    },
+  ),
 );

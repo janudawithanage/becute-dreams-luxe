@@ -24,8 +24,8 @@ export function OrderDetail() {
   const { id } = useParams();
   const { getOrderById, updateOrderStatus } = useOrdersStore();
   const order = getOrderById(id || "");
-  
-  const [newStatus, setNewStatus] = useState<OrderStatus | "">("" );
+
+  const [newStatus, setNewStatus] = useState<OrderStatus | "">("");
   const [statusNote, setStatusNote] = useState("");
 
   if (!order) {
@@ -175,7 +175,9 @@ export function OrderDetail() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Shipping</span>
-                    <span>{order.shippingCost === 0 ? "Free" : `$${order.shippingCost.toFixed(2)}`}</span>
+                    <span>
+                      {order.shippingCost === 0 ? "Free" : `$${order.shippingCost.toFixed(2)}`}
+                    </span>
                   </div>
                   <div className="flex justify-between font-display text-2xl pt-3 border-t border-foreground/10">
                     <span>Total</span>
@@ -200,34 +202,46 @@ export function OrderDetail() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {order.statusHistory.slice().reverse().map((history, idx) => (
-                    <div key={idx} className="flex gap-4">
-                      <div className="flex flex-col items-center">
-                        <div className={`rounded-full p-2 ${
-                          history.status === "delivered" ? "bg-green-100" :
-                          history.status === "shipped" ? "bg-indigo-100" :
-                          history.status === "processing" ? "bg-purple-100" :
-                          history.status === "confirmed" ? "bg-blue-100" :
-                          history.status === "cancelled" ? "bg-red-100" :
-                          "bg-yellow-100"
-                        }`}>
-                          {getStatusIcon(history.status)}
+                  {order.statusHistory
+                    .slice()
+                    .reverse()
+                    .map((history, idx) => (
+                      <div key={idx} className="flex gap-4">
+                        <div className="flex flex-col items-center">
+                          <div
+                            className={`rounded-full p-2 ${
+                              history.status === "delivered"
+                                ? "bg-green-100"
+                                : history.status === "shipped"
+                                  ? "bg-indigo-100"
+                                  : history.status === "processing"
+                                    ? "bg-purple-100"
+                                    : history.status === "confirmed"
+                                      ? "bg-blue-100"
+                                      : history.status === "cancelled"
+                                        ? "bg-red-100"
+                                        : "bg-yellow-100"
+                            }`}
+                          >
+                            {getStatusIcon(history.status)}
+                          </div>
+                          {idx < order.statusHistory.length - 1 && (
+                            <div className="w-px h-full bg-foreground/10 my-1" />
+                          )}
                         </div>
-                        {idx < order.statusHistory.length - 1 && (
-                          <div className="w-px h-full bg-foreground/10 my-1" />
-                        )}
+                        <div className={idx < order.statusHistory.length - 1 ? "pb-6" : ""}>
+                          <p className="font-medium capitalize">{history.status}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(history.timestamp), "MMMM dd, yyyy hh:mm a")}
+                          </p>
+                          {history.note && (
+                            <p className="text-sm text-muted-foreground italic mt-1">
+                              {history.note}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <div className={idx < order.statusHistory.length - 1 ? "pb-6" : ""}>
-                        <p className="font-medium capitalize">{history.status}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {format(new Date(history.timestamp), "MMMM dd, yyyy hh:mm a")}
-                        </p>
-                        {history.note && (
-                          <p className="text-sm text-muted-foreground italic mt-1">{history.note}</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </CardContent>
             </Card>
@@ -254,8 +268,10 @@ export function OrderDetail() {
                     Shipping Address
                   </p>
                   <p className="text-sm">
-                    {order.shippingAddress.street}<br />
-                    {order.shippingAddress.city}, {order.shippingAddress.postalCode}<br />
+                    {order.shippingAddress.street}
+                    <br />
+                    {order.shippingAddress.city}, {order.shippingAddress.postalCode}
+                    <br />
                     {order.shippingAddress.country}
                   </p>
                 </div>
@@ -286,7 +302,10 @@ export function OrderDetail() {
                   <Label htmlFor="status" className="text-xs uppercase tracking-[0.2em]">
                     New Status
                   </Label>
-                  <Select value={newStatus} onValueChange={(value) => setNewStatus(value as OrderStatus)}>
+                  <Select
+                    value={newStatus}
+                    onValueChange={(value) => setNewStatus(value as OrderStatus)}
+                  >
                     <SelectTrigger id="status" className="h-12 rounded-full mt-2">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
