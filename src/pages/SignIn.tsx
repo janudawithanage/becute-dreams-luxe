@@ -1,20 +1,49 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { useState } from "react";
+import { useAuthStore } from "@/features/auth";
 
 export function SignIn() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuthStore();
+  
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     remember: false,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle sign in logic here
-    console.log("Sign in:", formData);
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const success = await login(formData.email, formData.password);
+      
+      if (success) {
+        // Redirect to the page they were trying to access, or admin dashboard if they're admin
+        const from = location.state?.from?.pathname;
+        const isAdminEmail = formData.email === import.meta.env.VITE_ADMIN_EMAIL;
+        
+        if (isAdminEmail) {
+          navigate("/admin");
+        } else {
+          navigate(from || "/");
+        }
+      } else {
+        setError("Invalid email or password");
+      }
+    } catch (err) {
+      setError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -45,6 +74,29 @@ export function SignIn() {
           className="glass shadow-luxe rounded-3xl p-8 md:p-10"
         >
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Error Message */}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2 rounded-2xl bg-red-50 p-4 text-sm text-red-600"
+              >
+                <AlertCircle className="h-4 w-4" />
+                {error}
+              </motion.div>
+            )}
+
+            {/* Admin Info Banner */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl bg-blue-50 p-4 text-xs"
+            >
+              <p className="font-medium text-blue-900 mb-1">Admin Demo Access:</p>
+              <p className="text-blue-700">Email: admin@becutedreams.com</p>
+              <p className="text-blue-700">Password: BecuteAdmin2024!</p>
+            </motion.div>
+
             {/* Email Input */}
             <div className="space-y-2">
               <label
@@ -121,9 +173,10 @@ export function SignIn() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               type="submit"
-              className="flex h-12 w-full items-center justify-center rounded-full bg-gradient-ink text-xs uppercase tracking-[0.25em] text-white shadow-soft transition hover:shadow-luxe"
+              disabled={isLoading}
+              className="flex h-12 w-full items-center justify-center rounded-full bg-gradient-ink text-xs uppercase tracking-[0.25em] text-white shadow-soft transition hover:shadow-luxe disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign In
+              {isLoading ? "Signing In..." : "Sign In"}
             </motion.button>
 
             {/* Divider */}

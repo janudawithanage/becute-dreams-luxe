@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Package,
@@ -13,6 +13,7 @@ import {
 import { useState } from "react";
 import { cn } from "@/shared/utils/cn";
 import { motion } from "framer-motion";
+import { useAuthStore } from "@/features/auth";
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -24,7 +25,14 @@ const navigation = [
 
 export function AdminLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/sign-in");
+  };
 
   return (
     <div className="min-h-screen bg-gradient-dream relative">
@@ -100,14 +108,19 @@ export function AdminLayout() {
           <div className="border-t border-foreground/10 p-4">
             <div className="flex items-center gap-3 mb-3">
               <div className="h-10 w-10 rounded-full bg-gradient-blush flex items-center justify-center shadow-soft">
-                <span className="text-sm font-display text-ink">AD</span>
+                <span className="text-sm font-display text-ink">
+                  {user?.name?.charAt(0).toUpperCase() || "A"}
+                </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">Admin User</p>
-                <p className="text-xs text-muted-foreground truncate">admin@becute.com</p>
+                <p className="text-sm font-medium text-foreground truncate">{user?.name || "Admin User"}</p>
+                <p className="text-xs text-muted-foreground truncate">{user?.email || "admin@becute.com"}</p>
               </div>
             </div>
-            <button className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-foreground/70 hover:bg-foreground/5 hover:text-foreground transition-all">
+            <button 
+              onClick={handleLogout}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-foreground/70 hover:bg-foreground/5 hover:text-foreground transition-all"
+            >
               <LogOut className="h-4 w-4" />
               <span className="uppercase tracking-[0.15em]">Logout</span>
             </button>

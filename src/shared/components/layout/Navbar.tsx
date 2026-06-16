@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import { useState, useEffect } from "react";
-import { ShoppingBag, Menu, X, Search, User } from "lucide-react";
+import { ShoppingBag, Menu, X, Search, User, Shield } from "lucide-react";
 import { useCart } from "@/features/cart";
+import { useAuthStore } from "@/features/auth";
 import { cn } from "@/shared/utils";
 
 const links = [
@@ -19,6 +20,7 @@ export function Navbar() {
   const { scrollY } = useScroll();
   const count = useCart((s) => s.count());
   const setCartOpen = useCart((s) => s.setOpen);
+  const { isAuthenticated, isAdmin, user, logout } = useAuthStore();
 
   useEffect(() => {
     setMounted(true);
@@ -69,14 +71,35 @@ export function Navbar() {
               <Search className="h-4 w-4" />
             </button>
 
-            {/* Sign In - Desktop only */}
-            <Link
-              to="/sign-in"
-              className="hidden items-center gap-1.5 rounded-full px-4 py-2 text-sm uppercase tracking-[0.15em] text-foreground/80 transition hover:bg-foreground/5 hover:text-foreground md:flex"
-            >
-              <User className="h-4 w-4" />
-              <span>Sign In</span>
-            </Link>
+            {/* Sign In / User Menu - Desktop only */}
+            {isAuthenticated ? (
+              <div className="hidden md:flex items-center gap-1">
+                {isAdmin() && (
+                  <Link
+                    to="/admin"
+                    className="flex items-center gap-1.5 rounded-full px-4 py-2 text-sm uppercase tracking-[0.15em] text-foreground/80 transition hover:bg-foreground/5 hover:text-foreground"
+                  >
+                    <Shield className="h-4 w-4" />
+                    <span>Admin</span>
+                  </Link>
+                )}
+                <button
+                  onClick={logout}
+                  className="flex items-center gap-1.5 rounded-full px-4 py-2 text-sm uppercase tracking-[0.15em] text-foreground/80 transition hover:bg-foreground/5 hover:text-foreground"
+                >
+                  <User className="h-4 w-4" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/sign-in"
+                className="hidden items-center gap-1.5 rounded-full px-4 py-2 text-sm uppercase tracking-[0.15em] text-foreground/80 transition hover:bg-foreground/5 hover:text-foreground md:flex"
+              >
+                <User className="h-4 w-4" />
+                <span>Sign In</span>
+              </Link>
+            )}
 
             {/* Cart - All screens */}
             <button
@@ -151,25 +174,62 @@ export function Navbar() {
             />
 
             {/* Secondary Links */}
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              <Link
-                to="/sign-in"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 text-xl font-medium"
+            {isAuthenticated ? (
+              <>
+                {isAdmin() && (
+                  <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <Link
+                      to="/admin"
+                      onClick={() => setOpen(false)}
+                      className="flex items-center gap-3 text-xl font-medium"
+                    >
+                      <Shield className="h-5 w-5" />
+                      <span>Admin Dashboard</span>
+                    </Link>
+                  </motion.div>
+                )}
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.35 }}
+                >
+                  <button
+                    onClick={() => {
+                      logout();
+                      setOpen(false);
+                    }}
+                    className="flex items-center gap-3 text-xl font-medium"
+                  >
+                    <User className="h-5 w-5" />
+                    <span>Logout ({user?.email})</span>
+                  </button>
+                </motion.div>
+              </>
+            ) : (
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.3 }}
               >
-                <User className="h-5 w-5" />
-                <span>Sign In</span>
-              </Link>
-            </motion.div>
+                <Link
+                  to="/sign-in"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-3 text-xl font-medium"
+                >
+                  <User className="h-5 w-5" />
+                  <span>Sign In</span>
+                </Link>
+              </motion.div>
+            )}
 
             <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 }}
+              transition={{ delay: isAuthenticated ? 0.4 : 0.35 }}
             >
               <button
                 onClick={() => setOpen(false)}

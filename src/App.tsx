@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import { SiteLayout } from "@/shared/components/layout/SiteLayout";
+import { ProtectedRoute } from "@/shared/components/auth/ProtectedRoute";
 import { Home } from "@/pages/Home";
 import { Shop } from "@/pages/Shop";
 import { ProductDetail } from "@/pages/ProductDetail";
@@ -40,8 +41,15 @@ export default function App() {
         <Route path="*" element={<NotFound />} />
       </Route>
 
-      {/* Admin routes */}
-      <Route path="/admin" element={<AdminLayout />}>
+      {/* Admin routes - Protected */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute requireAdmin>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route index element={<Dashboard />} />
         <Route path="products" element={<Products />} />
         <Route path="products/new" element={<ProductForm />} />
