@@ -58,6 +58,9 @@ export function Checkout() {
             Your order <span className="font-medium text-foreground">{orderNumber}</span> is
             confirmed. You can track your order status in your account.
           </p>
+          <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">
+            In production, a confirmation email would be sent to {user?.email}.
+          </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
             <Link
               to="/my-orders"

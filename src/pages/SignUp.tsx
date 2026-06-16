@@ -17,7 +17,7 @@ import { useAuthStore } from "@/features/auth";
 
 export function SignUp() {
   const navigate = useNavigate();
-  const { register } = useAuthStore();
+  const { register, login } = useAuthStore();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -67,10 +67,16 @@ export function SignUp() {
       });
 
       if (result.success) {
-        // Redirect to sign-in page
-        navigate("/sign-in", {
-          state: { message: "Account created successfully! Please sign in." },
-        });
+        // Auto-login after successful registration
+        const loginSuccess = await login(formData.email, formData.password);
+        if (loginSuccess) {
+          navigate("/shop");
+        } else {
+          // Fallback to sign-in page if auto-login fails
+          navigate("/sign-in", {
+            state: { message: "Account created successfully! Please sign in." },
+          });
+        }
       } else {
         setError(result.error || "Registration failed");
       }

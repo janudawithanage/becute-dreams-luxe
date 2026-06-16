@@ -2,12 +2,14 @@ import { useParams, Link, Navigate } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Minus, Plus, ArrowUpRight } from "lucide-react";
-import { getProduct, products } from "@/features/products";
+import { useProductsStore } from "@/features/products";
 import { useCart } from "@/features/cart";
 
 export function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
-  const product = slug ? getProduct(slug) : null;
+  const getProductBySlug = useProductsStore((s) => s.getProductBySlug);
+  const products = useProductsStore((s) => s.getProducts());
+  const product = slug ? getProductBySlug(slug) : null;
   const [qty, setQty] = useState(1);
   const add = useCart((s) => s.add);
 

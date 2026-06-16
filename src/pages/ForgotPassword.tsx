@@ -9,7 +9,8 @@ export function ForgotPassword() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle password reset logic here
+    // Note: Password reset requires backend email service
+    // This is a frontend-only demo
     console.log("Password reset for:", email);
     setSubmitted(true);
   };
@@ -52,6 +53,14 @@ export function ForgotPassword() {
         >
           {!submitted ? (
             <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="rounded-2xl bg-blue-50 p-4 text-sm text-blue-800">
+                <p className="font-medium">Demo Mode</p>
+                <p className="mt-1 text-xs">
+                  Password reset requires backend email services. In production, this would send a
+                  reset link to your email.
+                </p>
+              </div>
+
               <p className="text-center text-sm text-muted-foreground">
                 Enter your email address and we'll send you a link to reset your password.
               </p>

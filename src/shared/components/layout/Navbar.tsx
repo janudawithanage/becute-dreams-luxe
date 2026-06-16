@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import { motion, useScroll, useMotionValueEvent } from "framer-motion";
+import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import { ShoppingBag, Menu, X, Search, User, Shield } from "lucide-react";
+import { ShoppingBag, Menu, X, User, Shield } from "lucide-react";
 import { useCart } from "@/features/cart";
 import { useAuthStore } from "@/features/auth";
 import { cn } from "@/shared/utils";
@@ -63,14 +63,6 @@ export function Navbar() {
 
           {/* Actions - Right */}
           <div className="flex items-center gap-1">
-            {/* Search - Desktop only */}
-            <button
-              aria-label="Search"
-              className="hidden h-10 w-10 items-center justify-center rounded-full text-foreground/80 transition hover:bg-foreground/5 hover:text-foreground md:flex"
-            >
-              <Search className="h-4 w-4" />
-            </button>
-
             {/* Sign In / User Menu - Desktop only */}
             {isAuthenticated ? (
               <div className="hidden md:flex items-center gap-1">
@@ -142,131 +134,119 @@ export function Navbar() {
       </motion.header>
 
       {/* Mobile menu */}
-      {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[60] flex flex-col bg-background px-6 py-6 md:hidden"
-        >
-          <div className="flex items-center justify-between">
-            <span className="font-display text-2xl">Becute Dreams</span>
-            <button onClick={() => setOpen(false)} aria-label="Close menu">
-              <X className="h-6 w-6" />
-            </button>
-          </div>
-          <div className="mt-16 flex flex-col gap-8">
-            {/* Main Navigation Links */}
-            {links.map((l, i) => (
-              <motion.div
-                key={l.to}
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.05 * i }}
-              >
-                <Link
-                  to={l.to}
-                  onClick={() => setOpen(false)}
-                  className="font-display text-5xl tracking-tight"
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex flex-col bg-background px-6 py-6 md:hidden"
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-display text-2xl">Becute Dreams</span>
+              <button onClick={() => setOpen(false)} aria-label="Close menu">
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="mt-16 flex flex-col gap-8">
+              {/* Main Navigation Links */}
+              {links.map((l, i) => (
+                <motion.div
+                  key={l.to}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.05 * i }}
                 >
-                  {l.label}
-                </Link>
-              </motion.div>
-            ))}
+                  <Link
+                    to={l.to}
+                    onClick={() => setOpen(false)}
+                    className="font-display text-5xl tracking-tight"
+                  >
+                    {l.label}
+                  </Link>
+                </motion.div>
+              ))}
 
-            {/* Divider */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.25 }}
-              className="border-t border-border"
-            />
+              {/* Divider */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.25 }}
+                className="border-t border-border"
+              />
 
-            {/* Secondary Links */}
-            {isAuthenticated ? (
-              <>
-                {!isAdmin() && (
+              {/* Secondary Links */}
+              {isAuthenticated ? (
+                <>
+                  {!isAdmin() && (
+                    <motion.div
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      <Link
+                        to="/my-orders"
+                        onClick={() => setOpen(false)}
+                        className="flex items-center gap-3 text-xl font-medium"
+                      >
+                        <ShoppingBag className="h-5 w-5" />
+                        <span>My Orders</span>
+                      </Link>
+                    </motion.div>
+                  )}
+                  {isAdmin() && (
+                    <motion.div
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      <Link
+                        to="/admin"
+                        onClick={() => setOpen(false)}
+                        className="flex items-center gap-3 text-xl font-medium"
+                      >
+                        <Shield className="h-5 w-5" />
+                        <span>Admin Dashboard</span>
+                      </Link>
+                    </motion.div>
+                  )}
                   <motion.div
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.3 }}
+                    transition={{ delay: 0.35 }}
                   >
-                    <Link
-                      to="/my-orders"
-                      onClick={() => setOpen(false)}
+                    <button
+                      onClick={() => {
+                        logout();
+                        setOpen(false);
+                      }}
                       className="flex items-center gap-3 text-xl font-medium"
                     >
-                      <ShoppingBag className="h-5 w-5" />
-                      <span>My Orders</span>
-                    </Link>
+                      <User className="h-5 w-5" />
+                      <span>Logout ({user?.email})</span>
+                    </button>
                   </motion.div>
-                )}
-                {isAdmin() && (
-                  <motion.div
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    <Link
-                      to="/admin"
-                      onClick={() => setOpen(false)}
-                      className="flex items-center gap-3 text-xl font-medium"
-                    >
-                      <Shield className="h-5 w-5" />
-                      <span>Admin Dashboard</span>
-                    </Link>
-                  </motion.div>
-                )}
+                </>
+              ) : (
                 <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.35 }}
+                  transition={{ delay: 0.3 }}
                 >
-                  <button
-                    onClick={() => {
-                      logout();
-                      setOpen(false);
-                    }}
+                  <Link
+                    to="/sign-in"
+                    onClick={() => setOpen(false)}
                     className="flex items-center gap-3 text-xl font-medium"
                   >
                     <User className="h-5 w-5" />
-                    <span>Logout ({user?.email})</span>
-                  </button>
+                    <span>Sign In</span>
+                  </Link>
                 </motion.div>
-              </>
-            ) : (
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.3 }}
-              >
-                <Link
-                  to="/sign-in"
-                  onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 text-xl font-medium"
-                >
-                  <User className="h-5 w-5" />
-                  <span>Sign In</span>
-                </Link>
-              </motion.div>
-            )}
-
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: isAuthenticated ? 0.4 : 0.35 }}
-            >
-              <button
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 text-xl font-medium text-muted-foreground"
-              >
-                <Search className="h-5 w-5" />
-                <span>Search</span>
-              </button>
-            </motion.div>
-          </div>
-        </motion.div>
-      )}
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

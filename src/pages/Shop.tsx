@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Search, ShoppingBag } from "lucide-react";
-import { products, categories } from "@/features/products";
+import { categories, useProductsStore } from "@/features/products";
 import { useCart } from "@/features/cart";
 import { Link } from "react-router-dom";
 
@@ -13,6 +13,7 @@ export function Shop() {
   const q = searchParams.get("q") || undefined;
   const [query, setQuery] = useState(q ?? "");
   const add = useCart((s) => s.add);
+  const products = useProductsStore((s) => s.getProducts());
 
   const filtered = products.filter((p) => {
     if (category && p.category !== category) return false;
