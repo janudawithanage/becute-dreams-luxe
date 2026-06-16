@@ -12,20 +12,23 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
-import { Search, Eye, Download } from "lucide-react";
-import { mockOrders } from "@/features/admin";
+import { Search, Eye, Download, Package } from "lucide-react";
+import { useOrdersStore } from "@/features/orders";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 
 export function Orders() {
   const navigate = useNavigate();
+  const { getAllOrders } = useOrdersStore();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredOrders = mockOrders.filter(
+  const allOrders = getAllOrders();
+
+  const filteredOrders = allOrders.filter(
     (order) =>
       order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.email.toLowerCase().includes(searchQuery.toLowerCase()),
+      order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.customerEmail.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const getStatusBadge = (
@@ -36,10 +39,31 @@ export function Orders() {
       processing: "warning",
       shipped: "info",
       pending: "default",
+      confirmed: "info",
       cancelled: "destructive",
     };
     return variants[status] || "default";
   };
+
+  if (allOrders.length === 0) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">✦ Transactions</p>
+          <h2 className="mt-2 font-display text-4xl tracking-tight">Orders</h2>
+        </div>
+        <Card className="glass border-foreground/10 shadow-soft">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <Package className="h-16 w-16 text-muted-foreground/50" />
+            <p className="mt-4 font-display text-2xl">No orders yet</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Orders will appear here once customers start placing them
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -122,7 +146,7 @@ export function Orders() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredOrders.map((order) => (
+                {filteredOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map((order) => (
                   <TableRow
                     key={order.id}
                     className="border-foreground/5 hover:bg-foreground/[0.02] transition"
@@ -130,12 +154,12 @@ export function Orders() {
                     <TableCell className="font-medium">{order.orderNumber}</TableCell>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{order.customer}</p>
-                        <p className="text-sm text-muted-foreground">{order.email}</p>
+                        <p className="font-medium">{order.customerName}</p>
+                        <p className="text-sm text-muted-foreground">{order.customerEmail}</p>
                       </div>
                     </TableCell>
                     <TableCell className="text-sm">
-                      {format(new Date(order.date), "MMM dd, yyyy")}
+                      {format(new Date(order.createdAt), "MMM dd, yyyy")}
                     </TableCell>
                     <TableCell>
                       <Badge variant={getStatusBadge(order.status)} className="capitalize">

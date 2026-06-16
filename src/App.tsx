@@ -11,6 +11,8 @@ import { Checkout } from "@/pages/Checkout";
 import { SignIn } from "@/pages/SignIn";
 import { SignUp } from "@/pages/SignUp";
 import { ForgotPassword } from "@/pages/ForgotPassword";
+import { MyOrders } from "@/pages/MyOrders";
+import { OrderDetail } from "@/pages/OrderDetail";
 import { NotFound } from "@/pages/NotFound";
 
 // Admin pages
@@ -19,7 +21,7 @@ import { Dashboard } from "@/pages/admin/Dashboard";
 import { Products } from "@/pages/admin/Products";
 import { ProductForm } from "@/pages/admin/ProductForm";
 import { Orders } from "@/pages/admin/Orders";
-import { OrderDetail } from "@/pages/admin/OrderDetail";
+import { OrderDetail as AdminOrderDetail } from "@/pages/admin/OrderDetail";
 import { Customers } from "@/pages/admin/Customers";
 import { Settings } from "@/pages/admin/Settings";
 
@@ -38,6 +40,8 @@ export default function App() {
         <Route path="/sign-in" element={<SignIn />} />
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/my-orders" element={<MyOrders />} />
+        <Route path="/order/:orderId" element={<OrderDetail />} />
         <Route path="*" element={<NotFound />} />
       </Route>
 
@@ -55,7 +59,7 @@ export default function App() {
         <Route path="products/new" element={<ProductForm />} />
         <Route path="products/:id/edit" element={<ProductForm />} />
         <Route path="orders" element={<Orders />} />
-        <Route path="orders/:id" element={<OrderDetail />} />
+        <Route path="orders/:id" element={<AdminOrderDetail />} />
         <Route path="customers" element={<Customers />} />
         <Route path="settings" element={<Settings />} />
       </Route>

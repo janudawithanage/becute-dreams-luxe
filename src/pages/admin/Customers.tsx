@@ -11,19 +11,58 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
-import { Search, Eye, Mail, Phone } from "lucide-react";
-import { mockCustomers } from "@/features/admin";
+import { Search, Mail, Phone, MapPin, Users } from "lucide-react";
+import { useAuthStore } from "@/features/auth";
+import { useOrdersStore } from "@/features/orders";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 
 export function Customers() {
+  const { getAllCustomers } = useAuthStore();
+  const { getAllOrders } = useOrdersStore();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredCustomers = mockCustomers.filter(
+  const customers = getAllCustomers();
+  const orders = getAllOrders();
+
+  // Calculate stats for each customer
+  const customersWithStats = customers.map((customer) => {
+    const customerOrders = orders.filter((o) => o.customerId === customer.id);
+    const totalSpent = customerOrders.reduce((sum, order) => sum + order.total, 0);
+    return {
+      ...customer,
+      totalOrders: customerOrders.length,
+      totalSpent,
+    };
+  });
+
+  const filteredCustomers = customersWithStats.filter(
     (customer) =>
       customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       customer.email.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  const totalRevenue = customersWithStats.reduce((sum, c) => sum + c.totalSpent, 0);
+
+  if (customers.length === 0) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">✦ Community</p>
+          <h2 className="mt-2 font-display text-4xl tracking-tight">Customers</h2>
+        </div>
+        <Card className="glass border-foreground/10 shadow-soft">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <Users className="h-16 w-16 text-muted-foreground/50" />
+            <p className="mt-4 font-display text-2xl">No customers yet</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Customers will appear here once they register
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -53,17 +92,17 @@ export function Customers() {
         {[
           {
             label: "Total Customers",
-            value: mockCustomers.length,
+            value: customers.length,
             delay: 0.2,
           },
           {
-            label: "Active Customers",
-            value: mockCustomers.filter((c) => c.status === "active").length,
+            label: "Total Orders",
+            value: orders.length,
             delay: 0.3,
           },
           {
             label: "Total Revenue",
-            value: `$${mockCustomers.reduce((sum, c) => sum + c.totalSpent, 0).toLocaleString()}`,
+            value: `$${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
             delay: 0.4,
           },
         ].map((stat) => (
@@ -119,16 +158,13 @@ export function Customers() {
                     Join Date
                   </TableHead>
                   <TableHead className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
+                    Location
+                  </TableHead>
+                  <TableHead className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
                     Orders
                   </TableHead>
                   <TableHead className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
                     Total Spent
-                  </TableHead>
-                  <TableHead className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
-                    Status
-                  </TableHead>
-                  <TableHead className="text-right text-xs uppercase tracking-[0.15em] text-muted-foreground">
-                    Actions
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -154,28 +190,17 @@ export function Customers() {
                       </div>
                     </TableCell>
                     <TableCell className="text-sm">
-                      {format(new Date(customer.joinDate), "MMM dd, yyyy")}
+                      {format(new Date(customer.createdAt), "MMM dd, yyyy")}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-sm">
+                        <MapPin className="h-3 w-3 text-muted-foreground" />
+                        <span>{customer.city}, {customer.country}</span>
+                      </div>
                     </TableCell>
                     <TableCell>{customer.totalOrders}</TableCell>
                     <TableCell className="font-display text-lg">
                       ${customer.totalSpent.toFixed(2)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={customer.status === "active" ? "success" : "default"}
-                        className="capitalize"
-                      >
-                        {customer.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 rounded-lg hover:bg-foreground/5"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}

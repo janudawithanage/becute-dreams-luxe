@@ -11,11 +11,19 @@ export function SignIn() {
   
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     remember: false,
+  });
+
+  // Check for success message from registration
+  useState(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+    }
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,6 +82,18 @@ export function SignIn() {
           className="glass shadow-luxe rounded-3xl p-8 md:p-10"
         >
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Success Message */}
+            {successMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2 rounded-2xl bg-green-50 p-4 text-sm text-green-600"
+              >
+                <AlertCircle className="h-4 w-4" />
+                {successMessage}
+              </motion.div>
+            )}
+
             {/* Error Message */}
             {error && (
               <motion.div
@@ -90,11 +110,18 @@ export function SignIn() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl bg-blue-50 p-4 text-xs"
+              className="rounded-2xl bg-blue-50 p-4 text-xs space-y-3"
             >
-              <p className="font-medium text-blue-900 mb-1">Admin Demo Access:</p>
-              <p className="text-blue-700">Email: admin@becutedreams.com</p>
-              <p className="text-blue-700">Password: BecuteAdmin2024!</p>
+              <div>
+                <p className="font-medium text-blue-900 mb-1">🔐 Admin Demo Access:</p>
+                <p className="text-blue-700">Email: admin@becutedreams.com</p>
+                <p className="text-blue-700">Password: BecuteAdmin2024!</p>
+              </div>
+              <div className="border-t border-blue-200 pt-3">
+                <p className="font-medium text-blue-900 mb-1">👤 Customer Demo Access:</p>
+                <p className="text-blue-700">Email: customer@example.com</p>
+                <p className="text-blue-700">Password: customer123</p>
+              </div>
             </motion.div>
 
             {/* Email Input */}

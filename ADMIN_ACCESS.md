@@ -4,10 +4,16 @@
 
 **URL:** http://localhost:5173/sign-in (or your deployment URL + `/sign-in`)
 
-**Credentials:**
+**Admin Credentials:**
 ```
 Email:    admin@becutedreams.com
 Password: BecuteAdmin2024!
+```
+
+**Demo Customer Credentials:**
+```
+Email:    customer@example.com
+Password: customer123
 ```
 
 ## Quick Access Steps

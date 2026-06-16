@@ -74,6 +74,15 @@ export function Navbar() {
             {/* Sign In / User Menu - Desktop only */}
             {isAuthenticated ? (
               <div className="hidden md:flex items-center gap-1">
+                {!isAdmin() && (
+                  <Link
+                    to="/my-orders"
+                    className="flex items-center gap-1.5 rounded-full px-4 py-2 text-sm uppercase tracking-[0.15em] text-foreground/80 transition hover:bg-foreground/5 hover:text-foreground"
+                  >
+                    <ShoppingBag className="h-4 w-4" />
+                    <span>My Orders</span>
+                  </Link>
+                )}
                 {isAdmin() && (
                   <Link
                     to="/admin"
@@ -176,6 +185,22 @@ export function Navbar() {
             {/* Secondary Links */}
             {isAuthenticated ? (
               <>
+                {!isAdmin() && (
+                  <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <Link
+                      to="/my-orders"
+                      onClick={() => setOpen(false)}
+                      className="flex items-center gap-3 text-xl font-medium"
+                    >
+                      <ShoppingBag className="h-5 w-5" />
+                      <span>My Orders</span>
+                    </Link>
+                  </motion.div>
+                )}
                 {isAdmin() && (
                   <motion.div
                     initial={{ y: 20, opacity: 0 }}
