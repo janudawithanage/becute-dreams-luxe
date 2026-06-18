@@ -37,9 +37,9 @@ export function SignIn() {
       if (success) {
         // Redirect to the page they were trying to access, or admin dashboard if they're admin
         const from = location.state?.from?.pathname;
-        const isAdminEmail = formData.email === import.meta.env.VITE_ADMIN_EMAIL;
+        const isAdmin = authStore.isAdmin();
 
-        if (isAdminEmail) {
+        if (isAdmin) {
           navigate("/admin");
         } else {
           navigate(from || "/");
@@ -105,24 +105,6 @@ export function SignIn() {
                 {error}
               </motion.div>
             )}
-
-            {/* Admin Info Banner */}
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl bg-blue-50 p-4 text-xs space-y-3"
-            >
-              <div>
-                <p className="font-medium text-blue-900 mb-1">🔐 Admin Demo Access:</p>
-                <p className="text-blue-700">Email: admin@becutedreams.com</p>
-                <p className="text-blue-700">Password: BecuteAdmin2024!</p>
-              </div>
-              <div className="border-t border-blue-200 pt-3">
-                <p className="font-medium text-blue-900 mb-1">👤 Customer Demo Access:</p>
-                <p className="text-blue-700">Email: customer@example.com</p>
-                <p className="text-blue-700">Password: customer123</p>
-              </div>
-            </motion.div>
 
             {/* Email Input */}
             <div className="space-y-2">

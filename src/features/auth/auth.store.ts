@@ -45,58 +45,13 @@ export const useAuthStore = create<AuthState>()(
       customers: [],
 
       login: async (email: string, password: string) => {
-        // Check admin credentials from environment variables
-        const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
-        const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD;
-
-        if (email === adminEmail && password === adminPassword) {
-          const user: User = {
-            id: "admin-1",
-            email: adminEmail,
-            role: "admin",
-            name: "Admin User",
-            createdAt: new Date().toISOString(),
-          };
-
-          set({ user, isAuthenticated: true });
-          return true;
-        }
-
-        // Check demo customer credentials from environment variables
-        const demoCustomerEmail = import.meta.env.VITE_DEMO_CUSTOMER_EMAIL;
-        const demoCustomerPassword = import.meta.env.VITE_DEMO_CUSTOMER_PASSWORD;
-
-        if (email === demoCustomerEmail && password === demoCustomerPassword) {
-          const { customers } = get();
-
-          // Check if demo customer exists, create if not
-          let demoCustomer = customers.find((c) => c.email === demoCustomerEmail);
-
-          if (!demoCustomer) {
-            demoCustomer = {
-              id: "demo-customer-1",
-              email: demoCustomerEmail,
-              role: "customer",
-              name: "Demo Customer",
-              phone: "+1 (555) 123-4567",
-              address: "123 Demo Street, Apt 4B",
-              city: "New York",
-              postalCode: "10001",
-              country: "United States",
-              createdAt: new Date().toISOString(),
-            };
-            set({ customers: [...customers, demoCustomer] });
-          }
-
-          set({ user: demoCustomer, isAuthenticated: true });
-          return true;
-        }
-
-        // Check if customer exists in registered customers
+        // TODO: Implement real backend authentication here
+        // For now, check if customer exists in registered customers
         const { customers } = get();
         const customer = customers.find((c) => c.email === email);
 
         if (customer) {
+          // In a real backend, verify password here
           set({ user: customer, isAuthenticated: true });
           return true;
         }

@@ -2,18 +2,21 @@
 
 ## Overview
 
-This application uses a simple frontend-only authentication system with Zustand for state management and localStorage for persistence.
+This application is ready for backend authentication integration. The authentication system uses Zustand for state management and localStorage for persistence.
 
-## Admin Credentials
+## Setup for Backend Integration
 
-The admin credentials are stored in the `.env.local` file:
+When you integrate with a backend (like Supabase), you'll need to:
 
-```
-VITE_ADMIN_EMAIL=admin@becutedreams.com
-VITE_ADMIN_PASSWORD=BecuteAdmin2024!
-```
+1. Add your backend configuration to `.env.local`:
+   ```
+   VITE_SUPABASE_URL=https://your-project-id.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-key-here
+   ```
 
-**⚠️ SECURITY NOTICE:** These are demo credentials for development only. In a production environment, you should implement proper backend authentication with secure password hashing and token management.
+2. Update the `login` method in `auth.store.ts` to call your backend API
+
+3. Implement proper password hashing and token management
 
 ## Features
 
@@ -21,8 +24,9 @@ VITE_ADMIN_PASSWORD=BecuteAdmin2024!
 
 - **State Management**: Uses Zustand with persistence to localStorage
 - **User Roles**: Supports `admin` and `customer` roles
-- **Login**: Validates credentials against environment variables for admin, accepts any credentials as customer for demo
+- **Login**: Ready for backend authentication integration
 - **Logout**: Clears user data and redirects to sign-in
+- **Registration**: Customer registration with validation
 - **Admin Check**: Helper method to verify if current user is admin
 
 ### Protected Routes
@@ -36,7 +40,6 @@ The `ProtectedRoute` component wraps routes that require authentication:
 ### Sign In Page
 
 - Form with email/password inputs
-- Shows admin credentials banner for easy testing
 - Validates credentials via auth store
 - Redirects to appropriate page after login:
   - Admin users → `/admin`
@@ -60,18 +63,19 @@ The `ProtectedRoute` component wraps routes that require authentication:
 
 ## Usage
 
-### Accessing Admin Dashboard
+### User Registration
+
+1. Navigate to `/sign-up`
+2. Fill in the registration form with your details
+3. Submit the form to create a customer account
+4. You'll be automatically logged in and redirected
+
+### Signing In
 
 1. Navigate to `/sign-in`
-2. Use the admin credentials shown on the page:
-   - Email: `admin@becutedreams.com`
-   - Password: `BecuteAdmin2024!`
+2. Enter your email and password
 3. Click "Sign In"
-4. You'll be redirected to `/admin`
-
-### Customer Access
-
-For demo purposes, any email/password combination (other than admin credentials) will log you in as a customer. Customers cannot access the admin dashboard.
+4. You'll be redirected based on your role
 
 ### Logging Out
 
@@ -92,20 +96,24 @@ src/shared/components/auth/
 
 src/pages/
 ├── SignIn.tsx         # Sign in page with form
+├── SignUp.tsx         # Registration page
 └── admin/
     └── AdminLayout.tsx # Admin layout with logout
 ```
 
-## Future Enhancements
+## Backend Integration Checklist
 
-For a production application, consider:
+For production deployment with a real backend:
 
-- Backend API integration
-- JWT token-based authentication
-- Secure password hashing
-- Password reset functionality
-- Two-factor authentication
-- Session timeout
-- Account management
-- Role-based permissions system
-- OAuth integration (Google, GitHub, etc.)
+- [ ] Set up authentication backend (Supabase, Firebase, custom API)
+- [ ] Add backend configuration to environment variables
+- [ ] Update login method to call backend API
+- [ ] Implement secure password hashing on backend
+- [ ] Add JWT token handling
+- [ ] Implement password reset functionality
+- [ ] Add session management and timeout
+- [ ] Set up role-based permissions
+- [ ] Add email verification
+- [ ] Consider OAuth integration (Google, GitHub, etc.)
+- [ ] Implement proper error handling
+- [ ] Add rate limiting for login attempts
