@@ -1,7 +1,10 @@
+import { useEffect } from 'react';
 import { Routes, Route } from "react-router-dom";
 import { SiteLayout } from "@/shared/components/layout/SiteLayout";
 import { ProtectedRoute } from "@/shared/components/auth/ProtectedRoute";
 import { Toaster } from "@/shared/components/ui/sonner";
+import { useAuthStore } from '@/features/auth';
+import './test-env';
 import { Home } from "@/pages/Home";
 import { Shop } from "@/pages/Shop";
 import { ProductDetail } from "@/pages/ProductDetail";
@@ -27,6 +30,12 @@ import { Customers } from "@/pages/admin/Customers";
 import { Settings } from "@/pages/admin/Settings";
 
 export default function App() {
+  const initialize = useAuthStore((state) => state.initialize);
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
   return (
     <>
       <Routes>

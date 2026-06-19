@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthStore } from "@/features/auth";
 
 export function SignIn() {
@@ -20,11 +20,11 @@ export function SignIn() {
   });
 
   // Check for success message from registration
-  useState(() => {
+  useEffect(() => {
     if (location.state?.message) {
       setSuccessMessage(location.state.message);
     }
-  });
+  }, [location.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,9 +37,9 @@ export function SignIn() {
       if (success) {
         // Redirect to the page they were trying to access, or admin dashboard if they're admin
         const from = location.state?.from?.pathname;
-        const isAdmin = authStore.isAdmin();
+        const { isAdmin } = useAuthStore.getState();
 
-        if (isAdmin) {
+        if (isAdmin()) {
           navigate("/admin");
         } else {
           navigate(from || "/");

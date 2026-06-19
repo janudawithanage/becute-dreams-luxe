@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { supabase } from "@/lib/supabase";
+import type { Session } from "@supabase/supabase-js";
 
 export interface User {
   id: string;
@@ -11,7 +13,6 @@ export interface User {
   city?: string;
   postalCode?: string;
   country?: string;
-  createdAt: string;
 }
 
 export interface CustomerRegistration {
@@ -27,85 +28,301 @@ export interface CustomerRegistration {
 
 interface AuthState {
   user: User | null;
+  session: Session | null;
   isAuthenticated: boolean;
-  customers: User[];
+  isLoading: boolean;
+  error: string | null;
+  
+  // Actions
+  initialize: () => Promise<void>;
   login: (email: string, password: string) => Promise<boolean>;
   register: (data: CustomerRegistration) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isAdmin: () => boolean;
-  getCustomerById: (id: string) => User | undefined;
-  getAllCustomers: () => User[];
+}
+
+// Helper to map a profile row to our User shape
+function profileToUser(profile: Record<string, unknown>): User {
+  return {
+    id: profile.id as string,
+    email: profile.email as string,
+    role: (profile.role as "admin" | "customer") || "customer",
+    name: (profile.full_name as string) || "",
+    phone: (profile.phone as string) || undefined,
+    address: (profile.address as string) || undefined,
+    city: (profile.city as string) || undefined,
+    postalCode: (profile.postal_code as string) || undefined,
+    country: (profile.country as string) || undefined,
+  };
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
+      session: null,
       isAuthenticated: false,
-      customers: [],
+      isLoading: true,
+      error: null,
+
+      initialize: async () => {
+        try {
+          // Get current session
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          if (error) throw error;
+
+          if (session?.user) {
+            // Fetch user profile
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+
+            if (profile) {
+              set({
+                user: profileToUser(profile),
+                session,
+                isAuthenticated: true,
+                isLoading: false,
+              });
+            } else {
+              // Profile doesn't exist yet (trigger may not have fired)
+              // Set basic user info from session
+              set({
+                user: {
+                  id: session.user.id,
+                  email: session.user.email || '',
+                  role: 'customer',
+                  name: session.user.user_metadata?.full_name || '',
+                },
+                session,
+                isAuthenticated: true,
+                isLoading: false,
+              });
+            }
+          } else {
+            set({ isLoading: false });
+          }
+
+          // Listen for auth changes
+          supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_IN' && session?.user) {
+              // Small delay to let the database trigger complete
+              await new Promise(resolve => setTimeout(resolve, 500));
+
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+
+              if (profile) {
+                set({
+                  user: profileToUser(profile),
+                  session,
+                  isAuthenticated: true,
+                });
+              } else {
+                // Fallback if profile doesn't exist yet
+                set({
+                  user: {
+                    id: session.user.id,
+                    email: session.user.email || '',
+                    role: 'customer',
+                    name: session.user.user_metadata?.full_name || '',
+                  },
+                  session,
+                  isAuthenticated: true,
+                });
+              }
+            } else if (event === 'SIGNED_OUT') {
+              set({ user: null, session: null, isAuthenticated: false });
+            }
+          });
+        } catch (error) {
+          console.error('Auth initialization error:', error);
+          set({ isLoading: false, error: 'Failed to initialize authentication' });
+        }
+      },
 
       login: async (email: string, password: string) => {
-        // TODO: Implement real backend authentication here
-        // For now, check if customer exists in registered customers
-        const { customers } = get();
-        const customer = customers.find((c) => c.email === email);
+        set({ isLoading: true, error: null });
+        
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
 
-        if (customer) {
-          // In a real backend, verify password here
-          set({ user: customer, isAuthenticated: true });
-          return true;
+          if (error) throw error;
+
+          if (data.user) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', data.user.id)
+              .single();
+
+            if (profile) {
+              set({
+                user: profileToUser(profile),
+                session: data.session,
+                isAuthenticated: true,
+                isLoading: false,
+              });
+              return true;
+            } else {
+              // Profile may not exist - create a basic one
+              set({
+                user: {
+                  id: data.user.id,
+                  email: data.user.email || '',
+                  role: 'customer',
+                  name: data.user.user_metadata?.full_name || '',
+                },
+                session: data.session,
+                isAuthenticated: true,
+                isLoading: false,
+              });
+              return true;
+            }
+          }
+
+          set({ isLoading: false });
+          return false;
+        } catch (error: any) {
+          set({ 
+            error: error.message || 'Login failed',
+            isLoading: false 
+          });
+          return false;
         }
-
-        return false;
       },
 
       register: async (data: CustomerRegistration) => {
-        const { customers } = get();
+        set({ isLoading: true, error: null });
+        
+        try {
+          // Step 1: Create auth user with metadata
+          const { data: authData, error: authError } = await supabase.auth.signUp({
+            email: data.email,
+            password: data.password,
+            options: {
+              data: {
+                full_name: data.name,
+                phone: data.phone,
+                address: data.address,
+                city: data.city,
+                postal_code: data.postalCode,
+                country: data.country,
+              }
+            }
+          });
 
-        // Check if email already exists
-        const exists = customers.some((c) => c.email === data.email);
-        if (exists) {
-          return { success: false, error: "Email already registered" };
+          if (authError) throw authError;
+          if (!authData.user) throw new Error('User creation failed');
+
+          // Check if email confirmation is required
+          // If session exists, user is auto-confirmed
+          const isAutoConfirmed = !!authData.session;
+
+          if (isAutoConfirmed) {
+            // Wait a moment for the database trigger to create the profile
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // Check if profile was created by trigger
+            const { data: existingProfile } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('id', authData.user.id)
+              .single();
+
+            if (!existingProfile) {
+              // Trigger didn't create profile - insert it manually
+              const { error: profileError } = await supabase
+                .from('profiles')
+                .insert({
+                  id: authData.user.id,
+                  email: data.email,
+                  full_name: data.name,
+                  phone: data.phone,
+                  address: data.address,
+                  city: data.city,
+                  postal_code: data.postalCode,
+                  country: data.country,
+                  role: 'customer',
+                });
+
+              if (profileError) {
+                console.error('Profile creation error:', profileError);
+                // Don't throw - auth user was created successfully
+                // The profile can be created later
+              }
+            } else {
+              // Profile was created by trigger but may be missing metadata fields
+              // Update profile with full registration data
+              const { error: updateError } = await supabase
+                .from('profiles')
+                .update({
+                  full_name: data.name,
+                  phone: data.phone,
+                  address: data.address,
+                  city: data.city,
+                  postal_code: data.postalCode,
+                  country: data.country,
+                })
+                .eq('id', authData.user.id);
+
+              if (updateError) {
+                console.error('Profile update error:', updateError);
+              }
+            }
+          }
+
+          set({ isLoading: false });
+          return { success: true };
+        } catch (error: any) {
+          console.error('Registration error:', error);
+          set({ 
+            error: error.message || 'Registration failed',
+            isLoading: false 
+          });
+          return { 
+            success: false, 
+            error: error.message || 'Registration failed' 
+          };
         }
-
-        // Create new customer
-        const newCustomer: User = {
-          id: `customer-${Date.now()}`,
-          email: data.email,
-          role: "customer",
-          name: data.name,
-          phone: data.phone,
-          address: data.address,
-          city: data.city,
-          postalCode: data.postalCode,
-          country: data.country,
-          createdAt: new Date().toISOString(),
-        };
-
-        set({ customers: [...customers, newCustomer] });
-        return { success: true };
       },
 
-      logout: () => {
-        set({ user: null, isAuthenticated: false });
+      logout: async () => {
+        set({ isLoading: true });
+        try {
+          await supabase.auth.signOut();
+          set({ 
+            user: null, 
+            session: null, 
+            isAuthenticated: false,
+            isLoading: false 
+          });
+        } catch (error) {
+          console.error('Logout error:', error);
+          set({ isLoading: false });
+        }
       },
 
       isAdmin: () => {
         const { user } = get();
-        return user?.role === "admin";
-      },
-
-      getCustomerById: (id: string) => {
-        const { customers } = get();
-        return customers.find((c) => c.id === id);
-      },
-
-      getAllCustomers: () => {
-        return get().customers;
+        return user?.role === 'admin';
       },
     }),
     {
       name: "auth-storage",
-    },
-  ),
+      partialize: (state) => ({ 
+        user: state.user, 
+        isAuthenticated: state.isAuthenticated 
+      }),
+    }
+  )
 );
