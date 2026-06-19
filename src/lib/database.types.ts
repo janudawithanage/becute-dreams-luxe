@@ -1,0 +1,108 @@
+export interface Database {
+  public: {
+    Tables: {
+      profiles: {
+        Row: {
+          id: string
+          email: string
+          full_name: string | null
+          phone: string | null
+          address: string | null
+          city: string | null
+          postal_code: string | null
+          country: string
+          role: 'customer' | 'admin'
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['profiles']['Row'], 'created_at' | 'updated_at'>
+        Update: Partial<Database['public']['Tables']['profiles']['Insert']>
+      }
+      categories: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          description: string | null
+          image_url: string | null
+          created_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['categories']['Row'], 'id' | 'created_at'>
+        Update: Partial<Database['public']['Tables']['categories']['Insert']>
+      }
+      products: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          description: string | null
+          price: number
+          compare_at_price: number | null
+          category_id: string | null
+          image_url: string
+          gallery: string[]
+          in_stock: boolean
+          featured: boolean
+          tags: string[]
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['products']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Database['public']['Tables']['products']['Insert']>
+      }
+      cart_items: {
+        Row: {
+          id: string
+          user_id: string
+          product_id: string
+          quantity: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['cart_items']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Database['public']['Tables']['cart_items']['Insert']>
+      }
+      orders: {
+        Row: {
+          id: string
+          user_id: string | null
+          order_number: string
+          status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+          customer_email: string
+          customer_name: string
+          customer_phone: string | null
+          shipping_address_line1: string
+          shipping_address_line2: string | null
+          shipping_city: string
+          shipping_state: string
+          shipping_postal_code: string
+          shipping_country: string
+          subtotal: number
+          shipping_cost: number
+          tax: number
+          total: number
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['orders']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Database['public']['Tables']['orders']['Insert']>
+      }
+      order_items: {
+        Row: {
+          id: string
+          order_id: string
+          product_id: string | null
+          product_name: string
+          product_image_url: string | null
+          price: number
+          quantity: number
+          subtotal: number
+          created_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['order_items']['Row'], 'id' | 'created_at'>
+        Update: Partial<Database['public']['Tables']['order_items']['Insert']>
+      }
+    }
+  }
+}
