@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
-import { Button } from "@/shared/components/ui/button";
 import {
   Table,
   TableBody,
@@ -10,39 +9,56 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
-import { Badge } from "@/shared/components/ui/badge";
 import { Search, Mail, Phone, MapPin, Users } from "lucide-react";
-import { useAuthStore } from "@/features/auth";
-import { useOrdersStore } from "@/features/orders";
+import { adminService, type CustomerStats } from "@/features/admin/admin.service";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 
 export function Customers() {
-  const { getAllCustomers } = useAuthStore();
-  const { getAllOrders } = useOrdersStore();
   const [searchQuery, setSearchQuery] = useState("");
+  const [customers, setCustomers] = useState<CustomerStats[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const customers = getAllCustomers();
-  const orders = getAllOrders();
+  useEffect(() => {
+    loadCustomers();
+  }, []);
 
-  // Calculate stats for each customer
-  const customersWithStats = customers.map((customer) => {
-    const customerOrders = orders.filter((o) => o.customerId === customer.id);
-    const totalSpent = customerOrders.reduce((sum, order) => sum + order.total, 0);
-    return {
-      ...customer,
-      totalOrders: customerOrders.length,
-      totalSpent,
-    };
-  });
+  const loadCustomers = async () => {
+    try {
+      const data = await adminService.getAllCustomers();
+      setCustomers(data);
+    } catch (error) {
+      console.error('Failed to load customers:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const filteredCustomers = customersWithStats.filter(
+  const filteredCustomers = customers.filter(
     (customer) =>
-      customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       customer.email.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const totalRevenue = customersWithStats.reduce((sum, c) => sum + c.totalSpent, 0);
+  const totalRevenue = customers.reduce((sum, c) => sum + c.total_spent, 0);
+  const totalOrders = customers.reduce((sum, c) => sum + c.total_orders, 0);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">✦ Community</p>
+          <h2 className="mt-2 font-display text-4xl tracking-tight">Customers</h2>
+        </div>
+        <Card className="glass border-foreground/10 shadow-soft">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading customers...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (customers.length === 0) {
     return (
@@ -97,7 +113,7 @@ export function Customers() {
           },
           {
             label: "Total Orders",
-            value: orders.length,
+            value: totalOrders,
             delay: 0.3,
           },
           {
@@ -174,7 +190,7 @@ export function Customers() {
                     key={customer.id}
                     className="border-foreground/5 hover:bg-foreground/[0.02] transition"
                   >
-                    <TableCell className="font-medium">{customer.name}</TableCell>
+                    <TableCell className="font-medium">{customer.full_name}</TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 text-sm">
@@ -190,19 +206,21 @@ export function Customers() {
                       </div>
                     </TableCell>
                     <TableCell className="text-sm">
-                      {format(new Date(customer.createdAt), "MMM dd, yyyy")}
+                      {format(new Date(customer.created_at), "MMM dd, yyyy")}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2 text-sm">
-                        <MapPin className="h-3 w-3 text-muted-foreground" />
-                        <span>
-                          {customer.city}, {customer.country}
-                        </span>
-                      </div>
+                      {customer.city && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <MapPin className="h-3 w-3 text-muted-foreground" />
+                          <span>
+                            {customer.city}, {customer.country}
+                          </span>
+                        </div>
+                      )}
                     </TableCell>
-                    <TableCell>{customer.totalOrders}</TableCell>
+                    <TableCell>{customer.total_orders}</TableCell>
                     <TableCell className="font-display text-lg">
-                      ${customer.totalSpent.toFixed(2)}
+                      ${customer.total_spent.toFixed(2)}
                     </TableCell>
                   </TableRow>
                 ))}
