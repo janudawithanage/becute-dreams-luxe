@@ -293,14 +293,14 @@ export function ProductForm() {
                     Tag (Optional)
                   </Label>
                   <Select
-                    onValueChange={(value) => setValue("tag", value)}
-                    defaultValue={existingProduct?.tag}
+                    onValueChange={(value) => setValue("tag", value === "none" ? "" : value)}
+                    defaultValue={existingProduct?.tag || "none"}
                   >
                     <SelectTrigger className="h-12 rounded-xl border-foreground/10">
                       <SelectValue placeholder="Select tag (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No tag</SelectItem>
+                      <SelectItem value="none">No tag</SelectItem>
                       <SelectItem value="New">New</SelectItem>
                       <SelectItem value="Bestseller">Bestseller</SelectItem>
                       <SelectItem value="Limited">Limited</SelectItem>
