@@ -18,6 +18,7 @@ import {
 import { ArrowLeft, Upload, X, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useProductsStore } from "@/features/products";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 import { toast } from "sonner";
 
 const productSchema = z.object({
@@ -40,39 +41,52 @@ export function ProductForm() {
   const isEditing = !!id;
 
   const [image, setImage] = useState<string>("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingProduct, setIsLoadingProduct] = useState(isEditing);
 
   const getProductById = useProductsStore((s) => s.getProductById);
   const addProduct = useProductsStore((s) => s.addProduct);
   const updateProduct = useProductsStore((s) => s.updateProduct);
-
-  const existingProduct = isEditing && id ? getProductById(id) : null;
+  const categories = useProductsStore((s) => s.categories);
+  const fetchCategories = useProductsStore((s) => s.fetchCategories);
 
   const {
     register,
     handleSubmit,
     setValue,
     watch,
+    reset,
     formState: { errors },
   } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
-    defaultValues: existingProduct
-      ? {
-          name: existingProduct.name,
-          slug: existingProduct.slug,
-          description: existingProduct.description,
-          price: existingProduct.price,
-          category: existingProduct.category,
-          tag: existingProduct.tag || "",
-        }
-      : undefined,
   });
 
+  // Fetch categories on mount
   useEffect(() => {
-    if (existingProduct) {
-      setImage(existingProduct.image);
+    fetchCategories();
+  }, [fetchCategories]);
+
+  // Load existing product if editing
+  useEffect(() => {
+    if (isEditing && id) {
+      setIsLoadingProduct(true);
+      getProductById(id).then((product) => {
+        if (product) {
+          reset({
+            name: product.name,
+            slug: product.slug,
+            description: product.description || '',
+            price: product.price,
+            category: product.category_id || '',
+            tag: product.tags?.[0] || '',
+          });
+          setImage(product.image_url);
+        }
+        setIsLoadingProduct(false);
+      });
     }
-  }, [existingProduct]);
+  }, [id, isEditing, getProductById, reset]);
 
   // Auto-generate slug from name
   const name = watch("name");
@@ -89,7 +103,10 @@ export function ProductForm() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Convert to base64 for frontend storage
+      // Store the file for upload
+      setImageFile(file);
+      
+      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setImage(reader.result as string);
@@ -100,10 +117,11 @@ export function ProductForm() {
 
   const removeImage = () => {
     setImage("");
+    setImageFile(null);
   };
 
   const onSubmit = async (data: ProductFormData) => {
-    if (!image) {
+    if (!image && !isEditing) {
       toast.error("Please upload a product image");
       return;
     }
@@ -111,21 +129,41 @@ export function ProductForm() {
     setIsSubmitting(true);
 
     try {
+      let imageUrl = image;
+
+      // Upload new image to Cloudinary if a file was selected
+      if (imageFile) {
+        toast.info("Uploading image to Cloudinary...");
+        const uploadResult = await uploadToCloudinary(imageFile, {
+          folder: 'becute-dreams-luxe/products'
+        });
+        imageUrl = uploadResult.secure_url;
+        toast.success("Image uploaded successfully!");
+      }
+
       const productData = {
-        ...data,
-        image,
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        price: data.price,
+        category_id: data.category,
+        image_url: imageUrl,
+        tags: data.tag ? [data.tag] : [],
+        featured: false,
+        in_stock: true,
       };
 
       if (isEditing && id) {
-        updateProduct(id, productData);
+        await updateProduct(id, productData);
         toast.success("Product updated successfully!");
       } else {
-        addProduct(productData);
+        await addProduct(productData);
         toast.success("Product created successfully!");
       }
 
       navigate("/admin/products");
     } catch (error) {
+      console.error('Error saving product:', error);
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -265,18 +303,17 @@ export function ProductForm() {
                     </Label>
                     <Select
                       onValueChange={(value) => setValue("category", value)}
-                      defaultValue={existingProduct?.category}
+                      defaultValue={watch("category")}
                     >
                       <SelectTrigger className="h-12 rounded-xl border-foreground/10">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="anime">Anime Stickers</SelectItem>
-                        <SelectItem value="cute">Cute Stickers</SelectItem>
-                        <SelectItem value="laptop">Laptop Stickers</SelectItem>
-                        <SelectItem value="phone">Phone Stickers</SelectItem>
-                        <SelectItem value="aesthetic">Aesthetic Packs</SelectItem>
-                        <SelectItem value="custom">Custom Designs</SelectItem>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     {errors.category && (
@@ -294,7 +331,7 @@ export function ProductForm() {
                   </Label>
                   <Select
                     onValueChange={(value) => setValue("tag", value === "none" ? "" : value)}
-                    defaultValue={existingProduct?.tag || "none"}
+                    defaultValue={watch("tag") || "none"}
                   >
                     <SelectTrigger className="h-12 rounded-xl border-foreground/10">
                       <SelectValue placeholder="Select tag (optional)" />

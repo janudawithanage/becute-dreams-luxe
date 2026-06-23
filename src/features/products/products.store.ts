@@ -1,79 +1,170 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import type { Product } from "./products.types";
-import { products as initialProducts } from "./products.data";
+import { create } from 'zustand';
+import { productsService, type Product, type Category } from './products.service';
+import { supabase } from '@/lib/supabase';
 
 interface ProductsState {
   products: Product[];
-  getProducts: () => Product[];
-  getProductBySlug: (slug: string) => Product | undefined;
-  getProductById: (id: string) => Product | undefined;
-  getProductsByCategory: (category: string) => Product[];
-  addProduct: (product: Omit<Product, "id">) => string;
-  updateProduct: (id: string, updates: Partial<Product>) => void;
-  deleteProduct: (id: string) => void;
+  categories: Category[];
+  isLoading: boolean;
+  error: string | null;
   initialized: boolean;
+  
+  // Actions
+  fetchProducts: (filters?: {
+    category?: string;
+    featured?: boolean;
+    search?: string;
+    inStock?: boolean;
+  }) => Promise<void>;
+  fetchCategories: () => Promise<void>;
+  getProductBySlug: (slug: string) => Promise<Product | null>;
+  getProductById: (id: string) => Promise<Product | null>;
+  addProduct: (productData: {
+    name: string;
+    slug: string;
+    description: string;
+    price: number;
+    category_id: string;
+    image_url: string;
+    tags?: string[];
+    featured?: boolean;
+    in_stock?: boolean;
+  }) => Promise<string>;
+  updateProduct: (id: string, updates: Partial<Product>) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
+  
+  // Computed getters (for backward compatibility)
+  getProducts: () => Product[];
+  getProductsByCategory: (categoryId: string) => Product[];
 }
 
-export const useProductsStore = create<ProductsState>()(
-  persist(
-    (set, get) => ({
-      products: initialProducts,
-      initialized: false,
+export const useProductsStore = create<ProductsState>((set, get) => ({
+  products: [],
+  categories: [],
+  isLoading: false,
+  error: null,
+  initialized: false,
 
-      getProducts: () => {
-        return get().products;
-      },
+  fetchProducts: async (filters) => {
+    set({ isLoading: true, error: null });
+    try {
+      const products = await productsService.getAll(filters);
+      set({ products, isLoading: false, initialized: true });
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to fetch products',
+        isLoading: false 
+      });
+    }
+  },
 
-      getProductBySlug: (slug: string) => {
-        return get().products.find((p) => p.slug === slug);
-      },
+  fetchCategories: async () => {
+    try {
+      const categories = await productsService.getCategories();
+      set({ categories });
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+    }
+  },
 
-      getProductById: (id: string) => {
-        return get().products.find((p) => p.id === id);
-      },
+  getProductBySlug: async (slug: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const product = await productsService.getBySlug(slug);
+      set({ isLoading: false });
+      return product;
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to fetch product',
+        isLoading: false 
+      });
+      return null;
+    }
+  },
 
-      getProductsByCategory: (category: string) => {
-        return get().products.filter((p) => p.category === category);
-      },
+  getProductById: async (id: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const product = await productsService.getById(id);
+      set({ isLoading: false });
+      return product;
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to fetch product',
+        isLoading: false 
+      });
+      return null;
+    }
+  },
 
-      addProduct: (productData) => {
-        const newId = `p${Date.now()}`;
-        const newProduct: Product = {
-          ...productData,
-          id: newId,
-        };
+  addProduct: async (productData) => {
+    const { data, error } = await supabase
+      .from('products')
+      .insert({
+        name: productData.name,
+        slug: productData.slug,
+        description: productData.description,
+        price: productData.price,
+        category_id: productData.category_id,
+        image_url: productData.image_url,
+        gallery: [],
+        tags: productData.tags || [],
+        featured: productData.featured || false,
+        in_stock: productData.in_stock !== false, // default to true
+      })
+      .select()
+      .single();
 
-        set((state) => ({
-          products: [...state.products, newProduct],
-        }));
+    if (error) {
+      console.error('Error adding product:', error);
+      throw error;
+    }
 
-        return newId;
-      },
+    // Refresh products list
+    await get().fetchProducts();
+    
+    return data.id;
+  },
 
-      updateProduct: (id, updates) => {
-        set((state) => ({
-          products: state.products.map((p) => (p.id === id ? { ...p, ...updates } : p)),
-        }));
-      },
+  updateProduct: async (id, updates) => {
+    const { error } = await supabase
+      .from('products')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id);
 
-      deleteProduct: (id) => {
-        set((state) => ({
-          products: state.products.filter((p) => p.id !== id),
-        }));
-      },
-    }),
-    {
-      name: "products-storage",
-      onRehydrateStorage: () => (state) => {
-        if (state && !state.initialized) {
-          // Initialize with default products only if empty
-          if (state.products.length === 0) {
-            state.products = initialProducts;
-          }
-          state.initialized = true;
-        }
-      },
-    },
-  ),
-);
+    if (error) {
+      console.error('Error updating product:', error);
+      throw error;
+    }
+
+    // Refresh products list
+    await get().fetchProducts();
+  },
+
+  deleteProduct: async (id) => {
+    const { error } = await supabase
+      .from('products')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting product:', error);
+      throw error;
+    }
+
+    // Update local state
+    set((state) => ({
+      products: state.products.filter(p => p.id !== id),
+    }));
+  },
+
+  // Backward compatibility methods
+  getProducts: () => get().products,
+  
+  getProductsByCategory: (categoryId: string) => {
+    return get().products.filter(p => p.category_id === categoryId);
+  },
+}));

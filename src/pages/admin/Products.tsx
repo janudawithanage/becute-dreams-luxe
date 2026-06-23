@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
@@ -16,6 +16,7 @@ import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
 import { useProductsStore } from "@/features/products";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { getOptimizedImageUrl } from "@/lib/cloudinary";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,8 +32,14 @@ export function Products() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const products = useProductsStore((s) => s.getProducts());
+  const products = useProductsStore((s) => s.products);
+  const fetchProducts = useProductsStore((s) => s.fetchProducts);
   const deleteProduct = useProductsStore((s) => s.deleteProduct);
+
+  // Fetch products on mount
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   const filteredProducts = products.filter(
     (product) =>
@@ -40,10 +47,14 @@ export function Products() {
       product.slug.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (deleteId) {
-      deleteProduct(deleteId);
-      toast.success("Product deleted successfully");
+      try {
+        await deleteProduct(deleteId);
+        toast.success("Product deleted successfully");
+      } catch (error) {
+        toast.error("Failed to delete product");
+      }
       setDeleteId(null);
     }
   };
@@ -133,28 +144,31 @@ export function Products() {
                         <div className="flex items-center gap-3">
                           <div className="h-12 w-12 rounded-xl overflow-hidden bg-foreground/5">
                             <img
-                              src={product.image}
+                              src={getOptimizedImageUrl(product.image_url, { 
+                                width: 100, 
+                                format: 'auto' 
+                              })}
                               alt={product.name}
                               className="h-full w-full object-cover"
                             />
                           </div>
                           <div>
                             <p className="font-medium">{product.name}</p>
-                            {product.tag && (
+                            {product.tags && product.tags.length > 0 && (
                               <Badge
                                 variant="secondary"
                                 className="mt-1 text-[10px] uppercase tracking-wider"
                               >
-                                {product.tag}
+                                {product.tags[0]}
                               </Badge>
                             )}
                           </div>
                         </div>
                       </TableCell>
                       <TableCell className="capitalize text-sm">
-                        {product.category.replace("-", " ")}
+                        {product.category?.name || 'Uncategorized'}
                       </TableCell>
-                      <TableCell className="font-display text-lg">${product.price}</TableCell>
+                      <TableCell className="font-display text-lg">${product.price.toFixed(2)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           <Button

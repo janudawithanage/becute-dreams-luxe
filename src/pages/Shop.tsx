@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Search, ShoppingBag } from "lucide-react";
-import { categories, useProductsStore } from "@/features/products";
+import { useProductsStore } from "@/features/products";
 import { useCart } from "@/features/cart";
 import { Link } from "react-router-dom";
+import { getOptimizedImageUrl } from "@/lib/cloudinary";
 
 export function Shop() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -12,11 +13,25 @@ export function Shop() {
   const category = searchParams.get("category") || undefined;
   const q = searchParams.get("q") || undefined;
   const [query, setQuery] = useState(q ?? "");
+  
   const add = useCart((s) => s.add);
-  const products = useProductsStore((s) => s.getProducts());
+  const { 
+    products, 
+    categories, 
+    isLoading, 
+    error, 
+    fetchProducts, 
+    fetchCategories 
+  } = useProductsStore();
+
+  // Fetch products and categories on mount
+  useEffect(() => {
+    fetchProducts({ inStock: true });
+    fetchCategories();
+  }, [fetchProducts, fetchCategories]);
 
   const filtered = products.filter((p) => {
-    if (category && p.category !== category) return false;
+    if (category && p.category_id !== category) return false;
     if (query && !p.name.toLowerCase().includes(query.toLowerCase())) return false;
     return true;
   });
@@ -42,6 +57,30 @@ export function Shop() {
 
     setSearchParams(newParams);
   };
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-[1400px] px-6 py-16 lg:px-12 lg:py-24">
+        <div className="flex items-center justify-center py-24">
+          <div className="text-center">
+            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-foreground/20 border-t-foreground"></div>
+            <p className="mt-4 text-sm text-muted-foreground">Loading products...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-[1400px] px-6 py-16 lg:px-12 lg:py-24">
+        <div className="text-center py-24">
+          <p className="text-red-600 font-display text-2xl">Error loading products</p>
+          <p className="mt-2 text-sm text-muted-foreground">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-[1400px] px-6 py-16 lg:px-12 lg:py-24">
@@ -77,9 +116,9 @@ export function Shop() {
         </button>
         {categories.map((c) => (
           <button
-            key={c.slug}
-            onClick={() => updateSearch({ category: c.slug })}
-            className={`rounded-full border px-5 py-2 text-xs uppercase tracking-[0.2em] transition ${category === c.slug ? "border-foreground bg-foreground text-background" : "border-foreground/15 hover:border-foreground/40"}`}
+            key={c.id}
+            onClick={() => updateSearch({ category: c.id })}
+            className={`rounded-full border px-5 py-2 text-xs uppercase tracking-[0.2em] transition ${category === c.id ? "border-foreground bg-foreground text-background" : "border-foreground/15 hover:border-foreground/40"}`}
           >
             {c.name}
           </button>
@@ -98,14 +137,17 @@ export function Shop() {
             <Link to={`/product/${p.slug}`} className="block">
               <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted">
                 <img
-                  src={p.image}
+                  src={getOptimizedImageUrl(p.image_url, { 
+                    width: 400, 
+                    format: 'auto' 
+                  })}
                   alt={p.name}
                   loading="lazy"
                   className="h-full w-full object-cover transition duration-1000 group-hover:scale-105"
                 />
-                {p.tag && (
+                {p.tags && p.tags.length > 0 && (
                   <span className="absolute left-3 top-3 rounded-full bg-background/90 px-3 py-1 text-[10px] uppercase tracking-[0.2em]">
-                    {p.tag}
+                    {p.tags[0]}
                   </span>
                 )}
                 <button
@@ -121,7 +163,7 @@ export function Shop() {
               </div>
               <div className="mt-4 flex items-baseline justify-between gap-2">
                 <p className="font-display text-lg leading-tight">{p.name}</p>
-                <p className="text-sm tabular-nums">${p.price}</p>
+                <p className="text-sm tabular-nums">${p.price.toFixed(2)}</p>
               </div>
             </Link>
           </motion.div>
