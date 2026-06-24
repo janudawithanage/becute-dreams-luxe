@@ -1,17 +1,35 @@
 import { useParams, Link, Navigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Minus, Plus, ArrowUpRight } from "lucide-react";
 import { useProductsStore } from "@/features/products";
 import { useCart } from "@/features/cart";
+import type { Product } from "@/features/products/products.service";
 
 export function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
   const getProductBySlug = useProductsStore((s) => s.getProductBySlug);
   const products = useProductsStore((s) => s.getProducts());
-  const product = slug ? getProductBySlug(slug) : null;
+  const isLoading = useProductsStore((s) => s.isLoading);
+  const [product, setProduct] = useState<Product | null>(null);
   const [qty, setQty] = useState(1);
   const add = useCart((s) => s.add);
+
+  useEffect(() => {
+    if (slug) {
+      getProductBySlug(slug).then(setProduct);
+    }
+  }, [slug, getProductBySlug]);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <p className="font-display text-3xl">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -30,7 +48,7 @@ export function ProductDetail() {
   }
 
   const related = products
-    .filter((p) => p.category === product.category && p.id !== product.id)
+    .filter((p) => p.category_id === product.category_id && p.id !== product.id)
     .slice(0, 4);
 
   return (
@@ -51,7 +69,7 @@ export function ProductDetail() {
         >
           <div className="overflow-hidden rounded-[2rem] bg-muted">
             <img
-              src={product.image}
+              src={product.image_url}
               alt={product.name}
               className="aspect-[4/5] w-full object-cover"
             />
@@ -60,7 +78,7 @@ export function ProductDetail() {
 
         <div className="lg:col-span-5 lg:pt-8">
           <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-            {product.category}
+            {product.category?.name || 'Uncategorized'}
           </p>
           <h1 className="mt-3 font-display text-5xl leading-[1.02] tracking-tight lg:text-6xl">
             {product.name}
@@ -121,7 +139,7 @@ export function ProductDetail() {
               <Link key={p.id} to={`/product/${p.slug}`} className="group block">
                 <div className="aspect-[4/5] overflow-hidden rounded-2xl bg-muted">
                   <img
-                    src={p.image}
+                    src={p.image_url}
                     alt={p.name}
                     loading="lazy"
                     className="h-full w-full object-cover transition duration-1000 group-hover:scale-105"
@@ -129,7 +147,7 @@ export function ProductDetail() {
                 </div>
                 <div className="mt-3 flex items-baseline justify-between">
                   <p className="font-display text-lg">{p.name}</p>
-                  <p className="text-sm">${p.price}</p>
+                  <p className="text-sm">${p.price.toFixed(2)}</p>
                 </div>
               </Link>
             ))}

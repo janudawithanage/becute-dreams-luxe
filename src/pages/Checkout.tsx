@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useCart } from "@/features/cart";
 import { useAuthStore } from "@/features/auth";
 import { useOrdersStore } from "@/features/orders";
+import type { CreateOrderData } from "@/features/orders";
 import { toast } from "sonner";
 import { MessageCircle, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
@@ -10,11 +11,12 @@ import { motion } from "framer-motion";
 export function Checkout() {
   const { items, total, clear } = useCart();
   const { user, isAuthenticated } = useAuthStore();
-  const { createOrder } = useOrdersStore();
+  const { createOrder, isLoading } = useOrdersStore();
   const navigate = useNavigate();
   const [placed, setPlaced] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
   const [notes, setNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Redirect to sign-in if not authenticated
   useEffect(() => {
@@ -89,40 +91,64 @@ export function Checkout() {
       return;
     }
 
-    const orderItems = items.map((i) => ({
-      productId: i.product.id,
-      productName: i.product.name,
-      productImage: i.product.image,
-      price: i.product.price,
-      quantity: i.qty,
-    }));
+    if (items.length === 0) {
+      toast.error("Your cart is empty");
+      return;
+    }
 
-    const orderId = createOrder({
-      customerId: user.id,
-      customerName: user.name,
-      customerEmail: user.email,
-      customerPhone: user.phone || "",
-      shippingAddress: {
-        street: user.address || "",
-        city: user.city || "",
-        postalCode: user.postalCode || "",
-        country: user.country || "",
-      },
-      items: orderItems,
-      subtotal: total(),
-      shippingCost: 0, // Free shipping for now
-      total: total(),
-      status: "pending",
-      notes,
-    });
+    setIsSubmitting(true);
 
-    const order = useOrdersStore.getState().getOrderById(orderId);
+    try {
+      // Calculate totals
+      const subtotal = total();
+      const shippingCost = 0; // Free shipping for now
+      const tax = 0; // Tax calculation would go here
+      const orderTotal = subtotal + shippingCost + tax;
 
-    toast.success("Order placed successfully!");
-    setOrderNumber(order?.orderNumber || "");
-    setPlaced(true);
-    clear();
-    setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 0);
+      // Prepare order data matching backend schema
+      const orderData: CreateOrderData = {
+        customerEmail: user.email,
+        customerName: user.name,
+        customerPhone: user.phone,
+        shippingAddress: {
+          line1: user.address || "",
+          line2: undefined,
+          city: user.city || "",
+          state: "", // Add state if available in user profile
+          postalCode: user.postalCode || "",
+          country: user.country || "",
+        },
+        items: items.map((item) => ({
+          productId: item.product_id,
+          productName: item.product.name,
+          productImageUrl: item.product.image_url,
+          price: item.product.price,
+          quantity: item.quantity,
+        })),
+        subtotal,
+        shippingCost,
+        tax,
+        total: orderTotal,
+        notes: notes || undefined,
+      };
+
+      // Create order (this also clears the cart)
+      const order = await createOrder(orderData);
+
+      if (order) {
+        toast.success("Order placed successfully!");
+        setOrderNumber(order.order_number);
+        setPlaced(true);
+        setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 0);
+      } else {
+        toast.error("Failed to place order. Please try again.");
+      }
+    } catch (error) {
+      console.error("Order submission error:", error);
+      toast.error("An error occurred while placing your order.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -196,9 +222,10 @@ export function Checkout() {
             </div>
             <button
               type="submit"
-              className="inline-flex h-14 w-full items-center justify-center rounded-full bg-foreground px-8 text-xs uppercase tracking-[0.25em] text-background transition hover:scale-[1.01]"
+              disabled={isSubmitting || isLoading}
+              className="inline-flex h-14 w-full items-center justify-center rounded-full bg-foreground px-8 text-xs uppercase tracking-[0.25em] text-background transition hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
-              Place order
+              {isSubmitting || isLoading ? "Placing order..." : "Place order"}
             </button>
             <p className="text-xs text-muted-foreground text-center">
               Payment is arranged after confirmation. No card needed today.
@@ -210,18 +237,18 @@ export function Checkout() {
           <div className="rounded-3xl bg-muted p-8">
             <h2 className="font-display text-2xl">Order summary</h2>
             <div className="mt-6 space-y-4">
-              {items.map((i) => (
-                <div key={i.product.id} className="flex items-center gap-4">
+              {items.map((item) => (
+                <div key={item.product_id} className="flex items-center gap-4">
                   <img
-                    src={i.product.image}
-                    alt={i.product.name}
+                    src={item.product.image_url}
+                    alt={item.product.name}
                     className="h-16 w-14 rounded-md object-cover"
                   />
                   <div className="flex-1">
-                    <p className="font-display text-base leading-tight">{i.product.name}</p>
-                    <p className="text-xs text-muted-foreground">Qty {i.qty}</p>
+                    <p className="font-display text-base leading-tight">{item.product.name}</p>
+                    <p className="text-xs text-muted-foreground">Qty {item.quantity}</p>
                   </div>
-                  <p className="text-sm tabular-nums">${(i.product.price * i.qty).toFixed(2)}</p>
+                  <p className="text-sm tabular-nums">${(item.product.price * item.quantity).toFixed(2)}</p>
                 </div>
               ))}
             </div>

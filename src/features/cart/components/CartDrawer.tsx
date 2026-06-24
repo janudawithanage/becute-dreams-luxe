@@ -67,41 +67,41 @@ export function CartDrawer() {
             ) : (
               <>
                 <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
-                  {items.map((i) => (
-                    <div key={i.product.id} className="flex gap-4">
+                  {items.map((item) => (
+                    <div key={item.product_id} className="flex gap-4">
                       <div className="h-24 w-20 overflow-hidden rounded-md bg-muted">
                         <img
-                          src={i.product.image}
-                          alt={i.product.name}
+                          src={item.product.image_url}
+                          alt={item.product.name}
                           className="h-full w-full object-cover"
                         />
                       </div>
                       <div className="flex flex-1 flex-col">
                         <div className="flex justify-between gap-2">
-                          <p className="font-display text-lg leading-tight">{i.product.name}</p>
-                          <p className="text-sm">${(i.product.price * i.qty).toFixed(2)}</p>
+                          <p className="font-display text-lg leading-tight">{item.product.name}</p>
+                          <p className="text-sm">${(item.product.price * item.quantity).toFixed(2)}</p>
                         </div>
                         <p className="text-xs uppercase tracking-wider text-muted-foreground">
-                          ${i.product.price} each
+                          ${item.product.price.toFixed(2)} each
                         </p>
                         <div className="mt-auto flex items-center justify-between pt-3">
                           <div className="flex items-center gap-3 rounded-full border px-3 py-1.5">
                             <button
-                              onClick={() => setQty(i.product.id, i.qty - 1)}
+                              onClick={() => setQty(item.product_id, item.quantity - 1)}
                               aria-label="Decrease"
                             >
                               <Minus className="h-3 w-3" />
                             </button>
-                            <span className="w-4 text-center text-xs">{i.qty}</span>
+                            <span className="w-4 text-center text-xs">{item.quantity}</span>
                             <button
-                              onClick={() => setQty(i.product.id, i.qty + 1)}
+                              onClick={() => setQty(item.product_id, item.quantity + 1)}
                               aria-label="Increase"
                             >
                               <Plus className="h-3 w-3" />
                             </button>
                           </div>
                           <button
-                            onClick={() => remove(i.product.id)}
+                            onClick={() => remove(item.product_id)}
                             aria-label="Remove"
                             className="text-muted-foreground hover:text-foreground"
                           >

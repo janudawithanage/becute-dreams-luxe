@@ -7,7 +7,6 @@ import { useEffect } from "react";
 
 const statusConfig = {
   pending: { label: "Pending", icon: Clock, color: "text-yellow-600", bg: "bg-yellow-50" },
-  confirmed: { label: "Confirmed", icon: CheckCircle, color: "text-blue-600", bg: "bg-blue-50" },
   processing: { label: "Processing", icon: Package, color: "text-purple-600", bg: "bg-purple-50" },
   shipped: { label: "Shipped", icon: Truck, color: "text-indigo-600", bg: "bg-indigo-50" },
   delivered: { label: "Delivered", icon: CheckCircle, color: "text-green-600", bg: "bg-green-50" },
@@ -16,7 +15,7 @@ const statusConfig = {
 
 export function MyOrders() {
   const { user, isAuthenticated } = useAuthStore();
-  const { getOrdersByCustomer } = useOrdersStore();
+  const { orders, fetchUserOrders, isLoading } = useOrdersStore();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,9 +26,21 @@ export function MyOrders() {
     }
   }, [isAuthenticated, navigate]);
 
+  useEffect(() => {
+    if (user) {
+      fetchUserOrders();
+    }
+  }, [user, fetchUserOrders]);
+
   if (!user) return null;
 
-  const orders = getOrdersByCustomer(user.id);
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-xl px-6 py-32 text-center">
+        <p className="font-display text-4xl">Loading your orders...</p>
+      </div>
+    );
+  }
 
   if (orders.length === 0) {
     return (
@@ -64,7 +75,7 @@ export function MyOrders() {
 
       <div className="mt-12 space-y-6">
         {orders
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
           .map((order, index) => {
             const config = statusConfig[order.status];
             const StatusIcon = config.icon;
@@ -80,10 +91,10 @@ export function MyOrders() {
                 {/* Header */}
                 <div className="flex flex-wrap items-center justify-between gap-4 border-b border-foreground/10 pb-6">
                   <div>
-                    <h3 className="font-display text-2xl">{order.orderNumber}</h3>
+                    <h3 className="font-display text-2xl">{order.order_number}</h3>
                     <p className="mt-1 text-xs text-muted-foreground">
                       Placed on{" "}
-                      {new Date(order.createdAt).toLocaleDateString("en-US", {
+                      {new Date(order.created_at).toLocaleDateString("en-US", {
                         year: "numeric",
                         month: "long",
                         day: "numeric",
@@ -98,19 +109,19 @@ export function MyOrders() {
 
                 {/* Items */}
                 <div className="mt-6 space-y-4">
-                  {order.items.map((item) => (
-                    <div key={item.productId} className="flex items-center gap-4">
+                  {order.order_items.map((item) => (
+                    <div key={item.id} className="flex items-center gap-4">
                       <img
-                        src={item.productImage}
-                        alt={item.productName}
-                        className="h-16 w-14 rounded-md object-cover"
+                        src={item.product_image_url || ''}
+                        alt={item.product_name}
+                        className="h-16 w-14 rounded-md object-cover bg-muted"
                       />
                       <div className="flex-1">
-                        <p className="font-display text-base leading-tight">{item.productName}</p>
+                        <p className="font-display text-base leading-tight">{item.product_name}</p>
                         <p className="text-xs text-muted-foreground">Qty {item.quantity}</p>
                       </div>
                       <p className="text-sm tabular-nums">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        ${item.subtotal.toFixed(2)}
                       </p>
                     </div>
                   ))}
@@ -131,38 +142,6 @@ export function MyOrders() {
                     View Details
                   </Link>
                 </div>
-
-                {/* Status History */}
-                {order.statusHistory.length > 1 && (
-                  <div className="mt-6 border-t border-foreground/10 pt-6">
-                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-4">
-                      Order Timeline
-                    </p>
-                    <div className="space-y-3">
-                      {order.statusHistory
-                        .slice()
-                        .reverse()
-                        .map((history, idx) => {
-                          const historyConfig = statusConfig[history.status];
-                          const HistoryIcon = historyConfig.icon;
-                          return (
-                            <div key={idx} className="flex items-start gap-3">
-                              <div className={`rounded-full p-1.5 ${historyConfig.bg}`}>
-                                <HistoryIcon className={`h-3 w-3 ${historyConfig.color}`} />
-                              </div>
-                              <div className="flex-1">
-                                <p className="text-sm font-medium">{historyConfig.label}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {new Date(history.timestamp).toLocaleString()}
-                                  {history.note && ` • ${history.note}`}
-                                </p>
-                              </div>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  </div>
-                )}
               </motion.div>
             );
           })}

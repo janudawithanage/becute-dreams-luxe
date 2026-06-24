@@ -1,141 +1,133 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { create } from 'zustand';
+import { ordersService, type Order, type CreateOrderData, type OrderWithItems } from './orders.service';
+import { useCart } from '@/features/cart';
+import { useAuthStore } from '@/features/auth';
 
 export type OrderStatus =
   | "pending"
-  | "confirmed"
   | "processing"
   | "shipped"
   | "delivered"
   | "cancelled";
 
 export interface OrderItem {
-  productId: string;
-  productName: string;
-  productImage: string;
+  id: string;
+  order_id: string;
+  product_id: string | null;
+  product_name: string;
+  product_image_url: string | null;
   price: number;
   quantity: number;
-}
-
-export interface Order {
-  id: string;
-  orderNumber: string;
-  customerId: string;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  shippingAddress: {
-    street: string;
-    city: string;
-    postalCode: string;
-    country: string;
-  };
-  items: OrderItem[];
   subtotal: number;
-  shippingCost: number;
-  total: number;
-  status: OrderStatus;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-  statusHistory: {
-    status: OrderStatus;
-    timestamp: string;
-    note?: string;
-  }[];
+  created_at: string;
 }
 
 interface OrdersState {
-  orders: Order[];
-  createOrder: (
-    order: Omit<Order, "id" | "orderNumber" | "createdAt" | "updatedAt" | "statusHistory">,
-  ) => string;
-  updateOrderStatus: (orderId: string, status: OrderStatus, note?: string) => void;
-  getOrderById: (orderId: string) => Order | undefined;
-  getOrdersByCustomer: (customerId: string) => Order[];
-  getAllOrders: () => Order[];
-  deleteOrder: (orderId: string) => void;
+  orders: OrderWithItems[];
+  isLoading: boolean;
+  error: string | null;
+  
+  createOrder: (orderData: CreateOrderData) => Promise<Order | null>;
+  fetchUserOrders: () => Promise<void>;
+  fetchAllOrders: (filters?: { status?: Order['status']; search?: string }) => Promise<void>;
+  getOrderById: (orderId: string) => Promise<OrderWithItems | null>;
+  updateOrderStatus: (orderId: string, status: Order['status']) => Promise<void>;
 }
 
-const generateOrderNumber = () => {
-  const timestamp = Date.now().toString().slice(-6);
-  const random = Math.random().toString(36).substring(2, 5).toUpperCase();
-  return `ORD-${timestamp}-${random}`;
-};
+export const useOrdersStore = create<OrdersState>((set, get) => ({
+  orders: [],
+  isLoading: false,
+  error: null,
 
-export const useOrdersStore = create<OrdersState>()(
-  persist(
-    (set, get) => ({
-      orders: [],
+  createOrder: async (orderData: CreateOrderData) => {
+    const user = useAuthStore.getState().user;
+    if (!user) {
+      set({ error: 'User not authenticated' });
+      return null;
+    }
 
-      createOrder: (orderData) => {
-        const orderId = `order-${Date.now()}`;
-        const now = new Date().toISOString();
+    set({ isLoading: true, error: null });
+    try {
+      const order = await ordersService.createOrder(user.id, orderData);
+      
+      // Clear cart after successful order
+      await useCart.getState().clear();
+      
+      set({ isLoading: false });
+      return order;
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to create order',
+        isLoading: false 
+      });
+      return null;
+    }
+  },
 
-        const newOrder: Order = {
-          ...orderData,
-          id: orderId,
-          orderNumber: generateOrderNumber(),
-          createdAt: now,
-          updatedAt: now,
-          statusHistory: [
-            {
-              status: orderData.status,
-              timestamp: now,
-              note: "Order created",
-            },
-          ],
-        };
+  fetchUserOrders: async () => {
+    const user = useAuthStore.getState().user;
+    if (!user) return;
 
-        set((state) => ({
-          orders: [...state.orders, newOrder],
-        }));
+    set({ isLoading: true, error: null });
+    try {
+      const orders = await ordersService.getUserOrders(user.id);
+      set({ orders, isLoading: false });
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to fetch orders',
+        isLoading: false 
+      });
+    }
+  },
 
-        return orderId;
-      },
+  fetchAllOrders: async (filters) => {
+    set({ isLoading: true, error: null });
+    try {
+      const orders = await ordersService.getAllOrders(filters);
+      set({ orders, isLoading: false });
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to fetch orders',
+        isLoading: false 
+      });
+    }
+  },
 
-      updateOrderStatus: (orderId, status, note) => {
-        set((state) => ({
-          orders: state.orders.map((order) =>
-            order.id === orderId
-              ? {
-                  ...order,
-                  status,
-                  updatedAt: new Date().toISOString(),
-                  statusHistory: [
-                    ...order.statusHistory,
-                    {
-                      status,
-                      timestamp: new Date().toISOString(),
-                      note,
-                    },
-                  ],
-                }
-              : order,
-          ),
-        }));
-      },
+  getOrderById: async (orderId: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const order = await ordersService.getOrderById(orderId);
+      set({ isLoading: false });
+      return order;
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to fetch order',
+        isLoading: false 
+      });
+      return null;
+    }
+  },
 
-      getOrderById: (orderId) => {
-        return get().orders.find((order) => order.id === orderId);
-      },
-
-      getOrdersByCustomer: (customerId) => {
-        return get().orders.filter((order) => order.customerId === customerId);
-      },
-
-      getAllOrders: () => {
-        return get().orders;
-      },
-
-      deleteOrder: (orderId) => {
-        set((state) => ({
-          orders: state.orders.filter((order) => order.id !== orderId),
-        }));
-      },
-    }),
-    {
-      name: "orders-storage",
-    },
-  ),
-);
+  updateOrderStatus: async (orderId: string, status: Order['status']) => {
+    set({ isLoading: true, error: null });
+    try {
+      await ordersService.updateOrderStatus(orderId, status);
+      
+      // Update local order in the list
+      set((state) => ({
+        orders: state.orders.map((order) =>
+          order.id === orderId
+            ? { ...order, status, updated_at: new Date().toISOString() }
+            : order
+        ),
+        isLoading: false,
+      }));
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to update order status',
+        isLoading: false 
+      });
+      throw error;
+    }
+  },
+}));

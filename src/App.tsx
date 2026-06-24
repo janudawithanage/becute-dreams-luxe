@@ -4,6 +4,7 @@ import { SiteLayout } from "@/shared/components/layout/SiteLayout";
 import { ProtectedRoute } from "@/shared/components/auth/ProtectedRoute";
 import { Toaster } from "@/shared/components/ui/sonner";
 import { useAuthStore } from '@/features/auth';
+import { useCart } from '@/features/cart';
 import './test-env';
 import { Home } from "@/pages/Home";
 import { Shop } from "@/pages/Shop";
@@ -31,10 +32,18 @@ import { Settings } from "@/pages/admin/Settings";
 
 export default function App() {
   const initialize = useAuthStore((state) => state.initialize);
+  const user = useAuthStore((state) => state.user);
+  const loadCart = useCart((state) => state.loadCart);
 
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  useEffect(() => {
+    if (user) {
+      loadCart();
+    }
+  }, [user, loadCart]);
 
   return (
     <>

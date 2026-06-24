@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
@@ -19,16 +19,18 @@ import { motion } from "framer-motion";
 
 export function Orders() {
   const navigate = useNavigate();
-  const { getAllOrders } = useOrdersStore();
+  const { orders, fetchAllOrders, isLoading } = useOrdersStore();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const allOrders = getAllOrders();
+  useEffect(() => {
+    fetchAllOrders();
+  }, [fetchAllOrders]);
 
-  const filteredOrders = allOrders.filter(
+  const filteredOrders = orders.filter(
     (order) =>
-      order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customerEmail.toLowerCase().includes(searchQuery.toLowerCase()),
+      order.order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.customer_email.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const getStatusBadge = (
@@ -39,13 +41,30 @@ export function Orders() {
       processing: "warning",
       shipped: "info",
       pending: "default",
-      confirmed: "info",
       cancelled: "destructive",
     };
     return variants[status] || "default";
   };
 
-  if (allOrders.length === 0) {
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">
+            ✦ Transactions
+          </p>
+          <h2 className="mt-2 font-display text-4xl tracking-tight">Orders</h2>
+        </div>
+        <Card className="glass border-foreground/10 shadow-soft">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <p className="font-display text-2xl">Loading orders...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (orders.length === 0) {
     return (
       <div className="space-y-8">
         <div>
@@ -149,21 +168,21 @@ export function Orders() {
               </TableHeader>
               <TableBody>
                 {filteredOrders
-                  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                   .map((order) => (
                     <TableRow
                       key={order.id}
                       className="border-foreground/5 hover:bg-foreground/[0.02] transition"
                     >
-                      <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                      <TableCell className="font-medium">{order.order_number}</TableCell>
                       <TableCell>
                         <div>
-                          <p className="font-medium">{order.customerName}</p>
-                          <p className="text-sm text-muted-foreground">{order.customerEmail}</p>
+                          <p className="font-medium">{order.customer_name}</p>
+                          <p className="text-sm text-muted-foreground">{order.customer_email}</p>
                         </div>
                       </TableCell>
                       <TableCell className="text-sm">
-                        {format(new Date(order.createdAt), "MMM dd, yyyy")}
+                        {format(new Date(order.created_at), "MMM dd, yyyy")}
                       </TableCell>
                       <TableCell>
                         <Badge variant={getStatusBadge(order.status)} className="capitalize">

@@ -13,46 +13,58 @@ import {
 } from "@/shared/components/ui/select";
 import { ArrowLeft, Package, Truck, CheckCircle, XCircle, Clock } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useOrdersStore, type OrderStatus } from "@/features/orders";
+import { useOrdersStore, type OrderStatus, type OrderWithItems } from "@/features/orders";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 export function OrderDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { getOrderById, updateOrderStatus } = useOrdersStore();
-  const order = getOrderById(id || "");
-
+  const [order, setOrder] = useState<OrderWithItems | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [newStatus, setNewStatus] = useState<OrderStatus | "">("");
   const [statusNote, setStatusNote] = useState("");
 
-  if (!order) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <Package className="h-16 w-16 text-muted-foreground/50 mx-auto" />
-          <p className="mt-4 font-display text-2xl">Order not found</p>
-          <Button onClick={() => navigate("/admin/orders")} className="mt-4">
-            Back to Orders
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (id) {
+      getOrderById(id).then((fetchedOrder) => {
+        setOrder(fetchedOrder);
+        setIsLoading(false);
+      });
+    }
+  }, [id, getOrderById]);
 
-  const handleStatusUpdate = () => {
-    if (!newStatus) {
+  const handleStatusUpdate = async () => {
+    if (!newStatus || !order) {
       toast.error("Please select a status");
       return;
     }
 
-    updateOrderStatus(order.id, newStatus, statusNote || undefined);
-    toast.success("Order status updated successfully");
-    setNewStatus("");
-    setStatusNote("");
+    try {
+      await updateOrderStatus(order.id, newStatus as OrderStatus);
+      toast.success("Order status updated successfully");
+      setNewStatus("");
+      setStatusNote("");
+      // Refresh order data
+      const updatedOrder = await getOrderById(order.id);
+      setOrder(updatedOrder);
+    } catch (error) {
+      toast.error("Failed to update order status");
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <p className="font-display text-2xl">Loading order...</p>
+        </div>
+      </div>
+    );
+  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -80,12 +92,25 @@ export function OrderDetail() {
       delivered: "success",
       processing: "warning",
       shipped: "info",
-      confirmed: "info",
       pending: "default",
       cancelled: "destructive",
     };
     return variants[status] || "default";
   };
+
+  if (!order) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <Package className="h-16 w-16 text-muted-foreground/50 mx-auto" />
+          <p className="mt-4 font-display text-2xl">Order not found</p>
+          <Button onClick={() => navigate("/admin/orders")} className="mt-4">
+            Back to Orders
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -115,10 +140,10 @@ export function OrderDetail() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="mt-1 font-display text-4xl tracking-tight"
             >
-              {order.orderNumber}
+              {order.order_number}
             </motion.h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Placed on {format(new Date(order.createdAt), "MMMM dd, yyyy")}
+              Placed on {format(new Date(order.created_at), "MMMM dd, yyyy")}
             </p>
           </div>
         </div>
@@ -145,24 +170,24 @@ export function OrderDetail() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {order.items.map((item) => (
+                  {order.order_items.map((item) => (
                     <div
-                      key={item.productId}
+                      key={item.id}
                       className="flex items-center gap-4 pb-4 border-b border-foreground/5 last:border-0 last:pb-0"
                     >
                       <div className="h-16 w-16 rounded-xl overflow-hidden bg-foreground/5">
                         <img
-                          src={item.productImage}
-                          alt={item.productName}
+                          src={item.product_image_url || ''}
+                          alt={item.product_name}
                           className="h-full w-full object-cover"
                         />
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium">{item.productName}</p>
+                        <p className="font-medium">{item.product_name}</p>
                         <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
                       </div>
                       <p className="font-display text-lg">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        ${item.subtotal.toFixed(2)}
                       </p>
                     </div>
                   ))}
@@ -176,72 +201,13 @@ export function OrderDetail() {
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Shipping</span>
                     <span>
-                      {order.shippingCost === 0 ? "Free" : `$${order.shippingCost.toFixed(2)}`}
+                      {order.shipping_cost === 0 ? "Free" : `$${order.shipping_cost.toFixed(2)}`}
                     </span>
                   </div>
                   <div className="flex justify-between font-display text-2xl pt-3 border-t border-foreground/10">
                     <span>Total</span>
                     <span>${order.total.toFixed(2)}</span>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Order Timeline */}
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
-            <Card className="glass border-foreground/10 shadow-soft">
-              <CardHeader>
-                <CardTitle className="font-display text-2xl tracking-tight">
-                  Order Timeline
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {order.statusHistory
-                    .slice()
-                    .reverse()
-                    .map((history, idx) => (
-                      <div key={idx} className="flex gap-4">
-                        <div className="flex flex-col items-center">
-                          <div
-                            className={`rounded-full p-2 ${
-                              history.status === "delivered"
-                                ? "bg-green-100"
-                                : history.status === "shipped"
-                                  ? "bg-indigo-100"
-                                  : history.status === "processing"
-                                    ? "bg-purple-100"
-                                    : history.status === "confirmed"
-                                      ? "bg-blue-100"
-                                      : history.status === "cancelled"
-                                        ? "bg-red-100"
-                                        : "bg-yellow-100"
-                            }`}
-                          >
-                            {getStatusIcon(history.status)}
-                          </div>
-                          {idx < order.statusHistory.length - 1 && (
-                            <div className="w-px h-full bg-foreground/10 my-1" />
-                          )}
-                        </div>
-                        <div className={idx < order.statusHistory.length - 1 ? "pb-6" : ""}>
-                          <p className="font-medium capitalize">{history.status}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {format(new Date(history.timestamp), "MMMM dd, yyyy hh:mm a")}
-                          </p>
-                          {history.note && (
-                            <p className="text-sm text-muted-foreground italic mt-1">
-                              {history.note}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
                 </div>
               </CardContent>
             </Card>
@@ -253,26 +219,34 @@ export function OrderDetail() {
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
           >
             <Card className="glass border-foreground/10 shadow-soft">
               <CardHeader>
                 <CardTitle className="font-display text-xl tracking-tight">Customer</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <p className="font-medium">{order.customerName}</p>
-                <p className="text-sm text-muted-foreground">{order.customerEmail}</p>
-                <p className="text-sm text-muted-foreground">{order.customerPhone}</p>
+                <p className="font-medium">{order.customer_name}</p>
+                <p className="text-sm text-muted-foreground">{order.customer_email}</p>
+                {order.customer_phone && (
+                  <p className="text-sm text-muted-foreground">{order.customer_phone}</p>
+                )}
                 <div className="pt-2 mt-2 border-t border-foreground/10">
                   <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-1">
                     Shipping Address
                   </p>
                   <p className="text-sm">
-                    {order.shippingAddress.street}
+                    {order.shipping_address_line1}
+                    {order.shipping_address_line2 && (
+                      <>
+                        <br />
+                        {order.shipping_address_line2}
+                      </>
+                    )}
                     <br />
-                    {order.shippingAddress.city}, {order.shippingAddress.postalCode}
+                    {order.shipping_city}, {order.shipping_postal_code}
                     <br />
-                    {order.shippingAddress.country}
+                    {order.shipping_country}
                   </p>
                 </div>
                 {order.notes && (
@@ -291,7 +265,7 @@ export function OrderDetail() {
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
           >
             <Card className="glass border-foreground/10 shadow-soft">
               <CardHeader>
@@ -311,26 +285,12 @@ export function OrderDetail() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="confirmed">Confirmed</SelectItem>
                       <SelectItem value="processing">Processing</SelectItem>
                       <SelectItem value="shipped">Shipped</SelectItem>
                       <SelectItem value="delivered">Delivered</SelectItem>
                       <SelectItem value="cancelled">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="note" className="text-xs uppercase tracking-[0.2em]">
-                    Note (Optional)
-                  </Label>
-                  <Textarea
-                    id="note"
-                    placeholder="Add a note about this status change..."
-                    value={statusNote}
-                    onChange={(e) => setStatusNote(e.target.value)}
-                    className="mt-2 rounded-2xl min-h-[80px]"
-                  />
                 </div>
 
                 <Button
