@@ -40,9 +40,6 @@ export function Customers() {
       customer.email.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const totalRevenue = customers.reduce((sum, c) => sum + c.total_spent, 0);
-  const totalOrders = customers.reduce((sum, c) => sum + c.total_orders, 0);
-
   if (isLoading) {
     return (
       <div className="space-y-8">
@@ -101,45 +98,6 @@ export function Customers() {
           Customers
         </motion.h2>
         <p className="mt-2 text-sm text-muted-foreground">View and manage customer accounts</p>
-      </div>
-
-      {/* Stats */}
-      <div className="grid gap-6 md:grid-cols-3">
-        {[
-          {
-            label: "Total Customers",
-            value: customers.length,
-            delay: 0.2,
-          },
-          {
-            label: "Total Orders",
-            value: totalOrders,
-            delay: 0.3,
-          },
-          {
-            label: "Total Revenue",
-            value: `$${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-            delay: 0.4,
-          },
-        ].map((stat) => (
-          <motion.div
-            key={stat.label}
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, delay: stat.delay }}
-          >
-            <Card className="glass border-foreground/10 shadow-soft">
-              <CardHeader className="pb-3">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                  {stat.label}
-                </p>
-              </CardHeader>
-              <CardContent>
-                <p className="font-display text-3xl">{stat.value}</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
       </div>
 
       {/* Table */}
