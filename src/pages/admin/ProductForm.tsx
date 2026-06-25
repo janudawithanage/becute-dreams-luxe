@@ -18,6 +18,7 @@ import {
 import { ArrowLeft, Upload, X, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useProductsStore } from "@/features/products";
+import { useCollectionsStore } from "@/features/collections";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { toast } from "sonner";
 
@@ -31,6 +32,7 @@ const productSchema = z.object({
   price: z.number().min(0.01, "Price must be greater than 0"),
   category: z.string().min(1, "Category is required"),
   tag: z.string().optional(),
+  collection: z.string().optional(),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -51,6 +53,9 @@ export function ProductForm() {
   const categories = useProductsStore((s) => s.categories);
   const fetchCategories = useProductsStore((s) => s.fetchCategories);
 
+  const collections = useCollectionsStore((s) => s.collections);
+  const fetchCollections = useCollectionsStore((s) => s.fetchCollections);
+
   const {
     register,
     handleSubmit,
@@ -62,10 +67,11 @@ export function ProductForm() {
     resolver: zodResolver(productSchema),
   });
 
-  // Fetch categories on mount
+  // Fetch categories and collections on mount
   useEffect(() => {
     fetchCategories();
-  }, [fetchCategories]);
+    fetchCollections();
+  }, [fetchCategories, fetchCollections]);
 
   // Load existing product if editing
   useEffect(() => {
@@ -79,6 +85,7 @@ export function ProductForm() {
             description: product.description || '',
             price: product.price,
             category: product.category_id || '',
+            collection: product.collection_id || '',
             tag: product.tags?.[0] || '',
           });
           setImage(product.image_url);
@@ -151,6 +158,7 @@ export function ProductForm() {
         tags: data.tag ? [data.tag] : [],
         featured: false,
         in_stock: true,
+        ...(data.collection && { collection_id: data.collection }),
       };
 
       if (isEditing && id) {
@@ -342,6 +350,31 @@ export function ProductForm() {
                       <SelectItem value="Bestseller">Bestseller</SelectItem>
                       <SelectItem value="Limited">Limited</SelectItem>
                       <SelectItem value="Sale">Sale</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="collection"
+                    className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
+                  >
+                    Collection (Optional)
+                  </Label>
+                  <Select
+                    onValueChange={(value) => setValue("collection", value === "none" ? "" : value)}
+                    defaultValue={watch("collection") || "none"}
+                  >
+                    <SelectTrigger className="h-12 rounded-xl border-foreground/10">
+                      <SelectValue placeholder="Select collection (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No collection</SelectItem>
+                      {collections.map((collection) => (
+                        <SelectItem key={collection.id} value={collection.id}>
+                          {collection.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

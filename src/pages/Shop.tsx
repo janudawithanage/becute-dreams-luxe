@@ -158,7 +158,7 @@ export function Shop() {
                     
                     // Check if user is authenticated
                     if (!isAuthenticated) {
-                      navigate('/signin', { 
+                      navigate('/sign-in', { 
                         state: { 
                           from: `/shop${searchParams.toString() ? `?${searchParams.toString()}` : ''}`,
                           message: 'Please sign in to add items to your cart' 

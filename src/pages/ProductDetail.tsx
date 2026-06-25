@@ -106,7 +106,7 @@ export function ProductDetail() {
               onClick={() => {
                 // Check if user is authenticated
                 if (!isAuthenticated) {
-                  navigate('/signin', { 
+                  navigate('/sign-in', { 
                     state: { 
                       from: `/product/${slug}`,
                       message: 'Please sign in to add items to your cart' 
