@@ -25,6 +25,8 @@ import { AdminLayout } from "@/pages/admin/AdminLayout";
 import { Dashboard } from "@/pages/admin/Dashboard";
 import { Products } from "@/pages/admin/Products";
 import { ProductForm } from "@/pages/admin/ProductForm";
+import { AdminCollections } from "@/pages/admin/AdminCollections";
+import { CollectionForm } from "@/pages/admin/CollectionForm";
 import { Orders } from "@/pages/admin/Orders";
 import { OrderDetail as AdminOrderDetail } from "@/pages/admin/OrderDetail";
 import { Customers } from "@/pages/admin/Customers";
@@ -78,6 +80,9 @@ export default function App() {
           <Route path="products" element={<Products />} />
           <Route path="products/new" element={<ProductForm />} />
           <Route path="products/:id/edit" element={<ProductForm />} />
+          <Route path="collections" element={<AdminCollections />} />
+          <Route path="collections/new" element={<CollectionForm />} />
+          <Route path="collections/:id/edit" element={<CollectionForm />} />
           <Route path="orders" element={<Orders />} />
           <Route path="orders/:id" element={<AdminOrderDetail />} />
           <Route path="customers" element={<Customers />} />

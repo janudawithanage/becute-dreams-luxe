@@ -103,6 +103,21 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['order_items']['Row'], 'id' | 'created_at'>
         Update: Partial<Database['public']['Tables']['order_items']['Insert']>
       }
+      collections: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          description: string | null
+          image_url: string
+          featured: boolean
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['collections']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Database['public']['Tables']['collections']['Insert']>
+      }
     }
   }
 }

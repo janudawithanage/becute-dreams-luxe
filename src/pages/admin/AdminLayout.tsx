@@ -9,6 +9,7 @@ import {
   Menu,
   X,
   Sparkles,
+  Layers,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/shared/utils/cn";
@@ -18,6 +19,7 @@ import { useAuthStore } from "@/features/auth";
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Products", href: "/admin/products", icon: Package },
+  { name: "Collections", href: "/admin/collections", icon: Layers },
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { name: "Customers", href: "/admin/customers", icon: Users },
   { name: "Settings", href: "/admin/settings", icon: Settings },
