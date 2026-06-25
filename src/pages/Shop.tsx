@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Search, ShoppingBag } from "lucide-react";
 import { useProductsStore } from "@/features/products";
 import { useCart } from "@/features/cart";
+import { useAuthStore } from "@/features/auth";
 import { Link } from "react-router-dom";
 import { getOptimizedImageUrl } from "@/lib/cloudinary";
 
@@ -15,6 +16,7 @@ export function Shop() {
   const [query, setQuery] = useState(q ?? "");
   
   const add = useCart((s) => s.add);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { 
     products, 
     categories, 
@@ -153,6 +155,18 @@ export function Shop() {
                 <button
                   onClick={(e) => {
                     e.preventDefault();
+                    
+                    // Check if user is authenticated
+                    if (!isAuthenticated) {
+                      navigate('/signin', { 
+                        state: { 
+                          from: `/shop${searchParams.toString() ? `?${searchParams.toString()}` : ''}`,
+                          message: 'Please sign in to add items to your cart' 
+                        } 
+                      });
+                      return;
+                    }
+                    
                     add(p);
                   }}
                   aria-label="Quick add"

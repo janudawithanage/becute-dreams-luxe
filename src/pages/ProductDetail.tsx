@@ -1,16 +1,19 @@
-import { useParams, Link, Navigate } from "react-router-dom";
+import { useParams, Link, Navigate, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Minus, Plus, ArrowUpRight } from "lucide-react";
 import { useProductsStore } from "@/features/products";
 import { useCart } from "@/features/cart";
+import { useAuthStore } from "@/features/auth";
 import type { Product } from "@/features/products/products.service";
 
 export function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const getProductBySlug = useProductsStore((s) => s.getProductBySlug);
   const products = useProductsStore((s) => s.getProducts());
   const isLoading = useProductsStore((s) => s.isLoading);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [product, setProduct] = useState<Product | null>(null);
   const [qty, setQty] = useState(1);
   const add = useCart((s) => s.add);
@@ -100,7 +103,20 @@ export function ProductDetail() {
               </button>
             </div>
             <button
-              onClick={() => add(product, qty)}
+              onClick={() => {
+                // Check if user is authenticated
+                if (!isAuthenticated) {
+                  navigate('/signin', { 
+                    state: { 
+                      from: `/product/${slug}`,
+                      message: 'Please sign in to add items to your cart' 
+                    } 
+                  });
+                  return;
+                }
+                
+                add(product, qty);
+              }}
               className="group inline-flex h-14 flex-1 items-center justify-center gap-3 rounded-full bg-foreground px-8 text-xs uppercase tracking-[0.25em] text-background transition hover:scale-[1.02]"
             >
               Add to basket

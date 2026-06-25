@@ -8,7 +8,7 @@ export interface CustomerStats {
   address: string | null;
   city: string | null;
   postal_code: string | null;
-  country: string;
+  country: string | null;
   role: 'customer' | 'admin';
   created_at: string;
   total_orders: number;
@@ -151,6 +151,14 @@ export const adminService = {
   // Get all customers with stats
   async getAllCustomers(): Promise<CustomerStats[]> {
     try {
+      // First, let's see ALL profiles to debug
+      const { data: allProfiles, error: allProfilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      console.log('ALL profiles (before filter):', allProfiles);
+
       // Fetch all customer profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
@@ -158,14 +166,25 @@ export const adminService = {
         .eq('role', 'customer')
         .order('created_at', { ascending: false });
 
-      if (profilesError) throw profilesError;
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        throw profilesError;
+      }
+
+      console.log('Filtered customer profiles:', profiles);
+      console.log('Number of customers found:', profiles?.length || 0);
 
       // Fetch all orders to calculate stats
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
         .select('user_id, total');
 
-      if (ordersError) throw ordersError;
+      if (ordersError) {
+        console.error('Error fetching orders:', ordersError);
+        throw ordersError;
+      }
+
+      console.log('Fetched orders:', orders);
 
       // Calculate stats for each customer
       const customersWithStats: CustomerStats[] = (profiles || []).map((profile) => {
@@ -187,6 +206,8 @@ export const adminService = {
           total_spent: totalSpent,
         };
       });
+
+      console.log('Customers with stats:', customersWithStats);
 
       return customersWithStats;
     } catch (error) {

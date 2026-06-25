@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { DollarSign, ShoppingCart, Package, Users, TrendingUp, TrendingDown } from "lucide-react";
+import { DollarSign, ShoppingCart, Package, Users } from "lucide-react";
 import {
   LineChart,
   Line,
@@ -11,48 +11,113 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { mockDashboardStats, mockSalesData, mockOrders } from "@/features/admin";
+import { adminService } from "@/features/admin";
 import { Badge } from "@/shared/components/ui/badge";
 import { motion } from "framer-motion";
-
-const stats = [
-  {
-    title: "Total Revenue",
-    value: `$${mockDashboardStats.totalRevenue.toLocaleString()}`,
-    change: mockDashboardStats.revenueChange,
-    icon: DollarSign,
-  },
-  {
-    title: "Orders",
-    value: mockDashboardStats.totalOrders.toString(),
-    change: mockDashboardStats.ordersChange,
-    icon: ShoppingCart,
-  },
-  {
-    title: "Products",
-    value: mockDashboardStats.totalProducts.toString(),
-    change: mockDashboardStats.productsChange,
-    icon: Package,
-  },
-  {
-    title: "Customers",
-    value: mockDashboardStats.totalCustomers.toString(),
-    change: mockDashboardStats.customersChange,
-    icon: Users,
-  },
-];
-
-const getStatusBadge = (status: string) => {
-  const variants: Record<string, "success" | "warning" | "info" | "default"> = {
-    delivered: "success",
-    processing: "warning",
-    shipped: "info",
-    pending: "default",
-  };
-  return variants[status] || "default";
-};
+import { useState, useEffect } from "react";
+import { useOrdersStore } from "@/features/orders";
+import { useNavigate } from "react-router-dom";
+import { format, subMonths, startOfMonth, endOfMonth, eachMonthOfInterval } from "date-fns";
 
 export function Dashboard() {
+  const navigate = useNavigate();
+  const [stats, setStats] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
+    totalProducts: 0,
+    pendingOrders: 0,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const { orders, fetchAllOrders } = useOrdersStore();
+
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        const dashboardStats = await adminService.getDashboardStats();
+        setStats(dashboardStats);
+        await fetchAllOrders();
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, [fetchAllOrders]);
+
+  // Generate chart data from orders
+  const generateChartData = () => {
+    const now = new Date();
+    const last6Months = eachMonthOfInterval({
+      start: subMonths(now, 5),
+      end: now,
+    });
+
+    return last6Months.map((month) => {
+      const monthStart = startOfMonth(month);
+      const monthEnd = endOfMonth(month);
+
+      const monthOrders = orders.filter((order) => {
+        const orderDate = new Date(order.created_at);
+        return orderDate >= monthStart && orderDate <= monthEnd;
+      });
+
+      const revenue = monthOrders.reduce((sum, order) => sum + order.total, 0);
+
+      return {
+        date: format(month, 'MMM'),
+        revenue: parseFloat(revenue.toFixed(2)),
+        orders: monthOrders.length,
+      };
+    });
+  };
+
+  const chartData = generateChartData();
+  const recentOrders = orders.slice(0, 5);
+
+  const statsData = [
+    {
+      title: "Total Revenue",
+      value: `$${stats.totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      icon: DollarSign,
+    },
+    {
+      title: "Orders",
+      value: stats.totalOrders.toString(),
+      icon: ShoppingCart,
+    },
+    {
+      title: "Products",
+      value: stats.totalProducts.toString(),
+      icon: Package,
+    },
+    {
+      title: "Pending Orders",
+      value: stats.pendingOrders.toString(),
+      icon: Users,
+    },
+  ];
+
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, "success" | "warning" | "info" | "default"> = {
+      delivered: "success",
+      processing: "warning",
+      shipped: "info",
+      pending: "default",
+      cancelled: "destructive",
+    };
+    return variants[status] || "default";
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <p className="font-display text-2xl">Loading dashboard...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <div>
@@ -75,10 +140,8 @@ export function Dashboard() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, i) => {
+        {statsData.map((stat, i) => {
           const Icon = stat.icon;
-          const isPositive = stat.change > 0;
-          const TrendIcon = isPositive ? TrendingUp : TrendingDown;
 
           return (
             <motion.div
@@ -96,15 +159,6 @@ export function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="font-display text-3xl">{stat.value}</div>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
-                    <TrendIcon
-                      className={`h-3 w-3 ${isPositive ? "text-green-600" : "text-red-600"}`}
-                    />
-                    <span className={isPositive ? "text-green-600" : "text-red-600"}>
-                      {Math.abs(stat.change)}%
-                    </span>
-                    <span>from last month</span>
-                  </div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -128,21 +182,34 @@ export function Dashboard() {
               </p>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={mockSalesData}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                  <XAxis dataKey="date" fontSize={11} />
-                  <YAxis fontSize={11} />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="oklch(0.16 0.01 280)"
-                    strokeWidth={2}
-                    dot={{ fill: "oklch(0.16 0.01 280)", r: 4 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              {chartData.every(d => d.revenue === 0) ? (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                  <p>No revenue data yet. Orders will appear here once placed.</p>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                    <XAxis dataKey="date" fontSize={11} />
+                    <YAxis fontSize={11} />
+                    <Tooltip 
+                      formatter={(value: number) => [`$${value.toFixed(2)}`, 'Revenue']}
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--background))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                      }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth={2}
+                      dot={{ fill: "hsl(var(--primary))", r: 4 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -162,15 +229,32 @@ export function Dashboard() {
               </p>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={mockSalesData}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                  <XAxis dataKey="date" fontSize={11} />
-                  <YAxis fontSize={11} />
-                  <Tooltip />
-                  <Bar dataKey="orders" fill="oklch(0.16 0.01 280)" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              {chartData.every(d => d.orders === 0) ? (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                  <p>No orders yet. Data will appear here once orders are placed.</p>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                    <XAxis dataKey="date" fontSize={11} />
+                    <YAxis fontSize={11} />
+                    <Tooltip
+                      formatter={(value: number) => [value, 'Orders']}
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--background))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                      }}
+                    />
+                    <Bar 
+                      dataKey="orders" 
+                      fill="hsl(var(--primary))" 
+                      radius={[8, 8, 0, 0]} 
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -189,27 +273,34 @@ export function Dashboard() {
             </p>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {mockOrders.map((order) => (
-                <div
-                  key={order.id}
-                  className="flex items-center justify-between border-b border-foreground/5 pb-4 last:border-0 last:pb-0 hover:bg-foreground/[0.02] -mx-2 px-2 py-2 rounded-lg transition"
-                >
-                  <div className="space-y-1">
-                    <p className="font-medium">{order.orderNumber}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {order.customer} • {order.email}
-                    </p>
+            {recentOrders.length === 0 ? (
+              <div className="py-8 text-center text-muted-foreground">
+                <p>No orders yet</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentOrders.map((order) => (
+                  <div
+                    key={order.id}
+                    onClick={() => navigate(`/admin/orders/${order.id}`)}
+                    className="flex items-center justify-between border-b border-foreground/5 pb-4 last:border-0 last:pb-0 hover:bg-foreground/[0.02] -mx-2 px-2 py-2 rounded-lg transition cursor-pointer"
+                  >
+                    <div className="space-y-1">
+                      <p className="font-medium">{order.order_number}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {order.customer_name} • {order.customer_email}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <Badge variant={getStatusBadge(order.status)} className="capitalize">
+                        {order.status}
+                      </Badge>
+                      <p className="font-display text-lg">${order.total.toFixed(2)}</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <Badge variant={getStatusBadge(order.status)} className="capitalize">
-                      {order.status}
-                    </Badge>
-                    <p className="font-display text-lg">${order.total}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>

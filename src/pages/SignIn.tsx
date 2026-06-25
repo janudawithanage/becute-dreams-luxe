@@ -19,7 +19,7 @@ export function SignIn() {
     remember: false,
   });
 
-  // Check for success message from registration
+  // Check for success message from registration or redirect message
   useEffect(() => {
     if (location.state?.message) {
       setSuccessMessage(location.state.message);
@@ -36,13 +36,16 @@ export function SignIn() {
 
       if (success) {
         // Redirect to the page they were trying to access, or admin dashboard if they're admin
-        const from = location.state?.from?.pathname;
+        const from = location.state?.from;
         const { isAdmin } = useAuthStore.getState();
 
         if (isAdmin()) {
           navigate("/admin");
+        } else if (from) {
+          // Redirect back to where they came from
+          navigate(from);
         } else {
-          navigate(from || "/");
+          navigate("/");
         }
       } else {
         setError("Invalid email or password");

@@ -209,13 +209,15 @@ export function Customers() {
                       {format(new Date(customer.created_at), "MMM dd, yyyy")}
                     </TableCell>
                     <TableCell>
-                      {customer.city && (
+                      {customer.city ? (
                         <div className="flex items-center gap-2 text-sm">
                           <MapPin className="h-3 w-3 text-muted-foreground" />
                           <span>
-                            {customer.city}, {customer.country}
+                            {customer.city}{customer.country ? `, ${customer.country}` : ''}
                           </span>
                         </div>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">—</span>
                       )}
                     </TableCell>
                     <TableCell>{customer.total_orders}</TableCell>
