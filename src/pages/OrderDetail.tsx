@@ -13,7 +13,8 @@ import {
   Phone,
   Mail,
 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import type { OrderWithItems, OrderItem } from "@/features/orders/orders.service";
 
 const statusConfig = {
   pending: { label: "Pending", icon: Clock, color: "text-yellow-600", bg: "bg-yellow-50" },
@@ -29,18 +30,35 @@ export function OrderDetail() {
   const { user, isAuthenticated } = useAuthStore();
   const { getOrderById } = useOrdersStore();
   const navigate = useNavigate();
+  const [order, setOrder] = useState<OrderWithItems | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/sign-in");
+      return;
     }
-  }, [isAuthenticated, navigate]);
+
+    if (orderId) {
+      setIsLoading(true);
+      getOrderById(orderId).then((orderData) => {
+        setOrder(orderData);
+        setIsLoading(false);
+      });
+    }
+  }, [isAuthenticated, navigate, orderId, getOrderById]);
 
   if (!orderId) {
     return null;
   }
 
-  const order = getOrderById(orderId);
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-xl px-6 py-32 text-center">
+        <p className="font-display text-4xl">Loading...</p>
+      </div>
+    );
+  }
 
   if (!order) {
     return (
@@ -57,7 +75,7 @@ export function OrderDetail() {
   }
 
   // Check if user owns this order or is admin
-  const canView = user?.id === order.customerId || user?.role === "admin";
+  const canView = user?.id === order?.user_id || user?.role === "admin";
 
   if (!canView) {
     return (
@@ -73,7 +91,7 @@ export function OrderDetail() {
     );
   }
 
-  const config = statusConfig[order.status];
+  const config = statusConfig[order.status as keyof typeof statusConfig];
   const StatusIcon = config.icon;
 
   return (
@@ -95,11 +113,11 @@ export function OrderDetail() {
         className="mt-8"
       >
         <h1 className="font-display text-5xl tracking-tight lg:text-6xl">
-          Order <em className="font-light">{order.orderNumber}</em>
+          Order <em className="font-light">{order.order_number}</em>
         </h1>
         <p className="mt-4 text-muted-foreground">
           Placed on{" "}
-          {new Date(order.createdAt).toLocaleDateString("en-US", {
+          {new Date(order.created_at).toLocaleDateString("en-US", {
             year: "numeric",
             month: "long",
             day: "numeric",
@@ -121,7 +139,7 @@ export function OrderDetail() {
           <div>
             <p className={`text-xl font-display ${config.color}`}>{config.label}</p>
             <p className={`text-sm ${config.color}/70`}>
-              Last updated {new Date(order.updatedAt).toLocaleString()}
+              Last updated {new Date(order.updated_at).toLocaleString()}
             </p>
           </div>
         </div>
@@ -136,35 +154,23 @@ export function OrderDetail() {
       >
         <h2 className="font-display text-2xl">Order Timeline</h2>
         <div className="mt-6 space-y-4">
-          {order.statusHistory
-            .slice()
-            .reverse()
-            .map((history, idx) => {
-              const historyConfig = statusConfig[history.status];
-              const HistoryIcon = historyConfig.icon;
-              return (
-                <div key={idx} className="flex items-start gap-4">
-                  <div className={`rounded-full p-2 ${historyConfig.bg}`}>
-                    <HistoryIcon className={`h-4 w-4 ${historyConfig.color}`} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium">{historyConfig.label}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(history.timestamp).toLocaleString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                    {history.note && (
-                      <p className="mt-1 text-sm text-muted-foreground italic">{history.note}</p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+          <div className="flex items-start gap-4">
+            <div className={`rounded-full p-2 ${config.bg}`}>
+              <StatusIcon className={`h-4 w-4 ${config.color}`} />
+            </div>
+            <div className="flex-1">
+              <p className="font-medium">{config.label}</p>
+              <p className="text-sm text-muted-foreground">
+                {new Date(order.updated_at).toLocaleString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+            </div>
+          </div>
         </div>
       </motion.div>
 
@@ -178,15 +184,15 @@ export function OrderDetail() {
         >
           <h2 className="font-display text-2xl">Order Items</h2>
           <div className="mt-6 space-y-4">
-            {order.items.map((item) => (
-              <div key={item.productId} className="flex items-center gap-4">
+            {order.order_items?.map((item: OrderItem) => (
+              <div key={item.product_id} className="flex items-center gap-4">
                 <img
-                  src={item.productImage}
-                  alt={item.productName}
+                  src={item.product_image_url || ''}
+                  alt={item.product_name}
                   className="h-16 w-14 rounded-md object-cover"
                 />
                 <div className="flex-1">
-                  <p className="font-display leading-tight">{item.productName}</p>
+                  <p className="font-display leading-tight">{item.product_name}</p>
                   <p className="text-xs text-muted-foreground">
                     ${item.price.toFixed(2)} × {item.quantity}
                   </p>
@@ -204,7 +210,7 @@ export function OrderDetail() {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Shipping</span>
-              <span>{order.shippingCost === 0 ? "Free" : `$${order.shippingCost.toFixed(2)}`}</span>
+              <span>{order.shipping_cost === 0 ? "Free" : `$${order.shipping_cost.toFixed(2)}`}</span>
             </div>
             <div className="flex justify-between border-t border-foreground/10 pt-2">
               <span className="font-display text-lg">Total</span>
@@ -228,7 +234,7 @@ export function OrderDetail() {
               </div>
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Name</p>
-                <p className="mt-1">{order.customerName}</p>
+                <p className="mt-1">{order.customer_name}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -237,7 +243,7 @@ export function OrderDetail() {
               </div>
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Email</p>
-                <p className="mt-1">{order.customerEmail}</p>
+                <p className="mt-1">{order.customer_email}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -246,7 +252,7 @@ export function OrderDetail() {
               </div>
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Phone</p>
-                <p className="mt-1">{order.customerPhone}</p>
+                <p className="mt-1">{order.customer_phone}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -256,11 +262,17 @@ export function OrderDetail() {
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Address</p>
                 <p className="mt-1">
-                  {order.shippingAddress.street}
+                  {order.shipping_address_line1}
+                  {order.shipping_address_line2 && (
+                    <>
+                      <br />
+                      {order.shipping_address_line2}
+                    </>
+                  )}
                   <br />
-                  {order.shippingAddress.city}, {order.shippingAddress.postalCode}
+                  {order.shipping_city}, {order.shipping_state} {order.shipping_postal_code}
                   <br />
-                  {order.shippingAddress.country}
+                  {order.shipping_country}
                 </p>
               </div>
             </div>

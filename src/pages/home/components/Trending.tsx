@@ -1,11 +1,9 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { products } from "@/features/products";
-import { useCart } from "@/features/cart";
 import { ShoppingBag } from "lucide-react";
 
 export function Trending() {
-  const add = useCart((s) => s.add);
   const list = products.slice(0, 6);
 
   return (
@@ -52,16 +50,12 @@ export function Trending() {
                       {p.tag}
                     </span>
                   )}
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      add(p);
-                    }}
-                    aria-label="Add to cart"
+                  <div
                     className="absolute bottom-4 right-4 flex h-12 w-12 translate-y-3 items-center justify-center rounded-full bg-foreground text-background opacity-0 transition duration-500 group-hover:translate-y-0 group-hover:opacity-100"
+                    aria-label="View product"
                   >
                     <ShoppingBag className="h-4 w-4" />
-                  </button>
+                  </div>
                 </div>
                 <div className="mt-5 flex items-baseline justify-between gap-3">
                   <p className="font-display text-xl leading-tight">{p.name}</p>

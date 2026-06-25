@@ -105,7 +105,7 @@ export function Dashboard() {
       processing: "warning",
       shipped: "info",
       pending: "default",
-      cancelled: "destructive",
+      cancelled: "default",
     };
     return variants[status] || "default";
   };
