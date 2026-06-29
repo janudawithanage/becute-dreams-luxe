@@ -25,6 +25,8 @@ export interface Database {
           slug: string
           description: string | null
           image_url: string | null
+          featured: boolean
+          sort_order: number
           created_at: string
         }
         Insert: Omit<Database['public']['Tables']['categories']['Row'], 'id' | 'created_at'>
@@ -49,6 +51,15 @@ export interface Database {
         }
         Insert: Omit<Database['public']['Tables']['products']['Row'], 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Database['public']['Tables']['products']['Insert']>
+      }
+      product_collections: {
+        Row: {
+          product_id: string
+          collection_id: string
+          created_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['product_collections']['Row'], 'created_at'>
+        Update: never
       }
       cart_items: {
         Row: {

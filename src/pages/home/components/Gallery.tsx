@@ -1,10 +1,27 @@
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Instagram } from "lucide-react";
-import { products } from "@/features/products";
+import { useProductsStore } from "@/features/products";
+import { getOptimizedImageUrl } from "@/lib/cloudinary";
 
 export function Gallery() {
+  const products = useProductsStore((s) => s.products);
+  const fetchProducts = useProductsStore((s) => s.fetchProducts);
+
+  useEffect(() => {
+    // Fetch products if not already loaded
+    if (products.length === 0) {
+      fetchProducts({ inStock: true });
+    }
+  }, [products.length, fetchProducts]);
+
+  // Double the products array and take first 8 for grid
   const tiles = [...products, ...products].slice(0, 8);
   const sizes = ["row-span-2", "", "", "row-span-2", "", "", "row-span-2", ""];
+
+  if (tiles.length === 0) {
+    return null; // Don't show section if no products
+  }
 
   return (
     <section className="mx-auto max-w-[1400px] px-6 py-24 lg:px-12 lg:py-32">
@@ -28,7 +45,7 @@ export function Gallery() {
       <div className="mt-12 grid auto-rows-[180px] grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
         {tiles.map((p, i) => (
           <motion.a
-            key={i}
+            key={`${p.id}-${i}`}
             href="https://instagram.com"
             target="_blank"
             rel="noreferrer"
@@ -39,7 +56,11 @@ export function Gallery() {
             className={`group relative overflow-hidden rounded-2xl bg-muted ${sizes[i]}`}
           >
             <img
-              src={p.image}
+              src={getOptimizedImageUrl(p.image_url, {
+                width: 400,
+                format: "auto",
+                quality: 80,
+              })}
               alt={p.name}
               loading="lazy"
               className="h-full w-full object-cover transition duration-[1200ms] group-hover:scale-110"

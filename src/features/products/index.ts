@@ -1,5 +1,6 @@
-// Export types explicitly to avoid conflicts
-export type { Category, Product } from "./products.types";
-export * from "./products.data";
+// Export types and services
+export type { Product } from "./products.service";
+export type { Category } from "@/features/categories";
 export * from "./products.store";
 export { productsService } from "./products.service";
+

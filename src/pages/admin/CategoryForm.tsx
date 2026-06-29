@@ -8,38 +8,28 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
-import { Checkbox } from "@/shared/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/components/ui/select";
+import { Switch } from "@/shared/components/ui/switch";
 import { ArrowLeft, Upload, X, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useProductsStore } from "@/features/products";
 import { useCategoriesStore } from "@/features/categories";
-import { useCollectionsStore } from "@/features/collections";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { toast } from "sonner";
+import { categoriesService } from "@/features/categories";
 
-const productSchema = z.object({
-  name: z.string().min(3, "Name must be at least 3 characters"),
+const categorySchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
   slug: z
     .string()
-    .min(3, "Slug must be at least 3 characters")
+    .min(2, "Slug must be at least 2 characters")
     .regex(/^[a-z0-9-]+$/, "Slug must be lowercase letters, numbers, and hyphens only"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
-  price: z.number().min(0.01, "Price must be greater than 0"),
-  category: z.string().min(1, "Category is required"),
-  tag: z.string().optional(),
-  collections: z.array(z.string()),
+  description: z.string().optional(),
+  featured: z.boolean(),
+  sort_order: z.number().min(0, "Sort order must be 0 or greater"),
 });
 
-type ProductFormData = z.infer<typeof productSchema>;
+type CategoryFormData = z.infer<typeof categorySchema>;
 
-export function ProductForm() {
+export function CategoryForm() {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditing = !!id;
@@ -47,17 +37,11 @@ export function ProductForm() {
   const [image, setImage] = useState<string>("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoadingProduct, setIsLoadingProduct] = useState(isEditing);
+  const [isLoadingCategory, setIsLoadingCategory] = useState(isEditing);
 
-  const getProductById = useProductsStore((s) => s.getProductById);
-  const addProduct = useProductsStore((s) => s.addProduct);
-  const updateProduct = useProductsStore((s) => s.updateProduct);
-  
-  const categories = useCategoriesStore((s) => s.categories);
-  const fetchCategories = useCategoriesStore((s) => s.fetchCategories);
-
-  const collections = useCollectionsStore((s) => s.collections);
-  const fetchCollections = useCollectionsStore((s) => s.fetchCollections);
+  const getCategoryById = useCategoriesStore((s) => s.getCategoryById);
+  const createCategory = useCategoriesStore((s) => s.createCategory);
+  const updateCategory = useCategoriesStore((s) => s.updateCategory);
 
   const {
     register,
@@ -66,49 +50,41 @@ export function ProductForm() {
     watch,
     reset,
     formState: { errors },
-  } = useForm<ProductFormData>({
-    resolver: zodResolver(productSchema),
+  } = useForm<CategoryFormData>({
+    resolver: zodResolver(categorySchema),
     defaultValues: {
-      collections: [],
+      featured: false,
+      sort_order: 0,
     },
   });
 
-  // Fetch categories and collections on mount
-  useEffect(() => {
-    fetchCategories();
-    fetchCollections();
-  }, [fetchCategories, fetchCollections]);
-
-  // Load existing product if editing
+  // Load existing category if editing
   useEffect(() => {
     if (isEditing && id) {
-      setIsLoadingProduct(true);
-      getProductById(id).then((product) => {
-        if (product) {
+      setIsLoadingCategory(true);
+      getCategoryById(id).then((category) => {
+        if (category) {
           reset({
-            name: product.name,
-            slug: product.slug,
-            description: product.description || '',
-            price: product.price,
-            category: product.category_id || '',
-            collections: product.collections?.map((c) => c.id) || [],
-            tag: product.tags?.[0] || '',
+            name: category.name,
+            slug: category.slug,
+            description: category.description || '',
+            featured: category.featured,
+            sort_order: category.sort_order,
           });
-          setImage(product.image_url);
+          if (category.image_url) {
+            setImage(category.image_url);
+          }
         }
-        setIsLoadingProduct(false);
+        setIsLoadingCategory(false);
       });
     }
-  }, [id, isEditing, getProductById, reset]);
+  }, [id, isEditing, getCategoryById, reset]);
 
   // Auto-generate slug from name
   const name = watch("name");
   useEffect(() => {
     if (!isEditing && name) {
-      const slug = name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
+      const slug = categoriesService.generateSlug(name);
       setValue("slug", slug);
     }
   }, [name, isEditing, setValue]);
@@ -133,58 +109,49 @@ export function ProductForm() {
     setImageFile(null);
   };
 
-  const onSubmit = async (data: ProductFormData) => {
-    if (!image && !isEditing) {
-      toast.error("Please upload a product image");
-      return;
-    }
-
+  const onSubmit = async (data: CategoryFormData) => {
     setIsSubmitting(true);
 
     try {
-      let imageUrl = image;
+      let imageUrl = image || undefined;
 
       // Upload new image to Cloudinary if a file was selected
       if (imageFile) {
         toast.info("Uploading image to Cloudinary...");
         const uploadResult = await uploadToCloudinary(imageFile, {
-          folder: 'becute-dreams-luxe/products'
+          folder: 'becute-dreams-luxe/categories'
         });
         imageUrl = uploadResult.secure_url;
         toast.success("Image uploaded successfully!");
       }
 
-      const productData = {
+      const categoryData = {
         name: data.name,
         slug: data.slug,
-        description: data.description,
-        price: data.price,
-        category_id: data.category,
+        description: data.description || '',
         image_url: imageUrl,
-        tags: data.tag ? [data.tag] : [],
-        featured: false,
-        in_stock: true,
-        collectionIds: data.collections,
+        featured: data.featured,
+        sort_order: data.sort_order,
       };
 
       if (isEditing && id) {
-        await updateProduct(id, productData, data.collections);
-        toast.success("Product updated successfully!");
+        await updateCategory(id, categoryData);
+        toast.success("Category updated successfully!");
       } else {
-        await addProduct(productData);
-        toast.success("Product created successfully!");
+        await createCategory(categoryData);
+        toast.success("Category created successfully!");
       }
 
-      navigate("/admin/products");
+      navigate("/admin/categories");
     } catch (error) {
-      console.error('Error saving product:', error);
+      console.error('Error saving category:', error);
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (isLoadingProduct) {
+  if (isLoadingCategory) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -220,17 +187,17 @@ export function ProductForm() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="mt-1 font-display text-4xl tracking-tight"
           >
-            {isEditing ? "Edit Product" : "Add New Product"}
+            {isEditing ? "Edit Category" : "Add New Category"}
           </motion.h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {isEditing ? "Update product details" : "Create a new product for your store"}
+            {isEditing ? "Update category details" : "Create a new category for your store"}
           </p>
         </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
-          {/* Product Information */}
+          {/* Category Information */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -239,7 +206,7 @@ export function ProductForm() {
             <Card className="glass border-foreground/10 shadow-soft">
               <CardHeader>
                 <CardTitle className="font-display text-2xl tracking-tight">
-                  Product Information
+                  Category Information
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -248,11 +215,11 @@ export function ProductForm() {
                     htmlFor="name"
                     className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
                   >
-                    Product Name *
+                    Category Name *
                   </Label>
                   <Input
                     id="name"
-                    placeholder="Enter product name"
+                    placeholder="Enter category name"
                     className="h-12 rounded-xl border-foreground/10"
                     {...register("name")}
                   />
@@ -268,8 +235,8 @@ export function ProductForm() {
                   </Label>
                   <Input
                     id="slug"
-                    placeholder="product-url-slug"
-                    className="h-12 rounded-xl border-foreground/10"
+                    placeholder="category-url-slug"
+                    className="h-12 rounded-xl border-foreground/10 font-mono text-sm"
                     {...register("slug")}
                     disabled={isEditing}
                   />
@@ -284,134 +251,70 @@ export function ProductForm() {
                     htmlFor="description"
                     className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
                   >
-                    Description *
+                    Description
                   </Label>
                   <Textarea
                     id="description"
-                    placeholder="Enter product description"
+                    placeholder="Enter category description"
                     rows={5}
-                    className="rounded-xl border-foreground/10"
+                    className="rounded-xl border-foreground/10 resize-none"
                     {...register("description")}
                   />
                   {errors.description && (
                     <p className="text-xs text-red-600">{errors.description.message}</p>
                   )}
+                  <p className="text-xs text-muted-foreground">
+                    Optional. Describe this category.
+                  </p>
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label
-                      htmlFor="price"
+                      htmlFor="sort_order"
                       className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
                     >
-                      Price *
+                      Sort Order
                     </Label>
                     <Input
-                      id="price"
+                      id="sort_order"
                       type="number"
-                      step="0.01"
-                      placeholder="0.00"
+                      placeholder="0"
                       className="h-12 rounded-xl border-foreground/10"
-                      {...register("price", { valueAsNumber: true })}
+                      {...register("sort_order", { valueAsNumber: true })}
                     />
-                    {errors.price && <p className="text-xs text-red-600">{errors.price.message}</p>}
+                    {errors.sort_order && (
+                      <p className="text-xs text-red-600">{errors.sort_order.message}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Lower numbers appear first
+                    </p>
                   </div>
+
                   <div className="space-y-2">
                     <Label
-                      htmlFor="category"
+                      htmlFor="featured"
                       className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
                     >
-                      Category *
+                      Featured Category
                     </Label>
-                    <Select
-                      onValueChange={(value) => setValue("category", value)}
-                      defaultValue={watch("category")}
-                    >
-                      <SelectTrigger className="h-12 rounded-xl border-foreground/10">
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {errors.category && (
-                      <p className="text-xs text-red-600">{errors.category.message}</p>
-                    )}
+                    <div className="flex items-center gap-3 pt-2">
+                      <Switch
+                        id="featured"
+                        checked={watch("featured")}
+                        onCheckedChange={(checked) => setValue("featured", checked)}
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        Show on homepage
+                      </span>
+                    </div>
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="tag"
-                    className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
-                  >
-                    Tag (Optional)
-                  </Label>
-                  <Select
-                    onValueChange={(value) => setValue("tag", value === "none" ? "" : value)}
-                    defaultValue={watch("tag") || "none"}
-                  >
-                    <SelectTrigger className="h-12 rounded-xl border-foreground/10">
-                      <SelectValue placeholder="Select tag (optional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">No tag</SelectItem>
-                      <SelectItem value="New">New</SelectItem>
-                      <SelectItem value="Bestseller">Bestseller</SelectItem>
-                      <SelectItem value="Limited">Limited</SelectItem>
-                      <SelectItem value="Sale">Sale</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-3">
-                  <Label className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
-                    Collections (Optional)
-                  </Label>
-                  <div className="space-y-2 max-h-60 overflow-y-auto p-4 rounded-xl border border-foreground/10 bg-background/50">
-                    {collections.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No collections available</p>
-                    ) : (
-                      collections.map((collection) => {
-                        const isChecked = watch("collections")?.includes(collection.id) || false;
-                        return (
-                          <div key={collection.id} className="flex items-center gap-3">
-                            <Checkbox
-                              id={`collection-${collection.id}`}
-                              checked={isChecked}
-                              onCheckedChange={(checked) => {
-                                const current = watch("collections") || [];
-                                if (checked) {
-                                  setValue("collections", [...current, collection.id]);
-                                } else {
-                                  setValue("collections", current.filter((id) => id !== collection.id));
-                                }
-                              }}
-                            />
-                            <Label
-                              htmlFor={`collection-${collection.id}`}
-                              className="text-sm font-normal cursor-pointer"
-                            >
-                              {collection.name}
-                            </Label>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Products can belong to multiple collections
-                  </p>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
 
-          {/* Product Image */}
+          {/* Category Image */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -420,15 +323,15 @@ export function ProductForm() {
             <Card className="glass border-foreground/10 shadow-soft">
               <CardHeader>
                 <CardTitle className="font-display text-2xl tracking-tight">
-                  Product Image *
+                  Category Image
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {image ? (
-                  <div className="relative aspect-[4/5] max-w-md group">
+                  <div className="relative aspect-[4/5] max-w-sm group">
                     <img
                       src={image}
-                      alt="Product"
+                      alt="Category"
                       className="rounded-2xl object-cover w-full h-full"
                     />
                     <button
@@ -442,14 +345,14 @@ export function ProductForm() {
                 ) : (
                   <label
                     htmlFor="image-upload"
-                    className="aspect-[4/5] max-w-md border-2 border-dashed border-foreground/20 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-foreground hover:bg-foreground/5 transition-all"
+                    className="aspect-[4/5] max-w-sm border-2 border-dashed border-foreground/20 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-foreground hover:bg-foreground/5 transition-all"
                   >
                     <Upload className="h-12 w-12 text-muted-foreground mb-4" />
                     <span className="text-sm text-muted-foreground uppercase tracking-wider">
                       Upload Image
                     </span>
                     <span className="text-xs text-muted-foreground mt-2">
-                      Recommended: 800x1000px
+                      Optional: Recommended 800x1000px
                     </span>
                     <input
                       id="image-upload"
@@ -488,7 +391,7 @@ export function ProductForm() {
                       Saving...
                     </>
                   ) : (
-                    <>{isEditing ? "Update Product" : "Save Product"}</>
+                    <>{isEditing ? "Update Category" : "Save Category"}</>
                   )}
                 </Button>
                 <Button
@@ -500,6 +403,33 @@ export function ProductForm() {
                 >
                   Cancel
                 </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Tips */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+          >
+            <Card className="glass border-foreground/10 shadow-soft">
+              <CardHeader>
+                <CardTitle className="font-display text-xl tracking-tight">Tips</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm text-muted-foreground">
+                <div>
+                  <p className="font-medium text-foreground mb-1">Image Guidelines</p>
+                  <p className="text-xs">Images are optional. Use 800x1000px portrait images for best results.</p>
+                </div>
+                <div>
+                  <p className="font-medium text-foreground mb-1">Featured Categories</p>
+                  <p className="text-xs">Featured categories appear on the homepage alongside collections.</p>
+                </div>
+                <div>
+                  <p className="font-medium text-foreground mb-1">Sort Order</p>
+                  <p className="text-xs">Use increments of 10 (0, 10, 20) to easily reorder later.</p>
+                </div>
               </CardContent>
             </Card>
           </motion.div>

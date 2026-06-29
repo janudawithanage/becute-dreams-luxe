@@ -1,10 +1,25 @@
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { products } from "@/features/products";
+import { useProductsStore } from "@/features/products";
 import { ShoppingBag } from "lucide-react";
+import { getOptimizedImageUrl } from "@/lib/cloudinary";
 
 export function Trending() {
+  const products = useProductsStore((s) => s.products);
+  const fetchProducts = useProductsStore((s) => s.fetchProducts);
+
+  useEffect(() => {
+    // Fetch featured, in-stock products
+    fetchProducts({ featured: true, inStock: true });
+  }, [fetchProducts]);
+
+  // Show first 6 products
   const list = products.slice(0, 6);
+
+  if (list.length === 0) {
+    return null; // Don't show section if no products
+  }
 
   return (
     <section
@@ -40,14 +55,18 @@ export function Trending() {
               <Link to={`/product/${p.slug}`} className="block">
                 <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted">
                   <img
-                    src={p.image}
+                    src={getOptimizedImageUrl(p.image_url, {
+                      width: 500,
+                      format: "auto",
+                      quality: 85,
+                    })}
                     alt={p.name}
                     loading="lazy"
                     className="h-full w-full object-cover transition duration-1000 ease-out group-hover:scale-105"
                   />
-                  {p.tag && (
+                  {p.tags && p.tags.length > 0 && (
                     <span className="absolute left-4 top-4 rounded-full bg-background/90 px-3 py-1 text-[10px] uppercase tracking-[0.2em]">
-                      {p.tag}
+                      {p.tags[0]}
                     </span>
                   )}
                   <div
@@ -62,7 +81,7 @@ export function Trending() {
                   <p className="text-sm tabular-nums">${p.price}</p>
                 </div>
                 <p className="mt-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                  {p.category}
+                  {p.category?.name || 'Uncategorized'}
                 </p>
               </Link>
             </motion.div>

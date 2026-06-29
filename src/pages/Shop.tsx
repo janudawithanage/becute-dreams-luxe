@@ -3,6 +3,8 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Search, ShoppingBag } from "lucide-react";
 import { useProductsStore } from "@/features/products";
+import { useCategoriesStore } from "@/features/categories";
+import { useCollectionsStore } from "@/features/collections";
 import { useCart } from "@/features/cart";
 import { useAuthStore } from "@/features/auth";
 import { Link } from "react-router-dom";
@@ -11,7 +13,8 @@ import { getOptimizedImageUrl } from "@/lib/cloudinary";
 export function Shop() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const category = searchParams.get("category") || undefined;
+  const categorySlug = searchParams.get("category") || undefined;
+  const collectionSlug = searchParams.get("collection") || undefined;
   const q = searchParams.get("q") || undefined;
   const [query, setQuery] = useState(q ?? "");
   
@@ -19,26 +22,42 @@ export function Shop() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { 
     products, 
-    categories, 
     isLoading, 
     error, 
     fetchProducts, 
-    fetchCategories 
   } = useProductsStore();
+  
+  const categories = useCategoriesStore((s) => s.categories);
+  const fetchCategories = useCategoriesStore((s) => s.fetchCategories);
+  
+  const collections = useCollectionsStore((s) => s.collections);
+  const fetchCollections = useCollectionsStore((s) => s.fetchCollections);
 
-  // Fetch products and categories on mount
+  // Fetch products, categories, and collections on mount
   useEffect(() => {
     fetchProducts({ inStock: true });
     fetchCategories();
-  }, [fetchProducts, fetchCategories]);
+    fetchCollections();
+  }, [fetchProducts, fetchCategories, fetchCollections]);
 
+  // Client-side filtering for collections (since we need to check product_collections join table)
   const filtered = products.filter((p) => {
-    if (category && p.category_id !== category) return false;
+    // Filter by category slug
+    if (categorySlug && p.category?.slug !== categorySlug) return false;
+    
+    // Filter by collection slug
+    if (collectionSlug) {
+      const hasCollection = p.collections?.some((c) => c.slug === collectionSlug);
+      if (!hasCollection) return false;
+    }
+    
+    // Filter by search query
     if (query && !p.name.toLowerCase().includes(query.toLowerCase())) return false;
+    
     return true;
   });
 
-  const updateSearch = (updates: { category?: string; q?: string }) => {
+  const updateSearch = (updates: { category?: string; collection?: string; q?: string }) => {
     const newParams = new URLSearchParams(searchParams);
 
     if (updates.category !== undefined) {
@@ -46,6 +65,14 @@ export function Shop() {
         newParams.set("category", updates.category);
       } else {
         newParams.delete("category");
+      }
+    }
+
+    if (updates.collection !== undefined) {
+      if (updates.collection) {
+        newParams.set("collection", updates.collection);
+      } else {
+        newParams.delete("collection");
       }
     }
 
@@ -108,19 +135,37 @@ export function Shop() {
         </div>
       </div>
 
-      {/* Filter chips */}
+      {/* Filter chips - Categories and Collections together */}
       <div className="mt-10 flex flex-wrap gap-2">
         <button
-          onClick={() => updateSearch({ category: undefined })}
-          className={`rounded-full border px-5 py-2 text-xs uppercase tracking-[0.2em] transition ${!category ? "border-foreground bg-foreground text-background" : "border-foreground/15 hover:border-foreground/40"}`}
+          onClick={() => updateSearch({ category: undefined, collection: undefined })}
+          className={`rounded-full border px-5 py-2 text-xs uppercase tracking-[0.2em] transition ${!categorySlug && !collectionSlug ? "border-foreground bg-foreground text-background" : "border-foreground/15 hover:border-foreground/40"}`}
         >
           All
         </button>
+        
+        {/* Category chips */}
         {categories.map((c) => (
           <button
-            key={c.id}
-            onClick={() => updateSearch({ category: c.id })}
-            className={`rounded-full border px-5 py-2 text-xs uppercase tracking-[0.2em] transition ${category === c.id ? "border-foreground bg-foreground text-background" : "border-foreground/15 hover:border-foreground/40"}`}
+            key={`cat-${c.id}`}
+            onClick={() => updateSearch({ category: c.slug, collection: undefined })}
+            className={`rounded-full border px-5 py-2 text-xs uppercase tracking-[0.2em] transition ${categorySlug === c.slug ? "border-foreground bg-foreground text-background" : "border-foreground/15 hover:border-foreground/40"}`}
+          >
+            {c.name}
+          </button>
+        ))}
+        
+        {/* Divider */}
+        {categories.length > 0 && collections.length > 0 && (
+          <div className="w-px bg-foreground/15 self-stretch" />
+        )}
+        
+        {/* Collection chips */}
+        {collections.map((c) => (
+          <button
+            key={`col-${c.id}`}
+            onClick={() => updateSearch({ collection: c.slug, category: undefined })}
+            className={`rounded-full border px-5 py-2 text-xs uppercase tracking-[0.2em] transition ${collectionSlug === c.slug ? "border-foreground bg-foreground text-background" : "border-foreground/15 hover:border-foreground/40"}`}
           >
             {c.name}
           </button>

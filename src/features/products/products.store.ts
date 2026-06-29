@@ -1,24 +1,24 @@
 import { create } from 'zustand';
-import { productsService, type Product, type Category } from './products.service';
+import { productsService, type Product } from './products.service';
 import { supabase } from '@/lib/supabase';
 
 interface ProductsState {
   products: Product[];
-  categories: Category[];
   isLoading: boolean;
   error: string | null;
   initialized: boolean;
   
   // Actions
   fetchProducts: (filters?: {
-    category?: string;
+    categorySlug?: string;
+    collectionId?: string;
     featured?: boolean;
     search?: string;
     inStock?: boolean;
   }) => Promise<void>;
-  fetchCategories: () => Promise<void>;
   getProductBySlug: (slug: string) => Promise<Product | null>;
   getProductById: (id: string) => Promise<Product | null>;
+  getProductCollections: (productId: string) => Promise<void>;
   addProduct: (productData: {
     name: string;
     slug: string;
@@ -29,8 +29,9 @@ interface ProductsState {
     tags?: string[];
     featured?: boolean;
     in_stock?: boolean;
+    collectionIds?: string[];
   }) => Promise<string>;
-  updateProduct: (id: string, updates: Partial<Product>) => Promise<void>;
+  updateProduct: (id: string, updates: Partial<Product>, collectionIds?: string[]) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
   
   // Computed getters (for backward compatibility)
@@ -40,7 +41,6 @@ interface ProductsState {
 
 export const useProductsStore = create<ProductsState>((set, get) => ({
   products: [],
-  categories: [],
   isLoading: false,
   error: null,
   initialized: false,
@@ -55,15 +55,6 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
         error: error instanceof Error ? error.message : 'Failed to fetch products',
         isLoading: false 
       });
-    }
-  },
-
-  fetchCategories: async () => {
-    try {
-      const categories = await productsService.getCategories();
-      set({ categories });
-    } catch (error) {
-      console.error('Failed to fetch categories:', error);
     }
   },
 
@@ -97,20 +88,30 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
     }
   },
 
+  getProductCollections: async (productId: string) => {
+    try {
+      await productsService.getProductCollections(productId);
+    } catch (error) {
+      console.error('Failed to fetch product collections:', error);
+    }
+  },
+
   addProduct: async (productData) => {
-    const { data, error } = await supabase
+    const { collectionIds, ...data } = productData;
+    
+    const { data: product, error } = await supabase
       .from('products')
       .insert({
-        name: productData.name,
-        slug: productData.slug,
-        description: productData.description,
-        price: productData.price,
-        category_id: productData.category_id,
-        image_url: productData.image_url,
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        price: data.price,
+        category_id: data.category_id,
+        image_url: data.image_url,
         gallery: [],
-        tags: productData.tags || [],
-        featured: productData.featured || false,
-        in_stock: productData.in_stock !== false, // default to true
+        tags: data.tags || [],
+        featured: data.featured || false,
+        in_stock: data.in_stock !== false, // default to true
       })
       .select()
       .single();
@@ -120,13 +121,18 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
       throw error;
     }
 
+    // Add collection relationships if provided
+    if (collectionIds && collectionIds.length > 0) {
+      await productsService.updateProductCollections(product.id, collectionIds);
+    }
+
     // Refresh products list
     await get().fetchProducts();
     
-    return data.id;
+    return product.id;
   },
 
-  updateProduct: async (id, updates) => {
+  updateProduct: async (id, updates, collectionIds) => {
     const { error } = await supabase
       .from('products')
       .update({
@@ -138,6 +144,11 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
     if (error) {
       console.error('Error updating product:', error);
       throw error;
+    }
+
+    // Update collection relationships if provided
+    if (collectionIds !== undefined) {
+      await productsService.updateProductCollections(id, collectionIds);
     }
 
     // Refresh products list
