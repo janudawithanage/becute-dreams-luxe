@@ -53,12 +53,6 @@ export function Settings() {
               General
             </TabsTrigger>
             <TabsTrigger
-              value="store"
-              className="uppercase tracking-[0.15em] data-[state=active]:bg-foreground/5"
-            >
-              Store
-            </TabsTrigger>
-            <TabsTrigger
               value="notifications"
               className="uppercase tracking-[0.15em] data-[state=active]:bg-foreground/5"
             >
@@ -120,66 +114,6 @@ export function Settings() {
                   <Input
                     id="storePhone"
                     defaultValue="+1 234 567 8900"
-                    className="h-12 rounded-xl border-foreground/10"
-                  />
-                </div>
-                <Button className="h-12 rounded-full bg-gradient-ink px-8 text-xs uppercase tracking-[0.2em] shadow-soft hover:shadow-luxe">
-                  Save Changes
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="store" className="space-y-6">
-            <Card className="glass border-foreground/10 shadow-soft">
-              <CardHeader>
-                <CardTitle className="font-display text-2xl tracking-tight">
-                  Store Settings
-                </CardTitle>
-                <CardDescription className="text-xs uppercase tracking-[0.2em]">
-                  Configure your store's operational settings
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between py-4 border-b border-foreground/5">
-                  <div className="space-y-1">
-                    <Label className="text-sm font-medium">Store Status</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Enable or disable store operations
-                    </p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                <div className="flex items-center justify-between py-4 border-b border-foreground/5">
-                  <div className="space-y-1">
-                    <Label className="text-sm font-medium">Maintenance Mode</Label>
-                    <p className="text-xs text-muted-foreground">Put store in maintenance mode</p>
-                  </div>
-                  <Switch />
-                </div>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="currency"
-                    className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
-                  >
-                    Currency
-                  </Label>
-                  <Input
-                    id="currency"
-                    defaultValue="USD"
-                    className="h-12 rounded-xl border-foreground/10"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="timezone"
-                    className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
-                  >
-                    Timezone
-                  </Label>
-                  <Input
-                    id="timezone"
-                    defaultValue="America/New_York"
                     className="h-12 rounded-xl border-foreground/10"
                   />
                 </div>
