@@ -58,7 +58,7 @@ export function Footer() {
             </li>
             <li>
               <a
-                href="https://instagram.com"
+                href="https://www.instagram.com/becute_dreams?igsh=cHExODhycW5obXo3"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 hover:text-background"

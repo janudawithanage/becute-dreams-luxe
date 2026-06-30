@@ -29,8 +29,8 @@ export function Contact() {
           {
             Icon: Instagram,
             label: "Instagram",
-            value: "@becute.dreams",
-            href: "https://instagram.com",
+            value: "@becute_dreams",
+            href: "https://www.instagram.com/becute_dreams?igsh=cHExODhycW5obXo3",
           },
         ].map(({ Icon, label, value, href }) => (
           <a

@@ -14,7 +14,7 @@ export const CONTACT = {
 } as const;
 
 export const SOCIAL_MEDIA = {
-  instagram: "https://instagram.com/becutedreams",
+  instagram: "https://www.instagram.com/becute_dreams?igsh=cHExODhycW5obXo3",
   twitter: "https://twitter.com/becutedreams",
   pinterest: "https://pinterest.com/becutedreams",
 } as const;

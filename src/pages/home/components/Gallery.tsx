@@ -29,11 +29,11 @@ export function Gallery() {
         <div>
           <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">Gallery</p>
           <h2 className="mt-4 font-display text-5xl tracking-tight lg:text-7xl">
-            @becute<em className="font-light">.dreams</em>
+            @becute<em className="font-light">_dreams</em>
           </h2>
         </div>
         <a
-          href="https://instagram.com"
+          href="https://www.instagram.com/becute_dreams?igsh=cHExODhycW5obXo3"
           target="_blank"
           rel="noreferrer"
           className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] hover:underline"
@@ -46,7 +46,7 @@ export function Gallery() {
         {tiles.map((p, i) => (
           <motion.a
             key={`${p.id}-${i}`}
-            href="https://instagram.com"
+            href="https://www.instagram.com/becute_dreams?igsh=cHExODhycW5obXo3"
             target="_blank"
             rel="noreferrer"
             initial={{ opacity: 0, scale: 0.96 }}
