@@ -44,6 +44,7 @@ export interface Database {
           image_url: string
           gallery: string[]
           in_stock: boolean
+          stock_quantity: number
           featured: boolean
           tags: string[]
           created_at: string

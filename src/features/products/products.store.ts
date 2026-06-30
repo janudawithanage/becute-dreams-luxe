@@ -26,6 +26,7 @@ interface ProductsState {
     price: number;
     category_id: string;
     image_url: string;
+    stock_quantity: number;
     tags?: string[];
     featured?: boolean;
     in_stock?: boolean;
@@ -108,10 +109,11 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
         price: data.price,
         category_id: data.category_id,
         image_url: data.image_url,
+        stock_quantity: data.stock_quantity,
         gallery: [],
         tags: data.tags || [],
         featured: data.featured || false,
-        in_stock: data.in_stock !== false, // default to true
+        in_stock: data.stock_quantity > 0,
       })
       .select()
       .single();

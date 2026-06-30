@@ -32,6 +32,7 @@ const productSchema = z.object({
     .regex(/^[a-z0-9-]+$/, "Slug must be lowercase letters, numbers, and hyphens only"),
   description: z.string().min(10, "Description must be at least 10 characters"),
   price: z.number().min(0.01, "Price must be greater than 0"),
+  stockQuantity: z.number().int().min(0, "Stock quantity must be 0 or greater"),
   category: z.string().min(1, "Category is required"),
   tag: z.string().optional(),
   collections: z.array(z.string()),
@@ -90,6 +91,7 @@ export function ProductForm() {
             slug: product.slug,
             description: product.description || '',
             price: product.price,
+            stockQuantity: product.stock_quantity || 0,
             category: product.category_id || '',
             collections: product.collections?.map((c) => c.id) || [],
             tag: product.tags?.[0] || '',
@@ -159,11 +161,12 @@ export function ProductForm() {
         slug: data.slug,
         description: data.description,
         price: data.price,
+        stock_quantity: data.stockQuantity,
         category_id: data.category,
         image_url: imageUrl,
         tags: data.tag ? [data.tag] : [],
         featured: false,
-        in_stock: true,
+        in_stock: data.stockQuantity > 0,
         collectionIds: data.collections,
       };
 
@@ -318,6 +321,29 @@ export function ProductForm() {
                   </div>
                   <div className="space-y-2">
                     <Label
+                      htmlFor="stockQuantity"
+                      className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
+                    >
+                      Stock Quantity *
+                    </Label>
+                    <Input
+                      id="stockQuantity"
+                      type="number"
+                      step="1"
+                      placeholder="0"
+                      className="h-12 rounded-xl border-foreground/10"
+                      {...register("stockQuantity", { valueAsNumber: true })}
+                    />
+                    {errors.stockQuantity && <p className="text-xs text-red-600">{errors.stockQuantity.message}</p>}
+                    <p className="text-xs text-muted-foreground">
+                      Available stock (not visible to customers)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label
                       htmlFor="category"
                       className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
                     >
@@ -342,30 +368,29 @@ export function ProductForm() {
                       <p className="text-xs text-red-600">{errors.category.message}</p>
                     )}
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="tag"
-                    className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
-                  >
-                    Tag (Optional)
-                  </Label>
-                  <Select
-                    onValueChange={(value) => setValue("tag", value === "none" ? "" : value)}
-                    defaultValue={watch("tag") || "none"}
-                  >
-                    <SelectTrigger className="h-12 rounded-xl border-foreground/10">
-                      <SelectValue placeholder="Select tag (optional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">No tag</SelectItem>
-                      <SelectItem value="New">New</SelectItem>
-                      <SelectItem value="Bestseller">Bestseller</SelectItem>
-                      <SelectItem value="Limited">Limited</SelectItem>
-                      <SelectItem value="Sale">Sale</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="tag"
+                      className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
+                    >
+                      Tag (Optional)
+                    </Label>
+                    <Select
+                      onValueChange={(value) => setValue("tag", value === "none" ? "" : value)}
+                      defaultValue={watch("tag") || "none"}
+                    >
+                      <SelectTrigger className="h-12 rounded-xl border-foreground/10">
+                        <SelectValue placeholder="Select tag (optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">No tag</SelectItem>
+                        <SelectItem value="New">New</SelectItem>
+                        <SelectItem value="Bestseller">Bestseller</SelectItem>
+                        <SelectItem value="Limited">Limited</SelectItem>
+                        <SelectItem value="Sale">Sale</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="space-y-3">

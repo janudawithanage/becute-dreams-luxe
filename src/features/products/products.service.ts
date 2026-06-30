@@ -13,6 +13,7 @@ export interface Product {
   image_url: string;
   gallery: string[];
   in_stock: boolean;
+  stock_quantity: number;
   featured: boolean;
   tags: string[];
   created_at: string;
@@ -182,5 +183,41 @@ export const productsService = {
         throw insertError;
       }
     }
+  },
+
+  // Decrement product stock quantity
+  async decrementStock(productId: string, quantity: number) {
+    // Get current stock
+    const { data: product, error: fetchError } = await supabase
+      .from('products')
+      .select('stock_quantity')
+      .eq('id', productId)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching product stock:', fetchError);
+      throw fetchError;
+    }
+
+    const newStock = product.stock_quantity - quantity;
+
+    // Update stock quantity and in_stock status
+    const { data, error } = await supabase
+      .from('products')
+      .update({
+        stock_quantity: Math.max(0, newStock), // Prevent negative stock
+        in_stock: newStock > 0,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', productId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating product stock:', error);
+      throw error;
+    }
+
+    return data as Product;
   },
 };

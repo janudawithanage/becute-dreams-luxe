@@ -162,6 +162,24 @@ export const ordersService = {
   },
 
   async updateOrderStatus(orderId: string, status: Order['status']) {
+    // Get order items before updating status
+    const { data: orderData, error: fetchError } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items(*)
+      `)
+      .eq('id', orderId)
+      .single();
+
+    if (fetchError) {
+      console.error('Failed to fetch order:', fetchError);
+      throw fetchError;
+    }
+
+    const previousStatus = orderData.status;
+
+    // Update order status
     const { data, error } = await supabase
       .from('orders')
       .update({ 
@@ -175,6 +193,26 @@ export const ordersService = {
     if (error) {
       console.error('Failed to update order status:', error);
       throw error;
+    }
+
+    // If status changed to "processing", decrement stock for all items
+    if (status === 'processing' && previousStatus !== 'processing') {
+      const orderWithItems = orderData as OrderWithItems;
+      
+      // Import productsService at the top of the file
+      const { productsService } = await import('@/features/products/products.service');
+      
+      // Decrement stock for each order item
+      for (const item of orderWithItems.order_items) {
+        if (item.product_id) {
+          try {
+            await productsService.decrementStock(item.product_id, item.quantity);
+          } catch (error) {
+            console.error(`Failed to decrement stock for product ${item.product_id}:`, error);
+            // Continue with other items even if one fails
+          }
+        }
+      }
     }
 
     return data as Order;
