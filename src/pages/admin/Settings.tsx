@@ -11,8 +11,35 @@ import { Label } from "@/shared/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import { Switch } from "@/shared/components/ui/switch";
 import { motion } from "framer-motion";
+import { useSettingsStore } from "@/features/settings";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export function Settings() {
+  const { settings, loadSettings, updateShippingSettings, isLoading } = useSettingsStore();
+  const [formData, setFormData] = useState(settings.shipping);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
+
+  useEffect(() => {
+    setFormData(settings.shipping);
+  }, [settings]);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await updateShippingSettings(formData);
+      toast.success("Shipping settings saved successfully!");
+    } catch (error) {
+      toast.error("Failed to save settings. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -70,55 +97,97 @@ export function Settings() {
                     htmlFor="freeShipping"
                     className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
                   >
-                    Free Shipping Threshold
+                    Free Shipping Threshold ($)
                   </Label>
                   <Input
                     id="freeShipping"
                     type="number"
-                    defaultValue="100"
-                    placeholder="0"
+                    step="0.01"
+                    min="0"
+                    value={formData.freeShippingThreshold}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        freeShippingThreshold: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    placeholder="100"
                     className="h-12 rounded-xl border-foreground/10"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Orders over this amount get free shipping
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label
                     htmlFor="standardRate"
                     className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
                   >
-                    Standard Shipping Rate
+                    Standard Shipping Rate ($)
                   </Label>
                   <Input
                     id="standardRate"
                     type="number"
-                    defaultValue="5.99"
-                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
+                    value={formData.standardRate}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        standardRate: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    placeholder="5.99"
                     className="h-12 rounded-xl border-foreground/10"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Standard delivery (5-7 business days)
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label
                     htmlFor="expressRate"
                     className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
                   >
-                    Express Shipping Rate
+                    Express Shipping Rate ($)
                   </Label>
                   <Input
                     id="expressRate"
                     type="number"
-                    defaultValue="15.99"
-                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
+                    value={formData.expressRate}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        expressRate: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    placeholder="15.99"
                     className="h-12 rounded-xl border-foreground/10"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Express delivery (2-3 business days)
+                  </p>
                 </div>
-                <div className="flex items-center justify-between py-4">
+                <div className="flex items-center justify-between py-4 border-t border-foreground/10">
                   <div className="space-y-1">
                     <Label className="text-sm font-medium">International Shipping</Label>
                     <p className="text-xs text-muted-foreground">Allow international orders</p>
                   </div>
-                  <Switch />
+                  <Switch
+                    checked={formData.internationalShipping}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, internationalShipping: checked })
+                    }
+                  />
                 </div>
-                <Button className="h-12 rounded-full bg-gradient-ink px-8 text-xs uppercase tracking-[0.2em] shadow-soft hover:shadow-luxe">
-                  Save Changes
+                <Button
+                  onClick={handleSave}
+                  disabled={isSaving || isLoading}
+                  className="h-12 w-full rounded-full bg-gradient-ink px-8 text-xs uppercase tracking-[0.2em] shadow-soft hover:shadow-luxe disabled:opacity-50"
+                >
+                  {isSaving ? "Saving..." : "Save Changes"}
                 </Button>
               </CardContent>
             </Card>

@@ -3,20 +3,30 @@ import { useState, useEffect } from "react";
 import { useCart } from "@/features/cart";
 import { useAuthStore } from "@/features/auth";
 import { useOrdersStore } from "@/features/orders";
+import { useSettingsStore } from "@/features/settings";
 import type { CreateOrderData } from "@/features/orders";
 import { toast } from "sonner";
 import { MessageCircle, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { Label } from "@/shared/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/shared/components/ui/radio-group";
 
 export function Checkout() {
   const { items, total, clear } = useCart();
   const { user, isAuthenticated } = useAuthStore();
   const { createOrder, isLoading } = useOrdersStore();
+  const { settings, loadSettings, calculateShipping } = useSettingsStore();
   const navigate = useNavigate();
   const [placed, setPlaced] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [shippingMethod, setShippingMethod] = useState<"standard" | "express">("standard");
+
+  // Load settings on mount
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
 
   // Redirect to sign-in if not authenticated
   useEffect(() => {
@@ -99,9 +109,9 @@ export function Checkout() {
     setIsSubmitting(true);
 
     try {
-      // Calculate totals
+      // Calculate totals with shipping
       const subtotal = total();
-      const shippingCost = 0; // Free shipping for now
+      const shippingCost = calculateShipping(subtotal, shippingMethod);
       const tax = 0; // Tax calculation would go here
       const orderTotal = subtotal + shippingCost + tax;
 
@@ -208,6 +218,63 @@ export function Checkout() {
             onSubmit={submit}
             className="space-y-6"
           >
+            {/* Shipping Method Selection */}
+            <div className="rounded-3xl bg-muted p-8">
+              <h3 className="font-display text-2xl mb-4">Shipping Method</h3>
+              <RadioGroup
+                value={shippingMethod}
+                onValueChange={(value) => setShippingMethod(value as "standard" | "express")}
+                className="space-y-4"
+              >
+                <div className="flex items-center justify-between p-4 rounded-xl border border-foreground/10 hover:border-foreground/20 transition cursor-pointer">
+                  <div className="flex items-center space-x-3">
+                    <RadioGroupItem value="standard" id="standard" />
+                    <Label htmlFor="standard" className="cursor-pointer">
+                      <div className="font-medium">Standard Shipping</div>
+                      <div className="text-xs text-muted-foreground">5-7 business days</div>
+                    </Label>
+                  </div>
+                  <span className="font-medium">
+                    {calculateShipping(total(), "standard") === 0
+                      ? "Free"
+                      : `$${calculateShipping(total(), "standard").toFixed(2)}`}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between p-4 rounded-xl border border-foreground/10 hover:border-foreground/20 transition cursor-pointer">
+                  <div className="flex items-center space-x-3">
+                    <RadioGroupItem value="express" id="express" />
+                    <Label htmlFor="express" className="cursor-pointer">
+                      <div className="font-medium">Express Shipping</div>
+                      <div className="text-xs text-muted-foreground">2-3 business days</div>
+                    </Label>
+                  </div>
+                  <span className="font-medium">
+                    {calculateShipping(total(), "express") === 0
+                      ? "Free"
+                      : `$${calculateShipping(total(), "express").toFixed(2)}`}
+                  </span>
+                </div>
+              </RadioGroup>
+              {total() >= settings.shipping.freeShippingThreshold && (
+                <p className="mt-4 text-sm text-green-600 dark:text-green-400 flex items-center gap-2">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  You qualify for free shipping!
+                </p>
+              )}
+            </div>
+
             <div>
               <label className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
                 Order Notes (Optional)
@@ -257,15 +324,23 @@ export function Checkout() {
                 <span>Subtotal</span>
                 <span>${total().toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Shipping</span>
-                <span>Calculated at confirmation</span>
+              <div className="flex justify-between text-sm text-muted-foreground mt-2">
+                <span>
+                  Shipping ({shippingMethod === "express" ? "Express" : "Standard"})
+                </span>
+                <span>
+                  {calculateShipping(total(), shippingMethod) === 0
+                    ? "Free"
+                    : `$${calculateShipping(total(), shippingMethod).toFixed(2)}`}
+                </span>
               </div>
               <div className="mt-4 flex items-baseline justify-between">
                 <span className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
                   Total
                 </span>
-                <span className="font-display text-3xl">${total().toFixed(2)}</span>
+                <span className="font-display text-3xl">
+                  ${(total() + calculateShipping(total(), shippingMethod)).toFixed(2)}
+                </span>
               </div>
             </div>
           </div>
