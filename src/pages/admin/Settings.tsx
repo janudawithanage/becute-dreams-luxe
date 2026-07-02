@@ -17,8 +17,9 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export function Settings() {
-  const { settings, loadSettings, updateShippingSettings, isLoading } = useSettingsStore();
-  const [formData, setFormData] = useState(settings.shipping);
+  const { settings, loadSettings, updateShippingSettings, updateSettings, isLoading } = useSettingsStore();
+  const [shippingData, setShippingData] = useState(settings.shipping);
+  const [heroData, setHeroData] = useState(settings.hero);
   const [isSaving, setIsSaving] = useState(false);
 
   // Password change state
@@ -32,16 +33,33 @@ export function Settings() {
   }, [loadSettings]);
 
   useEffect(() => {
-    setFormData(settings.shipping);
+    setShippingData(settings.shipping);
+    setHeroData(settings.hero);
   }, [settings]);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await updateShippingSettings(formData);
+      await updateShippingSettings(shippingData);
       toast.success("Shipping settings saved successfully!");
     } catch (error) {
       toast.error("Failed to save settings. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleHeroSave = async () => {
+    setIsSaving(true);
+    try {
+      // Update the store with hero settings
+      await updateSettings({
+        ...settings,
+        hero: heroData,
+      });
+      toast.success("Hero section settings saved successfully!");
+    } catch (error) {
+      toast.error("Failed to save hero settings. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -127,6 +145,12 @@ export function Settings() {
               className="uppercase tracking-[0.15em] data-[state=active]:bg-foreground/5"
             >
               Account
+            </TabsTrigger>
+            <TabsTrigger
+              value="hero"
+              className="uppercase tracking-[0.15em] data-[state=active]:bg-foreground/5"
+            >
+              Hero Section
             </TabsTrigger>
             <TabsTrigger
               value="shipping"
@@ -216,6 +240,146 @@ export function Settings() {
             </Card>
           </TabsContent>
 
+          {/* Hero Section Tab */}
+          <TabsContent value="hero" className="space-y-6">
+            <Card className="glass border-foreground/10 shadow-soft">
+              <CardHeader>
+                <CardTitle className="font-display text-2xl tracking-tight">
+                  Hero Section Configuration
+                </CardTitle>
+                <CardDescription className="text-xs uppercase tracking-[0.2em]">
+                  Customize the hero section tags and pricing display
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Top-left badge settings */}
+                <div className="space-y-4 border-b border-foreground/10 pb-6">
+                  <h3 className="text-sm font-medium">Top-left Badge</h3>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="heroTagLabel"
+                      className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
+                    >
+                      Badge Label
+                    </Label>
+                    <Input
+                      id="heroTagLabel"
+                      type="text"
+                      value={heroData.tagLabel}
+                      onChange={(e) =>
+                        setHeroData({ ...heroData, tagLabel: e.target.value })
+                      }
+                      placeholder="New drop"
+                      className="h-12 rounded-xl border-foreground/10"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Small text above the main title (e.g., "New drop", "Sale")
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="heroTagTitle"
+                      className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
+                    >
+                      Badge Title
+                    </Label>
+                    <Input
+                      id="heroTagTitle"
+                      type="text"
+                      value={heroData.tagTitle}
+                      onChange={(e) =>
+                        setHeroData({ ...heroData, tagTitle: e.target.value })
+                      }
+                      placeholder="Lavender Series"
+                      className="h-12 rounded-xl border-foreground/10"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Main title text (e.g., collection name or promotion)
+                    </p>
+                  </div>
+                </div>
+
+                {/* Bottom-right badge settings */}
+                <div className="space-y-4 border-b border-foreground/10 pb-6">
+                  <h3 className="text-sm font-medium">Bottom-right Badge (Price)</h3>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="heroPriceLabel"
+                      className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
+                    >
+                      Price Label
+                    </Label>
+                    <Input
+                      id="heroPriceLabel"
+                      type="text"
+                      value={heroData.priceLabel}
+                      onChange={(e) =>
+                        setHeroData({ ...heroData, priceLabel: e.target.value })
+                      }
+                      placeholder="From"
+                      className="h-12 rounded-xl border-foreground/10"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Small text above the price (e.g., "From", "Starting at")
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="heroPriceValue"
+                      className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
+                    >
+                      Price Value
+                    </Label>
+                    <Input
+                      id="heroPriceValue"
+                      type="text"
+                      value={heroData.priceValue}
+                      onChange={(e) =>
+                        setHeroData({ ...heroData, priceValue: e.target.value })
+                      }
+                      placeholder="Rs. 500"
+                      className="h-12 rounded-xl border-foreground/10"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Price text to display (e.g., "Rs. 500", "$19.99")
+                    </p>
+                  </div>
+                </div>
+
+                {/* Hero image URL (optional) */}
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="heroImageUrl"
+                    className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
+                  >
+                    Custom Hero Image URL (Optional)
+                  </Label>
+                  <Input
+                    id="heroImageUrl"
+                    type="text"
+                    value={heroData.imageUrl || ''}
+                    onChange={(e) =>
+                      setHeroData({ ...heroData, imageUrl: e.target.value || null })
+                    }
+                    placeholder="https://example.com/hero-image.jpg"
+                    className="h-12 rounded-xl border-foreground/10"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Leave empty to use the default hero image
+                  </p>
+                </div>
+
+                <Button
+                  onClick={handleHeroSave}
+                  disabled={isSaving || isLoading}
+                  className="h-12 w-full rounded-full bg-gradient-ink px-8 text-xs uppercase tracking-[0.2em] shadow-soft hover:shadow-luxe disabled:opacity-50"
+                >
+                  {isSaving ? "Saving..." : "Save Changes"}
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="shipping" className="space-y-6">
             <Card className="glass border-foreground/10 shadow-soft">
               <CardHeader>
@@ -239,10 +403,10 @@ export function Settings() {
                     type="number"
                     step="0.01"
                     min="0"
-                    value={formData.freeShippingThreshold}
+                    value={shippingData.freeShippingThreshold}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
+                      setShippingData({
+                        ...shippingData,
                         freeShippingThreshold: parseFloat(e.target.value) || 0,
                       })
                     }
@@ -265,10 +429,10 @@ export function Settings() {
                     type="number"
                     step="0.01"
                     min="0"
-                    value={formData.standardRate}
+                    value={shippingData.standardRate}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
+                      setShippingData({
+                        ...shippingData,
                         standardRate: parseFloat(e.target.value) || 0,
                       })
                     }
@@ -291,10 +455,10 @@ export function Settings() {
                     type="number"
                     step="0.01"
                     min="0"
-                    value={formData.expressRate}
+                    value={shippingData.expressRate}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
+                      setShippingData({
+                        ...shippingData,
                         expressRate: parseFloat(e.target.value) || 0,
                       })
                     }
@@ -311,9 +475,9 @@ export function Settings() {
                     <p className="text-xs text-muted-foreground">Allow international orders</p>
                   </div>
                   <Switch
-                    checked={formData.internationalShipping}
+                    checked={shippingData.internationalShipping}
                     onCheckedChange={(checked) =>
-                      setFormData({ ...formData, internationalShipping: checked })
+                      setShippingData({ ...shippingData, internationalShipping: checked })
                     }
                   />
                 </div>

@@ -1,11 +1,32 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import hero from "@/assets/hero.jpg";
 import { ArrowUpRight } from "lucide-react";
+import { settingsService } from "@/features/settings/settings.service";
+import type { HeroSettings } from "@/features/settings/settings.types";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
 export function Hero() {
+  const [heroSettings, setHeroSettings] = useState<HeroSettings>({
+    tagLabel: 'New drop',
+    tagTitle: 'Lavender Series',
+    priceLabel: 'From',
+    priceValue: 'Rs. 500',
+    imageUrl: null,
+  });
+
+  useEffect(() => {
+    const loadHeroSettings = async () => {
+      const settings = await settingsService.getSettings();
+      if (settings?.hero) {
+        setHeroSettings(settings.hero);
+      }
+    };
+    loadHeroSettings();
+  }, []);
+
   return (
     <section className="relative isolate overflow-hidden bg-gradient-dream pb-24 pt-12 lg:pb-32">
       {/* Soft floating orbs */}
@@ -101,14 +122,14 @@ export function Hero() {
           <div className="relative">
             <div className="overflow-hidden rounded-[2rem] shadow-luxe">
               <img
-                src={hero}
+                src={heroSettings.imageUrl || hero}
                 alt="Premium curated stickers on a soft pink marble surface"
                 width={1600}
                 height={1200}
                 className="aspect-[5/6] w-full object-cover"
               />
             </div>
-            {/* Floating badge */}
+            {/* Floating badge - Top Left */}
             <motion.div
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -116,10 +137,11 @@ export function Hero() {
               className="absolute -left-4 top-10 hidden rounded-2xl bg-background/80 p-4 shadow-soft backdrop-blur md:block float-soft"
             >
               <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-                New drop
+                {heroSettings.tagLabel}
               </p>
-              <p className="font-display text-xl">Lavender Series</p>
+              <p className="font-display text-xl">{heroSettings.tagTitle}</p>
             </motion.div>
+            {/* Floating badge - Bottom Right */}
             <motion.div
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -127,8 +149,10 @@ export function Hero() {
               className="absolute -right-4 bottom-10 hidden rounded-2xl bg-foreground p-4 text-background shadow-luxe md:block float-soft"
               style={{ animationDelay: "1.5s" }}
             >
-              <p className="text-[10px] uppercase tracking-[0.25em] opacity-60">From</p>
-              <p className="font-display text-2xl">Rs. 500</p>
+              <p className="text-[10px] uppercase tracking-[0.25em] opacity-60">
+                {heroSettings.priceLabel}
+              </p>
+              <p className="font-display text-2xl">{heroSettings.priceValue}</p>
             </motion.div>
           </div>
         </motion.div>

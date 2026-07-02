@@ -10,6 +10,7 @@ interface SettingsState {
 
   // Actions
   loadSettings: () => Promise<void>;
+  updateSettings: (settings: StoreSettings) => Promise<void>;
   updateShippingSettings: (shipping: Partial<ShippingSettings>) => Promise<void>;
   calculateShipping: (subtotal: number, method: "standard" | "express") => number;
 }
@@ -32,6 +33,23 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         error: error instanceof Error ? error.message : "Failed to load settings",
         isLoading: false,
       });
+    }
+  },
+
+  updateSettings: async (updatedSettings: StoreSettings) => {
+    set({ isLoading: true, error: null });
+    try {
+      const saved = await settingsService.saveSettings(updatedSettings);
+      set({
+        settings: saved,
+        isLoading: false,
+      });
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : "Failed to save settings",
+        isLoading: false,
+      });
+      throw error;
     }
   },
 

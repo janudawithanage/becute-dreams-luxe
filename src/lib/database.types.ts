@@ -130,6 +130,24 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['collections']['Row'], 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Database['public']['Tables']['collections']['Insert']>
       }
+      store_settings: {
+        Row: {
+          id: string
+          free_shipping_threshold: number
+          standard_shipping_rate: number
+          express_shipping_rate: number
+          international_shipping_enabled: boolean
+          hero_tag_label: string
+          hero_tag_title: string
+          hero_price_label: string
+          hero_price_value: string
+          hero_image_url: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['store_settings']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Database['public']['Tables']['store_settings']['Insert']>
+      }
     }
   }
 }
