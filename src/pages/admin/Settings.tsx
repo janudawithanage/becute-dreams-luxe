@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui
 import { Switch } from "@/shared/components/ui/switch";
 import { motion } from "framer-motion";
 import { useSettingsStore } from "@/features/settings";
+import { accountService } from "@/features/auth";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -19,6 +20,12 @@ export function Settings() {
   const { settings, loadSettings, updateShippingSettings, isLoading } = useSettingsStore();
   const [formData, setFormData] = useState(settings.shipping);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -37,6 +44,48 @@ export function Settings() {
       toast.error("Failed to save settings. Please try again.");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Validation
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error("Please fill in all password fields");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords do not match");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    setIsChangingPassword(true);
+
+    try {
+      const result = await accountService.updatePassword({
+        currentPassword,
+        newPassword,
+      });
+
+      if (result.success) {
+        toast.success("Password updated successfully!");
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        toast.error(result.error || "Failed to update password");
+      }
+    } catch (error) {
+      toast.error("An error occurred while updating password");
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -71,8 +120,14 @@ export function Settings() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.2 }}
       >
-        <Tabs defaultValue="shipping" className="space-y-6">
+        <Tabs defaultValue="account" className="space-y-6">
           <TabsList className="glass border border-foreground/10">
+            <TabsTrigger
+              value="account"
+              className="uppercase tracking-[0.15em] data-[state=active]:bg-foreground/5"
+            >
+              Account
+            </TabsTrigger>
             <TabsTrigger
               value="shipping"
               className="uppercase tracking-[0.15em] data-[state=active]:bg-foreground/5"
@@ -80,6 +135,86 @@ export function Settings() {
               Shipping
             </TabsTrigger>
           </TabsList>
+
+          {/* Account Tab */}
+          <TabsContent value="account" className="space-y-6">
+            {/* Change Password Card */}
+            <Card className="glass border-foreground/10 shadow-soft">
+              <CardHeader>
+                <CardTitle className="font-display text-2xl tracking-tight">
+                  Change Password
+                </CardTitle>
+                <CardDescription className="text-xs uppercase tracking-[0.2em]">
+                  Update your account password
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handlePasswordChange} className="space-y-6">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="currentPassword"
+                      className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
+                    >
+                      Current Password
+                    </Label>
+                    <Input
+                      id="currentPassword"
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      placeholder="Enter current password"
+                      className="h-12 rounded-xl border-foreground/10"
+                      disabled={isChangingPassword}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="newPassword"
+                      className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
+                    >
+                      New Password
+                    </Label>
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Enter new password"
+                      className="h-12 rounded-xl border-foreground/10"
+                      disabled={isChangingPassword}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Must be at least 6 characters
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="confirmPassword"
+                      className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
+                    >
+                      Confirm New Password
+                    </Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirm new password"
+                      className="h-12 rounded-xl border-foreground/10"
+                      disabled={isChangingPassword}
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={isChangingPassword}
+                    className="h-12 w-full rounded-full bg-gradient-ink px-8 text-xs uppercase tracking-[0.2em] shadow-soft hover:shadow-luxe disabled:opacity-50"
+                  >
+                    {isChangingPassword ? "Updating..." : "Update Password"}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="shipping" className="space-y-6">
             <Card className="glass border-foreground/10 shadow-soft">

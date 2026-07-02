@@ -67,13 +67,22 @@ export function Navbar() {
             {isAuthenticated ? (
               <div className="hidden md:flex items-center gap-1">
                 {!isAdmin() && (
-                  <Link
-                    to="/my-orders"
-                    className="flex items-center gap-1.5 rounded-full px-4 py-2 text-sm uppercase tracking-[0.15em] text-foreground/80 transition hover:bg-foreground/5 hover:text-foreground"
-                  >
-                    <ShoppingBag className="h-4 w-4" />
-                    <span>My Orders</span>
-                  </Link>
+                  <>
+                    <Link
+                      to="/my-orders"
+                      className="flex items-center gap-1.5 rounded-full px-4 py-2 text-sm uppercase tracking-[0.15em] text-foreground/80 transition hover:bg-foreground/5 hover:text-foreground"
+                    >
+                      <ShoppingBag className="h-4 w-4" />
+                      <span>My Orders</span>
+                    </Link>
+                    <Link
+                      to="/account"
+                      className="flex items-center gap-1.5 rounded-full px-4 py-2 text-sm uppercase tracking-[0.15em] text-foreground/80 transition hover:bg-foreground/5 hover:text-foreground"
+                    >
+                      <User className="h-4 w-4" />
+                      <span>Account</span>
+                    </Link>
+                  </>
                 )}
                 {isAdmin() && (
                   <Link
@@ -179,20 +188,36 @@ export function Navbar() {
               {isAuthenticated ? (
                 <>
                   {!isAdmin() && (
-                    <motion.div
-                      initial={{ y: 20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.3 }}
-                    >
-                      <Link
-                        to="/my-orders"
-                        onClick={() => setOpen(false)}
-                        className="flex items-center gap-3 text-xl font-medium"
+                    <>
+                      <motion.div
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.3 }}
                       >
-                        <ShoppingBag className="h-5 w-5" />
-                        <span>My Orders</span>
-                      </Link>
-                    </motion.div>
+                        <Link
+                          to="/my-orders"
+                          onClick={() => setOpen(false)}
+                          className="flex items-center gap-3 text-xl font-medium"
+                        >
+                          <ShoppingBag className="h-5 w-5" />
+                          <span>My Orders</span>
+                        </Link>
+                      </motion.div>
+                      <motion.div
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.35 }}
+                      >
+                        <Link
+                          to="/account"
+                          onClick={() => setOpen(false)}
+                          className="flex items-center gap-3 text-xl font-medium"
+                        >
+                          <User className="h-5 w-5" />
+                          <span>Account</span>
+                        </Link>
+                      </motion.div>
+                    </>
                   )}
                   {isAdmin() && (
                     <motion.div

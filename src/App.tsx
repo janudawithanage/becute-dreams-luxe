@@ -18,6 +18,7 @@ import { SignUp } from "@/pages/SignUp";
 import { ForgotPassword } from "@/pages/ForgotPassword";
 import { MyOrders } from "@/pages/MyOrders";
 import { OrderDetail } from "@/pages/OrderDetail";
+import { Account } from "@/pages/Account";
 import { NotFound } from "@/pages/NotFound";
 
 // Admin pages
@@ -66,6 +67,7 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/my-orders" element={<MyOrders />} />
           <Route path="/order/:orderId" element={<OrderDetail />} />
+          <Route path="/account" element={<Account />} />
           <Route path="*" element={<NotFound />} />
         </Route>
 
