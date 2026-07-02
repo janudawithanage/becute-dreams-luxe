@@ -2,44 +2,25 @@ import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useCategoriesStore } from "@/features/categories";
-import { useCollectionsStore } from "@/features/collections";
 import { ArrowUpRight } from "lucide-react";
 import { getOptimizedImageUrl } from "@/lib/cloudinary";
 
 export function Categories() {
   const categories = useCategoriesStore((s) => s.categories);
   const fetchCategories = useCategoriesStore((s) => s.fetchCategories);
-  const collections = useCollectionsStore((s) => s.collections);
-  const fetchCollections = useCollectionsStore((s) => s.fetchCollections);
 
   useEffect(() => {
-    // Fetch both featured categories and collections
-    fetchCategories({ featured: true });
-    fetchCollections({ featured: true });
-  }, [fetchCategories, fetchCollections]);
+    // Fetch all categories (remove featured filter since categories might not be marked as featured)
+    fetchCategories();
+  }, [fetchCategories]);
 
-  // Merge featured categories and collections for display
-  const featuredItems = [
-    ...categories.map((cat) => ({
-      id: cat.id,
-      name: cat.name,
-      slug: cat.slug,
-      image: cat.image_url,
-      type: 'category' as const,
-      sort_order: cat.sort_order,
-    })),
-    ...collections.map((col) => ({
-      id: col.id,
-      name: col.name,
-      slug: col.slug,
-      image: col.image_url,
-      type: 'collection' as const,
-      sort_order: col.sort_order,
-    })),
-  ].sort((a, b) => a.sort_order - b.sort_order);
+  // Sort categories by sort_order, limit to 6 for the homepage
+  const displayCategories = [...categories]
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .slice(0, 6);
 
-  if (featuredItems.length === 0) {
-    return null; // Don't show section if no featured items
+  if (displayCategories.length === 0) {
+    return null; // Don't show section if no categories
   }
 
   return (
@@ -61,38 +42,34 @@ export function Categories() {
       </div>
 
       <div className="mt-16 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {featuredItems.map((item, i) => (
+        {displayCategories.map((category, i) => (
           <motion.div
-            key={`${item.type}-${item.id}`}
+            key={category.id}
             initial={{ y: 30, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.8, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
           >
             <Link
-              to={
-                item.type === 'category'
-                  ? `/shop?category=${item.slug}`
-                  : `/shop?collection=${item.slug}`
-              }
+              to={`/shop?category=${category.slug}`}
               className="group block overflow-hidden rounded-3xl bg-muted"
             >
               <div className="relative aspect-[4/5] overflow-hidden">
-                {item.image ? (
+                {category.image_url ? (
                   <img
-                    src={getOptimizedImageUrl(item.image, {
+                    src={getOptimizedImageUrl(category.image_url, {
                       width: 600,
                       format: "auto",
                       quality: 85,
                     })}
-                    alt={item.name}
+                    alt={category.name}
                     loading="lazy"
                     className="h-full w-full object-cover transition duration-[1200ms] ease-out group-hover:scale-110"
                   />
                 ) : (
                   <div className="h-full w-full bg-gradient-to-br from-blush/20 to-lavender/20 flex items-center justify-center">
                     <span className="font-display text-4xl text-muted-foreground/50">
-                      {item.name.charAt(0)}
+                      {category.name.charAt(0)}
                     </span>
                   </div>
                 )}
@@ -106,9 +83,9 @@ export function Categories() {
                 <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-6 text-background">
                   <div>
                     <p className="text-[10px] uppercase tracking-[0.3em] opacity-70">
-                      {item.type === 'category' ? 'Category' : 'Collection'}
+                      Category
                     </p>
-                    <p className="mt-1 font-display text-3xl">{item.name}</p>
+                    <p className="mt-1 font-display text-3xl">{category.name}</p>
                   </div>
                   <span className="flex h-10 w-10 items-center justify-center rounded-full bg-background/90 text-foreground transition group-hover:rotate-45">
                     <ArrowUpRight className="h-4 w-4" />
