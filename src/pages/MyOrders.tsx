@@ -121,7 +121,7 @@ export function MyOrders() {
                         <p className="text-xs text-muted-foreground">Qty {item.quantity}</p>
                       </div>
                       <p className="text-sm tabular-nums">
-                        ${item.subtotal.toFixed(2)}
+                        Rs. {item.subtotal.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                     </div>
                   ))}
@@ -133,7 +133,7 @@ export function MyOrders() {
                     <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                       Total
                     </p>
-                    <p className="mt-1 font-display text-2xl">${order.total.toFixed(2)}</p>
+                    <p className="mt-1 font-display text-2xl">Rs. {order.total.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                   </div>
                   <Link
                     to={`/order/${order.id}`}

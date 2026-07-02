@@ -79,10 +79,10 @@ export function CartDrawer() {
                       <div className="flex flex-1 flex-col">
                         <div className="flex justify-between gap-2">
                           <p className="font-display text-lg leading-tight">{item.product.name}</p>
-                          <p className="text-sm">${(item.product.price * item.quantity).toFixed(2)}</p>
+                          <p className="text-sm">Rs. {(item.product.price * item.quantity).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                         </div>
                         <p className="text-xs uppercase tracking-wider text-muted-foreground">
-                          ${item.product.price.toFixed(2)} each
+                          Rs. {item.product.price.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} each
                         </p>
                         <div className="mt-auto flex items-center justify-between pt-3">
                           <div className="flex items-center gap-3 rounded-full border px-3 py-1.5">
@@ -117,7 +117,7 @@ export function CartDrawer() {
                     <span className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
                       Subtotal
                     </span>
-                    <span className="font-display text-3xl">${total().toFixed(2)}</span>
+                    <span className="font-display text-3xl">Rs. {total().toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Shipping & taxes calculated at checkout.

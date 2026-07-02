@@ -187,7 +187,7 @@ export function OrderDetail() {
                         <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
                       </div>
                       <p className="font-display text-lg">
-                        ${item.subtotal.toFixed(2)}
+                        Rs. {item.subtotal.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                     </div>
                   ))}
@@ -196,17 +196,17 @@ export function OrderDetail() {
                 <div className="mt-6 pt-6 border-t border-foreground/10 space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span>${order.subtotal.toFixed(2)}</span>
+                    <span>Rs. {order.subtotal.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Shipping</span>
                     <span>
-                      {order.shipping_cost === 0 ? "Free" : `$${order.shipping_cost.toFixed(2)}`}
+                      {order.shipping_cost === 0 ? "Free" : `Rs. ${order.shipping_cost.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                     </span>
                   </div>
                   <div className="flex justify-between font-display text-2xl pt-3 border-t border-foreground/10">
                     <span>Total</span>
-                    <span>${order.total.toFixed(2)}</span>
+                    <span>Rs. {order.total.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                 </div>
               </CardContent>

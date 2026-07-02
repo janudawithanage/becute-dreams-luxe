@@ -190,7 +190,7 @@ export function Orders() {
                         </Badge>
                       </TableCell>
                       <TableCell className="font-display text-lg">
-                        ${order.total.toFixed(2)}
+                        Rs. {order.total.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button

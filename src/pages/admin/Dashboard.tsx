@@ -79,7 +79,7 @@ export function Dashboard() {
   const statsData = [
     {
       title: "Total Revenue",
-      value: `$${stats.totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      value: `Rs. ${stats.totalRevenue.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       icon: DollarSign,
     },
     {
@@ -193,7 +193,7 @@ export function Dashboard() {
                     <XAxis dataKey="date" fontSize={11} />
                     <YAxis fontSize={11} />
                     <Tooltip 
-                      formatter={(value: number) => [`$${value.toFixed(2)}`, 'Revenue']}
+                      formatter={(value: number) => [`Rs. ${value.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 'Revenue']}
                       contentStyle={{
                         backgroundColor: 'hsl(var(--background))',
                         border: '1px solid hsl(var(--border))',
@@ -295,7 +295,7 @@ export function Dashboard() {
                       <Badge variant={getStatusBadge(order.status)} className="capitalize">
                         {order.status}
                       </Badge>
-                      <p className="font-display text-lg">${order.total.toFixed(2)}</p>
+                      <p className="font-display text-lg">Rs. {order.total.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                     </div>
                   </div>
                 ))}

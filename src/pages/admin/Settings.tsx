@@ -232,7 +232,7 @@ export function Settings() {
                     htmlFor="freeShipping"
                     className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
                   >
-                    Free Shipping Threshold ($)
+                    Free Shipping Threshold (Rs.)
                   </Label>
                   <Input
                     id="freeShipping"
@@ -258,7 +258,7 @@ export function Settings() {
                     htmlFor="standardRate"
                     className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
                   >
-                    Standard Shipping Rate ($)
+                    Standard Shipping Rate (Rs.)
                   </Label>
                   <Input
                     id="standardRate"
@@ -284,7 +284,7 @@ export function Settings() {
                     htmlFor="expressRate"
                     className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
                   >
-                    Express Shipping Rate ($)
+                    Express Shipping Rate (Rs.)
                   </Label>
                   <Input
                     id="expressRate"

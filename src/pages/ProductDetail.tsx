@@ -86,7 +86,7 @@ export function ProductDetail() {
           <h1 className="mt-3 font-display text-5xl leading-[1.02] tracking-tight lg:text-6xl">
             {product.name}
           </h1>
-          <p className="mt-6 font-display text-3xl">${product.price.toFixed(2)}</p>
+          <p className="mt-6 font-display text-3xl">Rs. {product.price.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
 
           <p className="mt-8 text-base leading-relaxed text-foreground/70 text-pretty">
             {product.description}
@@ -163,7 +163,7 @@ export function ProductDetail() {
                 </div>
                 <div className="mt-3 flex items-baseline justify-between">
                   <p className="font-display text-lg">{p.name}</p>
-                  <p className="text-sm">${p.price.toFixed(2)}</p>
+                  <p className="text-sm">Rs. {p.price.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
               </Link>
             ))}

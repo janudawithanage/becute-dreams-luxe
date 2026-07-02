@@ -3,12 +3,12 @@
  */
 
 /**
- * Format a number as USD currency
+ * Format a number as LKR currency
  */
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-LK", {
     style: "currency",
-    currency: "USD",
+    currency: "LKR",
   }).format(amount);
 }
 
@@ -17,6 +17,16 @@ export function formatCurrency(amount: number): string {
  */
 export function formatPrice(amount: number): string {
   return amount.toFixed(2);
+}
+
+/**
+ * Format a number as LKR with Rs. prefix
+ */
+export function formatLKR(amount: number): string {
+  return `Rs. ${amount.toLocaleString("en-LK", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 /**

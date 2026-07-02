@@ -180,7 +180,7 @@ export function Customers() {
                     </TableCell>
                     <TableCell>{customer.total_orders}</TableCell>
                     <TableCell className="font-display text-lg">
-                      ${customer.total_spent.toFixed(2)}
+                      Rs. {customer.total_spent.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                   </TableRow>
                 ))}

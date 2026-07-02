@@ -222,7 +222,7 @@ export function Shop() {
               </div>
               <div className="mt-4 flex items-baseline justify-between gap-2">
                 <p className="font-display text-lg leading-tight">{p.name}</p>
-                <p className="text-sm tabular-nums">${p.price.toFixed(2)}</p>
+                <p className="text-sm tabular-nums">Rs. {p.price.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
               </div>
             </Link>
           </motion.div>

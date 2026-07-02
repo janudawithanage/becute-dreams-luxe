@@ -194,10 +194,10 @@ export function OrderDetail() {
                 <div className="flex-1">
                   <p className="font-display leading-tight">{item.product_name}</p>
                   <p className="text-xs text-muted-foreground">
-                    ${item.price.toFixed(2)} × {item.quantity}
+                    Rs. {item.price.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} × {item.quantity}
                   </p>
                 </div>
-                <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                <p className="font-medium">Rs. {(item.price * item.quantity).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
               </div>
             ))}
           </div>
@@ -206,15 +206,15 @@ export function OrderDetail() {
           <div className="mt-6 space-y-2 border-t border-foreground/10 pt-6">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Subtotal</span>
-              <span>${order.subtotal.toFixed(2)}</span>
+              <span>Rs. {order.subtotal.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Shipping</span>
-              <span>{order.shipping_cost === 0 ? "Free" : `$${order.shipping_cost.toFixed(2)}`}</span>
+              <span>{order.shipping_cost === 0 ? "Free" : `Rs. ${order.shipping_cost.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</span>
             </div>
             <div className="flex justify-between border-t border-foreground/10 pt-2">
               <span className="font-display text-lg">Total</span>
-              <span className="font-display text-lg">${order.total.toFixed(2)}</span>
+              <span className="font-display text-lg">Rs. {order.total.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
           </div>
         </motion.div>

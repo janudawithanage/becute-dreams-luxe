@@ -128,7 +128,7 @@ export function Hero() {
               style={{ animationDelay: "1.5s" }}
             >
               <p className="text-[10px] uppercase tracking-[0.25em] opacity-60">From</p>
-              <p className="font-display text-2xl">$12</p>
+              <p className="font-display text-2xl">Rs. 500</p>
             </motion.div>
           </div>
         </motion.div>

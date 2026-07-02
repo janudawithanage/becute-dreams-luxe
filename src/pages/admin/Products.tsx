@@ -168,7 +168,7 @@ export function Products() {
                       <TableCell className="capitalize text-sm">
                         {product.category?.name || 'Uncategorized'}
                       </TableCell>
-                      <TableCell className="font-display text-lg">${product.price.toFixed(2)}</TableCell>
+                      <TableCell className="font-display text-lg">Rs. {product.price.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           <Button

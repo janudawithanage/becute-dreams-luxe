@@ -237,7 +237,7 @@ export function Checkout() {
                   <span className="font-medium">
                     {calculateShipping(total(), "standard") === 0
                       ? "Free"
-                      : `$${calculateShipping(total(), "standard").toFixed(2)}`}
+                      : `Rs. ${calculateShipping(total(), "standard").toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                   </span>
                 </div>
                 <div className="flex items-center justify-between p-4 rounded-xl border border-foreground/10 hover:border-foreground/20 transition cursor-pointer">
@@ -251,7 +251,7 @@ export function Checkout() {
                   <span className="font-medium">
                     {calculateShipping(total(), "express") === 0
                       ? "Free"
-                      : `$${calculateShipping(total(), "express").toFixed(2)}`}
+                      : `Rs. ${calculateShipping(total(), "express").toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                   </span>
                 </div>
               </RadioGroup>
@@ -315,14 +315,14 @@ export function Checkout() {
                     <p className="font-display text-base leading-tight">{item.product.name}</p>
                     <p className="text-xs text-muted-foreground">Qty {item.quantity}</p>
                   </div>
-                  <p className="text-sm tabular-nums">${(item.product.price * item.quantity).toFixed(2)}</p>
+                  <p className="text-sm tabular-nums">Rs. {(item.product.price * item.quantity).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
               ))}
             </div>
             <div className="mt-6 border-t pt-6">
               <div className="flex justify-between text-sm">
                 <span>Subtotal</span>
-                <span>${total().toFixed(2)}</span>
+                <span>Rs. {total().toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between text-sm text-muted-foreground mt-2">
                 <span>
@@ -331,7 +331,7 @@ export function Checkout() {
                 <span>
                   {calculateShipping(total(), shippingMethod) === 0
                     ? "Free"
-                    : `$${calculateShipping(total(), shippingMethod).toFixed(2)}`}
+                    : `Rs. ${calculateShipping(total(), shippingMethod).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 </span>
               </div>
               <div className="mt-4 flex items-baseline justify-between">
@@ -339,7 +339,7 @@ export function Checkout() {
                   Total
                 </span>
                 <span className="font-display text-3xl">
-                  ${(total() + calculateShipping(total(), shippingMethod)).toFixed(2)}
+                  Rs. {(total() + calculateShipping(total(), shippingMethod)).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
             </div>

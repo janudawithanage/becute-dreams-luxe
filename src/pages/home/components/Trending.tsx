@@ -78,7 +78,7 @@ export function Trending() {
                 </div>
                 <div className="mt-5 flex items-baseline justify-between gap-3">
                   <p className="font-display text-xl leading-tight">{p.name}</p>
-                  <p className="text-sm tabular-nums">${p.price}</p>
+                  <p className="text-sm tabular-nums">Rs. {p.price.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
                 <p className="mt-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">
                   {p.category?.name || 'Uncategorized'}
