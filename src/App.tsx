@@ -33,6 +33,7 @@ import { CollectionForm } from "@/pages/admin/CollectionForm";
 import { Orders } from "@/pages/admin/Orders";
 import { OrderDetail as AdminOrderDetail } from "@/pages/admin/OrderDetail";
 import { Customers } from "@/pages/admin/Customers";
+import { CustomerDetail } from "@/pages/admin/CustomerDetail";
 import { Settings } from "@/pages/admin/Settings";
 
 export default function App() {
@@ -93,6 +94,7 @@ export default function App() {
           <Route path="orders" element={<Orders />} />
           <Route path="orders/:id" element={<AdminOrderDetail />} />
           <Route path="customers" element={<Customers />} />
+          <Route path="customers/:id" element={<CustomerDetail />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>

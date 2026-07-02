@@ -15,6 +15,18 @@ export interface CustomerStats {
   total_spent: number;
 }
 
+export interface CustomerOrder {
+  id: string;
+  created_at: string;
+  status: string;
+  total: number;
+  items_count: number;
+}
+
+export interface CustomerDetail extends CustomerStats {
+  orders: CustomerOrder[];
+}
+
 export const adminService = {
   // Dashboard Stats
   async getDashboardStats() {
@@ -212,6 +224,78 @@ export const adminService = {
       return customersWithStats;
     } catch (error) {
       console.error('Failed to fetch customers:', error);
+      throw error;
+    }
+  },
+
+  // Get customer detail with order history
+  async getCustomerDetail(customerId: string): Promise<CustomerDetail> {
+    try {
+      // Fetch customer profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', customerId)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        throw profileError;
+      }
+
+      if (!profile) {
+        throw new Error('Customer not found');
+      }
+
+      // Fetch customer orders with item count
+      const { data: orders, error: ordersError } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          created_at,
+          status,
+          total,
+          order_items(count)
+        `)
+        .eq('user_id', customerId)
+        .order('created_at', { ascending: false });
+
+      if (ordersError) {
+        console.error('Error fetching orders:', ordersError);
+        throw ordersError;
+      }
+
+      // Map orders to CustomerOrder format
+      const customerOrders: CustomerOrder[] = (orders || []).map((order) => ({
+        id: order.id,
+        created_at: order.created_at,
+        status: order.status,
+        total: Number(order.total),
+        items_count: order.order_items?.[0]?.count || 0,
+      }));
+
+      // Calculate stats
+      const totalSpent = customerOrders.reduce((sum, order) => sum + order.total, 0);
+
+      const customerDetail: CustomerDetail = {
+        id: profile.id,
+        email: profile.email,
+        full_name: profile.full_name || '',
+        phone: profile.phone,
+        address: profile.address,
+        city: profile.city,
+        postal_code: profile.postal_code,
+        country: profile.country,
+        role: profile.role,
+        created_at: profile.created_at,
+        total_orders: customerOrders.length,
+        total_spent: totalSpent,
+        orders: customerOrders,
+      };
+
+      return customerDetail;
+    } catch (error) {
+      console.error('Failed to fetch customer detail:', error);
       throw error;
     }
   },

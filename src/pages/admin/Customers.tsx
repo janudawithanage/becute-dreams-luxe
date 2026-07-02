@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import {
@@ -15,6 +16,7 @@ import { format } from "date-fns";
 import { motion } from "framer-motion";
 
 export function Customers() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [customers, setCustomers] = useState<CustomerStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -146,7 +148,8 @@ export function Customers() {
                 {filteredCustomers.map((customer) => (
                   <TableRow
                     key={customer.id}
-                    className="border-foreground/5 hover:bg-foreground/[0.02] transition"
+                    className="border-foreground/5 hover:bg-foreground/[0.02] transition cursor-pointer"
+                    onClick={() => navigate(`/admin/customers/${customer.id}`)}
                   >
                     <TableCell className="font-medium">{customer.full_name}</TableCell>
                     <TableCell>
