@@ -129,14 +129,20 @@ export const categoriesService = {
 
   // Delete category (Admin only)
   async delete(id: string) {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('categories')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .select();
 
     if (error) {
       console.error('Error deleting category:', error);
       throw error;
+    }
+
+    // If RLS blocks the delete, Supabase returns no error but deletes nothing
+    if (!data || data.length === 0) {
+      throw new Error('Delete was blocked — check Supabase RLS policies for the categories table.');
     }
   },
 

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route } from "react-router-dom";
 import { SiteLayout } from "@/shared/components/layout/SiteLayout";
 import { ProtectedRoute } from "@/shared/components/auth/ProtectedRoute";
@@ -6,37 +6,39 @@ import { Toaster } from "@/shared/components/ui/sonner";
 import { useAuthStore } from '@/features/auth';
 import { useCart } from '@/features/cart';
 import './test-env';
-import { Home } from "@/pages/Home";
-import { Shop } from "@/pages/Shop";
-import { ProductDetail } from "@/pages/ProductDetail";
-import { Collections } from "@/pages/Collections";
-import { About } from "@/pages/About";
-import { Contact } from "@/pages/Contact";
-import { Checkout } from "@/pages/Checkout";
-import { SignIn } from "@/pages/SignIn";
-import { SignUp } from "@/pages/SignUp";
-import { ForgotPassword } from "@/pages/ForgotPassword";
-import { MyOrders } from "@/pages/MyOrders";
-import { OrderDetail } from "@/pages/OrderDetail";
-import { Account } from "@/pages/Account";
-import { NotFound } from "@/pages/NotFound";
 
-// Admin pages
-import { AdminLayout } from "@/pages/admin/AdminLayout";
-import { Dashboard } from "@/pages/admin/Dashboard";
-import { Products } from "@/pages/admin/Products";
-import { ProductForm } from "@/pages/admin/ProductForm";
-import { AdminCategories } from "@/pages/admin/AdminCategories";
-import { CategoryForm } from "@/pages/admin/CategoryForm";
-import { AdminCollections } from "@/pages/admin/AdminCollections";
-import { CollectionForm } from "@/pages/admin/CollectionForm";
-import { AdminGallery } from "@/pages/admin/AdminGallery";
-import { GalleryForm } from "@/pages/admin/GalleryForm";
-import { Orders } from "@/pages/admin/Orders";
-import { OrderDetail as AdminOrderDetail } from "@/pages/admin/OrderDetail";
-import { Customers } from "@/pages/admin/Customers";
-import { CustomerDetail } from "@/pages/admin/CustomerDetail";
-import { Settings } from "@/pages/admin/Settings";
+// Public pages — lazy loaded so each route gets its own chunk
+const Home = lazy(() => import("@/pages/Home").then(m => ({ default: m.Home })));
+const Shop = lazy(() => import("@/pages/Shop").then(m => ({ default: m.Shop })));
+const ProductDetail = lazy(() => import("@/pages/ProductDetail").then(m => ({ default: m.ProductDetail })));
+const Collections = lazy(() => import("@/pages/Collections").then(m => ({ default: m.Collections })));
+const About = lazy(() => import("@/pages/About").then(m => ({ default: m.About })));
+const Contact = lazy(() => import("@/pages/Contact").then(m => ({ default: m.Contact })));
+const Checkout = lazy(() => import("@/pages/Checkout").then(m => ({ default: m.Checkout })));
+const SignIn = lazy(() => import("@/pages/SignIn").then(m => ({ default: m.SignIn })));
+const SignUp = lazy(() => import("@/pages/SignUp").then(m => ({ default: m.SignUp })));
+const ForgotPassword = lazy(() => import("@/pages/ForgotPassword").then(m => ({ default: m.ForgotPassword })));
+const MyOrders = lazy(() => import("@/pages/MyOrders").then(m => ({ default: m.MyOrders })));
+const OrderDetail = lazy(() => import("@/pages/OrderDetail").then(m => ({ default: m.OrderDetail })));
+const Account = lazy(() => import("@/pages/Account").then(m => ({ default: m.Account })));
+const NotFound = lazy(() => import("@/pages/NotFound").then(m => ({ default: m.NotFound })));
+
+// Admin pages — all in one async chunk since they share the AdminLayout
+const AdminLayout = lazy(() => import("@/pages/admin/AdminLayout").then(m => ({ default: m.AdminLayout })));
+const Dashboard = lazy(() => import("@/pages/admin/Dashboard").then(m => ({ default: m.Dashboard })));
+const Products = lazy(() => import("@/pages/admin/Products").then(m => ({ default: m.Products })));
+const ProductForm = lazy(() => import("@/pages/admin/ProductForm").then(m => ({ default: m.ProductForm })));
+const AdminCategories = lazy(() => import("@/pages/admin/AdminCategories").then(m => ({ default: m.AdminCategories })));
+const CategoryForm = lazy(() => import("@/pages/admin/CategoryForm").then(m => ({ default: m.CategoryForm })));
+const AdminCollections = lazy(() => import("@/pages/admin/AdminCollections").then(m => ({ default: m.AdminCollections })));
+const CollectionForm = lazy(() => import("@/pages/admin/CollectionForm").then(m => ({ default: m.CollectionForm })));
+const AdminGallery = lazy(() => import("@/pages/admin/AdminGallery").then(m => ({ default: m.AdminGallery })));
+const GalleryForm = lazy(() => import("@/pages/admin/GalleryForm").then(m => ({ default: m.GalleryForm })));
+const AdminOrders = lazy(() => import("@/pages/admin/Orders").then(m => ({ default: m.Orders })));
+const AdminOrderDetail = lazy(() => import("@/pages/admin/OrderDetail").then(m => ({ default: m.OrderDetail })));
+const Customers = lazy(() => import("@/pages/admin/Customers").then(m => ({ default: m.Customers })));
+const CustomerDetail = lazy(() => import("@/pages/admin/CustomerDetail").then(m => ({ default: m.CustomerDetail })));
+const Settings = lazy(() => import("@/pages/admin/Settings").then(m => ({ default: m.Settings })));
 
 export default function App() {
   const initialize = useAuthStore((state) => state.initialize);

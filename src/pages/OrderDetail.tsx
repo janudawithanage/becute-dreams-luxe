@@ -8,7 +8,7 @@ import {
   Truck,
   CheckCircle,
   XCircle,
-  ArrowLeft,
+  ChevronLeft,
   MapPin,
   Phone,
   Mail,
@@ -16,13 +16,15 @@ import {
 import { useEffect, useState } from "react";
 import type { OrderWithItems, OrderItem } from "@/features/orders/orders.service";
 
+const ease = [0.22, 1, 0.36, 1] as const;
+
 const statusConfig = {
-  pending: { label: "Pending", icon: Clock, color: "text-yellow-600", bg: "bg-yellow-50" },
-  confirmed: { label: "Confirmed", icon: CheckCircle, color: "text-blue-600", bg: "bg-blue-50" },
-  processing: { label: "Processing", icon: Package, color: "text-purple-600", bg: "bg-purple-50" },
-  shipped: { label: "Shipped", icon: Truck, color: "text-indigo-600", bg: "bg-indigo-50" },
-  delivered: { label: "Delivered", icon: CheckCircle, color: "text-green-600", bg: "bg-green-50" },
-  cancelled: { label: "Cancelled", icon: XCircle, color: "text-red-600", bg: "bg-red-50" },
+  pending: { label: "Pending", icon: Clock, color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200" },
+  confirmed: { label: "Confirmed", icon: CheckCircle, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-200" },
+  processing: { label: "Processing", icon: Package, color: "text-violet-600", bg: "bg-violet-50", border: "border-violet-200" },
+  shipped: { label: "Shipped", icon: Truck, color: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200" },
+  delivered: { label: "Delivered", icon: CheckCircle, color: "text-green-600", bg: "bg-green-50", border: "border-green-200" },
+  cancelled: { label: "Cancelled", icon: XCircle, color: "text-red-500", bg: "bg-red-50", border: "border-red-200" },
 };
 
 export function OrderDetail() {
@@ -38,7 +40,6 @@ export function OrderDetail() {
       navigate("/sign-in");
       return;
     }
-
     if (orderId) {
       setIsLoading(true);
       getOrderById(orderId).then((orderData) => {
@@ -48,45 +49,61 @@ export function OrderDetail() {
     }
   }, [isAuthenticated, navigate, orderId, getOrderById]);
 
-  if (!orderId) {
-    return null;
-  }
+  if (!orderId) return null;
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-xl px-6 py-32 text-center">
-        <p className="font-display text-4xl">Loading...</p>
+      <div className="mx-auto max-w-[1000px] px-6 py-16 lg:px-12 lg:py-24 space-y-4">
+        <div className="shimmer h-4 w-24 rounded-full" />
+        <div className="shimmer h-16 w-3/4 rounded-2xl" />
+        <div className="shimmer h-32 rounded-3xl" />
+        <div className="grid gap-8 lg:grid-cols-2">
+          <div className="shimmer h-72 rounded-3xl" />
+          <div className="shimmer h-72 rounded-3xl" />
+        </div>
       </div>
     );
   }
 
   if (!order) {
     return (
-      <div className="mx-auto max-w-xl px-6 py-32 text-center">
-        <p className="font-display text-4xl">Order not found.</p>
-        <Link
-          to="/my-orders"
-          className="mt-8 inline-flex h-12 items-center rounded-full bg-foreground px-8 text-xs uppercase tracking-[0.25em] text-background"
+      <div className="flex min-h-[60vh] items-center justify-center px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease }}
+          className="text-center"
         >
-          Back to orders
-        </Link>
+          <p className="font-display text-4xl">Order not found.</p>
+          <Link
+            to="/my-orders"
+            className="mt-8 inline-flex h-12 items-center rounded-full bg-foreground px-8 text-xs uppercase tracking-[0.25em] text-background"
+          >
+            Back to orders
+          </Link>
+        </motion.div>
       </div>
     );
   }
 
-  // Check if user owns this order or is admin
   const canView = user?.id === order?.user_id || user?.role === "admin";
-
   if (!canView) {
     return (
-      <div className="mx-auto max-w-xl px-6 py-32 text-center">
-        <p className="font-display text-4xl">Access denied.</p>
-        <Link
-          to="/my-orders"
-          className="mt-8 inline-flex h-12 items-center rounded-full bg-foreground px-8 text-xs uppercase tracking-[0.25em] text-background"
+      <div className="flex min-h-[60vh] items-center justify-center px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease }}
+          className="text-center"
         >
-          Back to orders
-        </Link>
+          <p className="font-display text-4xl">Access denied.</p>
+          <Link
+            to="/my-orders"
+            className="mt-8 inline-flex h-12 items-center rounded-full bg-foreground px-8 text-xs uppercase tracking-[0.25em] text-background"
+          >
+            Back to orders
+          </Link>
+        </motion.div>
       </div>
     );
   }
@@ -95,196 +112,158 @@ export function OrderDetail() {
   const StatusIcon = config.icon;
 
   return (
-    <div className="mx-auto max-w-[1000px] px-6 py-16 lg:px-12 lg:py-24">
-      {/* Back Button */}
-      <Link
-        to="/my-orders"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition"
+    <div className="page-enter mx-auto max-w-[1000px] px-6 py-16 lg:px-12 lg:py-24">
+      {/* Back */}
+      <motion.div
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6, ease }}
       >
-        <ArrowLeft className="h-4 w-4" />
-        Back to orders
-      </Link>
+        <Link
+          to="/my-orders"
+          className="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.25em] text-muted-foreground transition hover:text-foreground"
+        >
+          <ChevronLeft className="h-3.5 w-3.5" />
+          Back to orders
+        </Link>
+      </motion.div>
 
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.7, ease, delay: 0.05 }}
         className="mt-8"
       >
         <h1 className="font-display text-5xl tracking-tight lg:text-6xl">
           Order <em className="font-light">{order.order_number}</em>
         </h1>
-        <p className="mt-4 text-muted-foreground">
+        <p className="mt-3 text-sm text-muted-foreground">
           Placed on{" "}
           {new Date(order.created_at).toLocaleDateString("en-US", {
             year: "numeric",
             month: "long",
             day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
           })}
         </p>
       </motion.div>
 
-      {/* Status Card */}
+      {/* Status banner */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.1 }}
-        className={`mt-8 rounded-3xl p-8 ${config.bg}`}
+        transition={{ duration: 0.6, ease, delay: 0.12 }}
+        className={`mt-8 flex items-center gap-3 rounded-2xl border px-6 py-4 ${config.bg} ${config.border}`}
       >
-        <div className="flex items-center gap-3">
-          <StatusIcon className={`h-6 w-6 ${config.color}`} />
-          <div>
-            <p className={`text-xl font-display ${config.color}`}>{config.label}</p>
-            <p className={`text-sm ${config.color}/70`}>
-              Last updated {new Date(order.updated_at).toLocaleString()}
-            </p>
-          </div>
+        <StatusIcon className={`h-5 w-5 ${config.color}`} />
+        <div>
+          <p className={`font-display text-xl leading-none ${config.color}`}>{config.label}</p>
+          <p className={`mt-0.5 text-xs ${config.color} opacity-70`}>
+            Updated {new Date(order.updated_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+          </p>
         </div>
       </motion.div>
 
-      {/* Order Timeline */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-        className="mt-8 glass shadow-soft rounded-3xl p-8"
-      >
-        <h2 className="font-display text-2xl">Order Timeline</h2>
-        <div className="mt-6 space-y-4">
-          <div className="flex items-start gap-4">
-            <div className={`rounded-full p-2 ${config.bg}`}>
-              <StatusIcon className={`h-4 w-4 ${config.color}`} />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium">{config.label}</p>
-              <p className="text-sm text-muted-foreground">
-                {new Date(order.updated_at).toLocaleString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </p>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      <div className="mt-8 grid gap-8 lg:grid-cols-2">
-        {/* Items */}
+      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        {/* Items + totals */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="glass shadow-soft rounded-3xl p-8"
+          transition={{ duration: 0.6, ease, delay: 0.2 }}
+          className="rounded-3xl border bg-background p-8 shadow-soft"
         >
-          <h2 className="font-display text-2xl">Order Items</h2>
+          <h2 className="font-display text-2xl">Order items</h2>
           <div className="mt-6 space-y-4">
             {order.order_items?.map((item: OrderItem) => (
               <div key={item.product_id} className="flex items-center gap-4">
-                <img
-                  src={item.product_image_url || ''}
-                  alt={item.product_name}
-                  className="h-16 w-14 rounded-md object-cover"
-                />
-                <div className="flex-1">
-                  <p className="font-display leading-tight">{item.product_name}</p>
+                <div className="h-16 w-14 overflow-hidden rounded-xl bg-muted shrink-0">
+                  <img
+                    src={item.product_image_url || ""}
+                    alt={item.product_name}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-display leading-tight truncate">{item.product_name}</p>
                   <p className="text-xs text-muted-foreground">
-                    Rs. {item.price.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} × {item.quantity}
+                    Rs. {item.price.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} × {item.quantity}
                   </p>
                 </div>
-                <p className="font-medium">Rs. {(item.price * item.quantity).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                <p className="text-sm tabular-nums shrink-0">
+                  Rs. {(item.price * item.quantity).toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
               </div>
             ))}
           </div>
 
-          {/* Totals */}
-          <div className="mt-6 space-y-2 border-t border-foreground/10 pt-6">
+          <div className="mt-6 space-y-2.5 border-t pt-6">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Subtotal</span>
-              <span>Rs. {order.subtotal.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span>Rs. {order.subtotal.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Shipping</span>
-              <span>{order.shipping_cost === 0 ? "Free" : `Rs. ${order.shipping_cost.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</span>
+              <span>
+                {order.shipping_cost === 0
+                  ? "Free"
+                  : `Rs. ${order.shipping_cost.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              </span>
             </div>
-            <div className="flex justify-between border-t border-foreground/10 pt-2">
-              <span className="font-display text-lg">Total</span>
-              <span className="font-display text-lg">Rs. {order.total.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <div className="flex items-baseline justify-between border-t pt-3">
+              <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Total</span>
+              <span className="font-display text-2xl">
+                Rs. {order.total.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
             </div>
           </div>
         </motion.div>
 
-        {/* Shipping Info */}
+        {/* Shipping info */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="glass shadow-soft rounded-3xl p-8"
+          transition={{ duration: 0.6, ease, delay: 0.28 }}
+          className="rounded-3xl border bg-background p-8 shadow-soft"
         >
-          <h2 className="font-display text-2xl">Shipping Information</h2>
-          <div className="mt-6 space-y-4">
+          <h2 className="font-display text-2xl">Shipping information</h2>
+          <div className="mt-6 space-y-5">
+            {[
+              { icon: Package, label: "Name", value: order.customer_name },
+              { icon: Mail, label: "Email", value: order.customer_email },
+              { icon: Phone, label: "Phone", value: order.customer_phone },
+            ].filter((r) => r.value).map(({ icon: Icon, label, value }) => (
+              <div key={label} className="flex items-start gap-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
+                  <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
+                  <p className="mt-0.5 text-sm">{value}</p>
+                </div>
+              </div>
+            ))}
+
             <div className="flex items-start gap-3">
-              <div className="rounded-full bg-muted p-2">
-                <Package className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Name</p>
-                <p className="mt-1">{order.customer_name}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="rounded-full bg-muted p-2">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Email</p>
-                <p className="mt-1">{order.customer_email}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="rounded-full bg-muted p-2">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Phone</p>
-                <p className="mt-1">{order.customer_phone}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="rounded-full bg-muted p-2">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
+                <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
               </div>
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Address</p>
-                <p className="mt-1">
+                <p className="mt-0.5 text-sm leading-relaxed">
                   {order.shipping_address_line1}
-                  {order.shipping_address_line2 && (
-                    <>
-                      <br />
-                      {order.shipping_address_line2}
-                    </>
-                  )}
+                  {order.shipping_address_line2 && <><br />{order.shipping_address_line2}</>}
                   <br />
-                  {order.shipping_city}, {order.shipping_state} {order.shipping_postal_code}
+                  {order.shipping_city}{order.shipping_state && `, ${order.shipping_state}`} {order.shipping_postal_code}
                   <br />
                   {order.shipping_country}
                 </p>
               </div>
             </div>
+
             {order.notes && (
-              <div className="flex items-start gap-3">
-                <div className="rounded-full bg-muted p-2">
-                  <Package className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Notes</p>
-                  <p className="mt-1 text-sm italic text-muted-foreground">{order.notes}</p>
-                </div>
+              <div className="rounded-xl border bg-muted/50 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Notes</p>
+                <p className="mt-1 text-sm italic text-foreground/70">{order.notes}</p>
               </div>
             )}
           </div>

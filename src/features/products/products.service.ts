@@ -36,7 +36,7 @@ export const productsService = {
       .select(`
         *,
         category:categories(*),
-        product_collections!inner(
+        product_collections(
           collection:collections(*)
         )
       `)
