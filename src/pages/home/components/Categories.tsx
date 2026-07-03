@@ -14,9 +14,10 @@ export function Categories() {
     fetchCategories();
   }, [fetchCategories]);
 
-  // Filter only categories marked as featured (show on homepage), sort by sort_order, limit to 6
-  const displayCategories = [...categories]
-    .filter((category) => category.featured)
+  // Show featured categories first; if none are featured, show all (sorted)
+  const featuredCategories = categories.filter((c) => c.featured);
+  const displayCategories = (featuredCategories.length > 0 ? featuredCategories : categories)
+    .slice()
     .sort((a, b) => a.sort_order - b.sort_order)
     .slice(0, 6);
 

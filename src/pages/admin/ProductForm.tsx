@@ -9,6 +9,7 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Checkbox } from "@/shared/components/ui/checkbox";
+import { Switch } from "@/shared/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -16,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import { ArrowLeft, Upload, X, Loader2 } from "lucide-react";
+import { ArrowLeft, Upload, X, Loader2, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 import { useProductsStore } from "@/features/products";
 import { useCategoriesStore } from "@/features/categories";
@@ -36,6 +37,7 @@ const productSchema = z.object({
   category: z.string().min(1, "Category is required"),
   tag: z.string().optional(),
   collections: z.array(z.string()),
+  featured: z.boolean(),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -71,6 +73,7 @@ export function ProductForm() {
     resolver: zodResolver(productSchema),
     defaultValues: {
       collections: [],
+      featured: false,
     },
   });
 
@@ -95,6 +98,7 @@ export function ProductForm() {
             category: product.category_id || '',
             collections: product.collections?.map((c) => c.id) || [],
             tag: product.tags?.[0] || '',
+            featured: product.featured || false,
           });
           setImage(product.image_url);
         }
@@ -165,13 +169,15 @@ export function ProductForm() {
         category_id: data.category,
         image_url: imageUrl,
         tags: data.tag ? [data.tag] : [],
-        featured: false,
+        featured: data.featured,
         in_stock: data.stockQuantity > 0,
         collectionIds: data.collections,
       };
 
       if (isEditing && id) {
-        await updateProduct(id, productData, data.collections);
+        // Pass collections as the separate third argument, never inside the updates object
+        const { collectionIds: _, ...updateFields } = productData;
+        await updateProduct(id, updateFields, data.collections);
         toast.success("Product updated successfully!");
       } else {
         await addProduct(productData);
@@ -431,6 +437,28 @@ export function ProductForm() {
                   <p className="text-xs text-muted-foreground">
                     Products can belong to multiple collections
                   </p>
+                </div>
+
+                {/* Trending / Featured toggle */}
+                <div className="rounded-xl border border-foreground/10 bg-background/50 p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blush/10">
+                        <TrendingUp className="h-4 w-4 text-blush" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Show in Trending Section</p>
+                        <p className="text-xs text-muted-foreground">
+                          Displays this product in the "Currently adored" section on the homepage
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      id="featured"
+                      checked={watch("featured")}
+                      onCheckedChange={(checked) => setValue("featured", checked)}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>

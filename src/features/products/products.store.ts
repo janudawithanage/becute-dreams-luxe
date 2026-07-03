@@ -135,10 +135,19 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
   },
 
   updateProduct: async (id, updates, collectionIds) => {
+    // Strip out any non-column fields before sending to Supabase
+    const {
+      collectionIds: _c,        // never present but guard anyway
+      collections: _col,        // joined relation, not a column
+      category: _cat,           // joined relation, not a column
+      product_collections: _pc, // joined relation, not a column
+      ...columnUpdates
+    } = updates as any;
+
     const { error } = await supabase
       .from('products')
       .update({
-        ...updates,
+        ...columnUpdates,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id);

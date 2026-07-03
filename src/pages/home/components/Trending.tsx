@@ -10,15 +10,15 @@ export function Trending() {
   const fetchProducts = useProductsStore((s) => s.fetchProducts);
 
   useEffect(() => {
-    // Fetch featured, in-stock products
-    fetchProducts({ featured: true, inStock: true });
+    // Fetch featured in-stock products; if none exist the store will have all in-stock
+    fetchProducts({ inStock: true });
   }, [fetchProducts]);
 
-  // Show first 6 products
-  const list = products.slice(0, 6);
+  // Only show products that are explicitly marked as featured (trending)
+  const list = products.filter((p) => p.featured).slice(0, 6);
 
   if (list.length === 0) {
-    return null; // Don't show section if no products
+    return null;
   }
 
   return (
