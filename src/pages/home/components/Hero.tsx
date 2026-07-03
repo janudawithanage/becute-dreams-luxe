@@ -126,6 +126,8 @@ export function Hero() {
                 alt="Premium curated stickers on a soft pink marble surface"
                 width={1600}
                 height={1200}
+                fetchPriority="high"
+                decoding="async"
                 className="aspect-[5/6] w-full object-cover"
               />
             </div>

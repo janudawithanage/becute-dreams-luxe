@@ -17,58 +17,25 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Core React runtime
-          "vendor-react": ["react", "react-dom", "react-router-dom"],
-          // Animation — large but used on public pages
-          "vendor-motion": ["framer-motion"],
-          // Charts — admin only, isolate so regular users never load it
-          "vendor-recharts": ["recharts"],
-          // Supabase client
-          "vendor-supabase": ["@supabase/supabase-js"],
-          // Form handling
-          "vendor-forms": ["react-hook-form", "@hookform/resolvers", "zod"],
-          // Radix UI primitives (grouped to avoid 20+ tiny chunks)
-          "vendor-radix": [
-            "@radix-ui/react-accordion",
-            "@radix-ui/react-alert-dialog",
-            "@radix-ui/react-avatar",
-            "@radix-ui/react-checkbox",
-            "@radix-ui/react-collapsible",
-            "@radix-ui/react-context-menu",
-            "@radix-ui/react-dialog",
-            "@radix-ui/react-dropdown-menu",
-            "@radix-ui/react-hover-card",
-            "@radix-ui/react-label",
-            "@radix-ui/react-menubar",
-            "@radix-ui/react-navigation-menu",
-            "@radix-ui/react-popover",
-            "@radix-ui/react-progress",
-            "@radix-ui/react-radio-group",
-            "@radix-ui/react-scroll-area",
-            "@radix-ui/react-select",
-            "@radix-ui/react-separator",
-            "@radix-ui/react-slider",
-            "@radix-ui/react-slot",
-            "@radix-ui/react-switch",
-            "@radix-ui/react-tabs",
-            "@radix-ui/react-toggle",
-            "@radix-ui/react-toggle-group",
-            "@radix-ui/react-tooltip",
-          ],
-          // Misc UI libs
-          "vendor-ui": [
-            "embla-carousel-react",
-            "cmdk",
-            "vaul",
-            "sonner",
-            "date-fns",
-            "react-day-picker",
-            "lucide-react",
-            "clsx",
-            "tailwind-merge",
-            "class-variance-authority",
-          ],
+        manualChunks(id) {
+          if (id.includes("node_modules/recharts")) return "vendor-recharts";
+          if (id.includes("node_modules/framer-motion")) return "vendor-motion";
+          if (id.includes("node_modules/@supabase")) return "vendor-supabase";
+          if (id.includes("node_modules/react-hook-form") || id.includes("node_modules/@hookform") || id.includes("node_modules/zod")) return "vendor-forms";
+          if (id.includes("node_modules/@radix-ui")) return "vendor-radix";
+          if (id.includes("node_modules/react-dom") || id.includes("node_modules/react/") || id.includes("node_modules/react-router-dom") || id.includes("node_modules/scheduler")) return "vendor-react";
+          if (id.includes("node_modules/lucide-react")) return "vendor-lucide";
+          if (
+            id.includes("node_modules/embla-carousel") ||
+            id.includes("node_modules/cmdk") ||
+            id.includes("node_modules/vaul") ||
+            id.includes("node_modules/sonner") ||
+            id.includes("node_modules/date-fns") ||
+            id.includes("node_modules/react-day-picker") ||
+            id.includes("node_modules/clsx") ||
+            id.includes("node_modules/tailwind-merge") ||
+            id.includes("node_modules/class-variance-authority")
+          ) return "vendor-ui";
         },
       },
     },

@@ -57,54 +57,56 @@ export default function App() {
 
   return (
     <>
-      <Routes>
-        {/* Public routes */}
-        <Route element={<SiteLayout />}>
-          <Route index element={<Home />} />
-          <Route path="/shop" element={<Shop />} />
-          <Route path="/product/:slug" element={<ProductDetail />} />
-          <Route path="/collections" element={<Collections />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/sign-in" element={<SignIn />} />
-          <Route path="/sign-up" element={<SignUp />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/my-orders" element={<MyOrders />} />
-          <Route path="/order/:orderId" element={<OrderDetail />} />
-          <Route path="/account" element={<Account />} />
-          <Route path="*" element={<NotFound />} />
-        </Route>
+      <Suspense fallback={null}>
+        <Routes>
+          {/* Public routes */}
+          <Route element={<SiteLayout />}>
+            <Route index element={<Home />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/product/:slug" element={<ProductDetail />} />
+            <Route path="/collections" element={<Collections />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/sign-in" element={<SignIn />} />
+            <Route path="/sign-up" element={<SignUp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/my-orders" element={<MyOrders />} />
+            <Route path="/order/:orderId" element={<OrderDetail />} />
+            <Route path="/account" element={<Account />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
 
-        {/* Admin routes - Protected */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute requireAdmin>
-              <AdminLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<Dashboard />} />
-          <Route path="products" element={<Products />} />
-          <Route path="products/new" element={<ProductForm />} />
-          <Route path="products/:id/edit" element={<ProductForm />} />
-          <Route path="categories" element={<AdminCategories />} />
-          <Route path="categories/new" element={<CategoryForm />} />
-          <Route path="categories/:id/edit" element={<CategoryForm />} />
-          <Route path="collections" element={<AdminCollections />} />
-          <Route path="collections/new" element={<CollectionForm />} />
-          <Route path="collections/:id/edit" element={<CollectionForm />} />
-          <Route path="gallery" element={<AdminGallery />} />
-          <Route path="gallery/new" element={<GalleryForm />} />
-          <Route path="gallery/:id/edit" element={<GalleryForm />} />
-          <Route path="orders" element={<Orders />} />
-          <Route path="orders/:id" element={<AdminOrderDetail />} />
-          <Route path="customers" element={<Customers />} />
-          <Route path="customers/:id" element={<CustomerDetail />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-      </Routes>
+          {/* Admin routes - Protected */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Dashboard />} />
+            <Route path="products" element={<Products />} />
+            <Route path="products/new" element={<ProductForm />} />
+            <Route path="products/:id/edit" element={<ProductForm />} />
+            <Route path="categories" element={<AdminCategories />} />
+            <Route path="categories/new" element={<CategoryForm />} />
+            <Route path="categories/:id/edit" element={<CategoryForm />} />
+            <Route path="collections" element={<AdminCollections />} />
+            <Route path="collections/new" element={<CollectionForm />} />
+            <Route path="collections/:id/edit" element={<CollectionForm />} />
+            <Route path="gallery" element={<AdminGallery />} />
+            <Route path="gallery/new" element={<GalleryForm />} />
+            <Route path="gallery/:id/edit" element={<GalleryForm />} />
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="orders/:id" element={<AdminOrderDetail />} />
+            <Route path="customers" element={<Customers />} />
+            <Route path="customers/:id" element={<CustomerDetail />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+        </Routes>
+      </Suspense>
       <Toaster />
     </>
   );
