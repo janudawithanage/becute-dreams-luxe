@@ -4,6 +4,13 @@ import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -22,7 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/shared/components/ui/alert-dialog";
-import { Plus, Search, Edit, Trash2, Star } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Star, X } from "lucide-react";
 import { useCategoriesStore } from "@/features/categories";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -31,6 +38,7 @@ import { getOptimizedImageUrl } from "@/lib/cloudinary";
 export function AdminCategories() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const categories = useCategoriesStore((s) => s.categories);
@@ -42,11 +50,23 @@ export function AdminCategories() {
     fetchCategories();
   }, [fetchCategories]);
 
-  const filteredCategories = categories.filter(
-    (category) =>
+  const filteredCategories = categories.filter((category) => {
+    const matchesSearch =
       category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      category.slug.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+      category.slug.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "featured" && category.featured) ||
+      (statusFilter === "regular" && !category.featured);
+    return matchesSearch && matchesStatus;
+  });
+
+  const hasActiveFilters = statusFilter !== "all";
+
+  const clearFilters = () => {
+    setStatusFilter("all");
+    setSearchQuery("");
+  };
 
   const handleDelete = async () => {
     if (deleteId) {
@@ -107,14 +127,37 @@ export function AdminCategories() {
         >
           <Card className="glass border-foreground/10 shadow-soft">
             <CardHeader>
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search categories..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-11 h-12 rounded-full border-foreground/10 bg-background/50"
-                />
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="relative flex-1">
+                  <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Search categories..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-11 h-12 rounded-full border-foreground/10 bg-background/50"
+                  />
+                </div>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="h-12 w-full rounded-full border-foreground/10 bg-background/50 sm:w-[160px] text-xs uppercase tracking-wider">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="featured">Featured</SelectItem>
+                    <SelectItem value="regular">Regular</SelectItem>
+                  </SelectContent>
+                </Select>
+                {(hasActiveFilters || searchQuery) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="h-12 rounded-full px-4 text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="mr-1 h-3 w-3" />
+                    Clear
+                  </Button>
+                )}
               </div>
             </CardHeader>
             <CardContent>

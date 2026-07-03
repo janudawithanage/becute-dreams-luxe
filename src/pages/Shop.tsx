@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ShoppingBag, SlidersHorizontal, X } from "lucide-react";
+import { Search, ShoppingBag, X } from "lucide-react";
 import { useProductsStore } from "@/features/products";
 import { useCategoriesStore } from "@/features/categories";
 import { useCollectionsStore } from "@/features/collections";
@@ -9,6 +9,8 @@ import { useCart } from "@/features/cart";
 import { useAuthStore } from "@/features/auth";
 import { Link } from "react-router-dom";
 import { getOptimizedImageUrl } from "@/lib/cloudinary";
+import { usePagination } from "@/shared/hooks";
+import { PaginationControls } from "@/shared/components/ui/PaginationControls";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -46,6 +48,16 @@ export function Shop() {
     if (query && !p.name.toLowerCase().includes(query.toLowerCase())) return false;
     return true;
   });
+
+  const pagination = usePagination(filtered, { pageSize: 16 });
+
+  // Reset to page 1 whenever filters change
+  const prevFilterKey = useRef('');
+  const filterKey = `${categorySlug}|${collectionSlug}|${query}`;
+  if (filterKey !== prevFilterKey.current) {
+    prevFilterKey.current = filterKey;
+    if (pagination.currentPage !== 1) pagination.setPage(1);
+  }
 
   const updateSearch = (updates: { category?: string; collection?: string; q?: string }) => {
     const newParams = new URLSearchParams(searchParams);
@@ -239,70 +251,100 @@ export function Shop() {
             )}
           </motion.div>
         ) : (
-          <motion.div
-            key="grid"
-            className="mt-14 grid grid-cols-2 gap-x-4 gap-y-12 md:grid-cols-3 lg:grid-cols-4 lg:gap-x-6"
-          >
-            {filtered.map((p, i) => (
-              <motion.div
-                key={p.id}
-                initial={{ y: 24, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.6, delay: Math.min(i * 0.04, 0.4), ease }}
-                className="group"
-              >
-                <Link to={`/product/${p.slug}`} className="block">
-                  <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted">
-                    <img
-                      src={getOptimizedImageUrl(p.image_url, {
-                        width: 400,
-                        format: "auto",
-                      })}
-                      alt={p.name}
-                      loading="lazy"
-                      className="h-full w-full object-cover transition duration-[1000ms] ease-out group-hover:scale-105"
-                    />
-                    {p.tags && p.tags.length > 0 && (
-                      <span className="absolute left-3 top-3 rounded-full bg-background/90 px-3 py-1 text-[10px] uppercase tracking-[0.2em]">
-                        {p.tags[0]}
-                      </span>
+          <>
+            <motion.div
+              key={`grid-page-${pagination.currentPage}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, ease }}
+              className="mt-14 grid grid-cols-2 gap-x-4 gap-y-12 md:grid-cols-3 lg:grid-cols-4 lg:gap-x-6"
+            >
+              {pagination.paginatedItems.map((p, i) => (
+                <motion.div
+                  key={p.id}
+                  initial={{ y: 24, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.6, delay: Math.min(i * 0.04, 0.4), ease }}
+                  className="group"
+                >
+                  <Link to={`/product/${p.slug}`} className="block">
+                    <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted">
+                      <img
+                        src={getOptimizedImageUrl(p.image_url, {
+                          width: 400,
+                          format: "auto",
+                        })}
+                        alt={p.name}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition duration-[1000ms] ease-out group-hover:scale-105"
+                      />
+                      {p.tags && p.tags.length > 0 && (
+                        <span className="absolute left-3 top-3 rounded-full bg-background/90 px-3 py-1 text-[10px] uppercase tracking-[0.2em]">
+                          {p.tags[0]}
+                        </span>
+                      )}
+                      {/* Quick-add */}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (!isAuthenticated) {
+                            navigate("/sign-in", {
+                              state: {
+                                from: `/shop${searchParams.toString() ? `?${searchParams.toString()}` : ""}`,
+                                message: "Please sign in to add items to your cart",
+                              },
+                            });
+                            return;
+                          }
+                          add(p);
+                        }}
+                        aria-label="Quick add"
+                        className="absolute bottom-3 right-3 flex h-10 w-10 translate-y-2 items-center justify-center rounded-full bg-foreground text-background opacity-0 shadow-soft transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100"
+                      >
+                        <ShoppingBag className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                    <div className="mt-4 flex items-baseline justify-between gap-2">
+                      <p className="font-display text-lg leading-tight">{p.name}</p>
+                      <p className="shrink-0 text-sm tabular-nums">
+                        Rs. {p.price.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                    {p.category && (
+                      <p className="mt-1 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                        {p.category.name}
+                      </p>
                     )}
-                    {/* Quick-add */}
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (!isAuthenticated) {
-                          navigate("/sign-in", {
-                            state: {
-                              from: `/shop${searchParams.toString() ? `?${searchParams.toString()}` : ""}`,
-                              message: "Please sign in to add items to your cart",
-                            },
-                          });
-                          return;
-                        }
-                        add(p);
-                      }}
-                      aria-label="Quick add"
-                      className="absolute bottom-3 right-3 flex h-10 w-10 translate-y-2 items-center justify-center rounded-full bg-foreground text-background opacity-0 shadow-soft transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100"
-                    >
-                      <ShoppingBag className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                  <div className="mt-4 flex items-baseline justify-between gap-2">
-                    <p className="font-display text-lg leading-tight">{p.name}</p>
-                    <p className="shrink-0 text-sm tabular-nums">
-                      Rs. {p.price.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                  {p.category && (
-                    <p className="mt-1 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                      {p.category.name}
-                    </p>
-                  )}
-                </Link>
+                  </Link>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            {/* Pagination */}
+            {pagination.totalPages > 1 && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease, delay: 0.2 }}
+                className="mt-16 flex flex-col items-center gap-3"
+              >
+                <PaginationControls
+                  currentPage={pagination.currentPage}
+                  totalPages={pagination.totalPages}
+                  canGoPrev={pagination.canGoPrev}
+                  canGoNext={pagination.canGoNext}
+                  onPageChange={(p) => {
+                    pagination.setPage(p);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  getPageNumbers={pagination.getPageNumbers}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Page {pagination.currentPage} of {pagination.totalPages} &middot; {filtered.length} pieces
+                </p>
               </motion.div>
-            ))}
-          </motion.div>
+            )}
+          </>
         )}
       </AnimatePresence>
     </div>

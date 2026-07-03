@@ -3,6 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
+import { Button } from "@/shared/components/ui/button";
+import {
   Table,
   TableBody,
   TableCell,
@@ -10,14 +18,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
-import { Search, Mail, Phone, MapPin, Users } from "lucide-react";
+import { Search, Mail, Phone, MapPin, Users, X } from "lucide-react";
 import { adminService, type CustomerStats } from "@/features/admin/admin.service";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
+import { usePagination } from "@/shared/hooks";
+import { PaginationControls } from "@/shared/components/ui/PaginationControls";
 
 export function Customers() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [joinDateFilter, setJoinDateFilter] = useState("all");
+  const [ordersFilter, setOrdersFilter] = useState("all");
   const [customers, setCustomers] = useState<CustomerStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -36,11 +48,47 @@ export function Customers() {
     }
   };
 
-  const filteredCustomers = customers.filter(
-    (customer) =>
+  const filteredCustomers = customers.filter((customer) => {
+    const matchesSearch =
       customer.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer.email.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+      customer.email.toLowerCase().includes(searchQuery.toLowerCase());
+
+    let matchesJoinDate = true;
+    if (joinDateFilter !== "all") {
+      const joinDate = new Date(customer.created_at);
+      const now = new Date();
+      if (joinDateFilter === "week") {
+        const weekAgo = new Date(now);
+        weekAgo.setDate(now.getDate() - 7);
+        matchesJoinDate = joinDate >= weekAgo;
+      } else if (joinDateFilter === "month") {
+        const monthAgo = new Date(now);
+        monthAgo.setMonth(now.getMonth() - 1);
+        matchesJoinDate = joinDate >= monthAgo;
+      } else if (joinDateFilter === "year") {
+        const yearAgo = new Date(now);
+        yearAgo.setFullYear(now.getFullYear() - 1);
+        matchesJoinDate = joinDate >= yearAgo;
+      }
+    }
+
+    let matchesOrders = true;
+    if (ordersFilter === "none") matchesOrders = customer.total_orders === 0;
+    else if (ordersFilter === "has_orders") matchesOrders = customer.total_orders > 0;
+    else if (ordersFilter === "5plus") matchesOrders = customer.total_orders >= 5;
+
+    return matchesSearch && matchesJoinDate && matchesOrders;
+  });
+
+  const hasActiveFilters = joinDateFilter !== "all" || ordersFilter !== "all";
+
+  const clearFilters = () => {
+    setJoinDateFilter("all");
+    setOrdersFilter("all");
+    setSearchQuery("");
+  };
+
+  const pagination = usePagination(filteredCustomers, { pageSize: 10 });
 
   if (isLoading) {
     return (
@@ -110,14 +158,49 @@ export function Customers() {
       >
         <Card className="glass border-foreground/10 shadow-soft">
           <CardHeader>
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search customers..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-11 h-12 rounded-full border-foreground/10 bg-background/50"
-              />
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search customers..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-11 h-12 rounded-full border-foreground/10 bg-background/50"
+                />
+              </div>
+              <Select value={joinDateFilter} onValueChange={setJoinDateFilter}>
+                <SelectTrigger className="h-12 w-full rounded-full border-foreground/10 bg-background/50 sm:w-[160px] text-xs uppercase tracking-wider">
+                  <SelectValue placeholder="Joined" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Time</SelectItem>
+                  <SelectItem value="week">Last 7 Days</SelectItem>
+                  <SelectItem value="month">Last 30 Days</SelectItem>
+                  <SelectItem value="year">Last Year</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={ordersFilter} onValueChange={setOrdersFilter}>
+                <SelectTrigger className="h-12 w-full rounded-full border-foreground/10 bg-background/50 sm:w-[160px] text-xs uppercase tracking-wider">
+                  <SelectValue placeholder="Orders" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Customers</SelectItem>
+                  <SelectItem value="none">No Orders</SelectItem>
+                  <SelectItem value="has_orders">Has Orders</SelectItem>
+                  <SelectItem value="5plus">5+ Orders</SelectItem>
+                </SelectContent>
+              </Select>
+              {(hasActiveFilters || searchQuery) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="h-12 rounded-full px-4 text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground"
+                >
+                  <X className="mr-1 h-3 w-3" />
+                  Clear
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent>
@@ -145,7 +228,7 @@ export function Customers() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredCustomers.map((customer) => (
+                {pagination.paginatedItems.map((customer) => (
                   <TableRow
                     key={customer.id}
                     className="border-foreground/5 hover:bg-foreground/[0.02] transition cursor-pointer"
@@ -189,6 +272,23 @@ export function Customers() {
                 ))}
               </TableBody>
             </Table>
+
+            {/* Pagination */}
+            {pagination.totalPages > 1 && (
+              <div className="mt-6 flex flex-col items-center gap-2 border-t border-foreground/5 pt-6">
+                <PaginationControls
+                  currentPage={pagination.currentPage}
+                  totalPages={pagination.totalPages}
+                  canGoPrev={pagination.canGoPrev}
+                  canGoNext={pagination.canGoNext}
+                  onPageChange={pagination.setPage}
+                  getPageNumbers={pagination.getPageNumbers}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {filteredCustomers.length} customer{filteredCustomers.length !== 1 ? 's' : ''} &middot; Page {pagination.currentPage} of {pagination.totalPages}
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>

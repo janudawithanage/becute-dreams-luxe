@@ -1,8 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
 import {
   Table,
   TableBody,
@@ -12,7 +19,7 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
-import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Eye, X } from "lucide-react";
 import { useProductsStore } from "@/features/products";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -27,10 +34,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/shared/components/ui/alert-dialog";
+import { usePagination } from "@/shared/hooks";
+import { PaginationControls } from "@/shared/components/ui/PaginationControls";
 
 export function Products() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const products = useProductsStore((s) => s.products);
   const fetchProducts = useProductsStore((s) => s.fetchProducts);
@@ -41,11 +51,34 @@ export function Products() {
     fetchProducts();
   }, [fetchProducts]);
 
-  const filteredProducts = products.filter(
-    (product) =>
+  // Unique categories for filter dropdown
+  const categories = useMemo(() => {
+    const seen = new Map<string, string>();
+    products.forEach((p) => {
+      if (p.category?.id && p.category?.name) {
+        seen.set(p.category.id, p.category.name);
+      }
+    });
+    return Array.from(seen.entries()).map(([id, name]) => ({ id, name }));
+  }, [products]);
+
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch =
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.slug.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+      product.slug.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      categoryFilter === "all" || product.category?.id === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
+
+  const hasActiveFilters = categoryFilter !== "all";
+
+  const clearFilters = () => {
+    setCategoryFilter("all");
+    setSearchQuery("");
+  };
+
+  const pagination = usePagination(filteredProducts, { pageSize: 10 });
 
   const handleDelete = async () => {
     if (deleteId) {
@@ -106,14 +139,40 @@ export function Products() {
         >
           <Card className="glass border-foreground/10 shadow-soft">
             <CardHeader>
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-11 h-12 rounded-full border-foreground/10 bg-background/50"
-                />
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="relative flex-1">
+                  <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Search products..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-11 h-12 rounded-full border-foreground/10 bg-background/50"
+                  />
+                </div>
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="h-12 w-full rounded-full border-foreground/10 bg-background/50 sm:w-[180px] text-xs uppercase tracking-wider">
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {(hasActiveFilters || searchQuery) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="h-12 rounded-full px-4 text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="mr-1 h-3 w-3" />
+                    Clear
+                  </Button>
+                )}
               </div>
             </CardHeader>
             <CardContent>
@@ -135,7 +194,7 @@ export function Products() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredProducts.map((product) => (
+                  {pagination.paginatedItems.map((product) => (
                     <TableRow
                       key={product.id}
                       className="border-foreground/5 hover:bg-foreground/[0.02] transition"
@@ -201,6 +260,23 @@ export function Products() {
                   ))}
                 </TableBody>
               </Table>
+
+              {/* Pagination */}
+              {pagination.totalPages > 1 && (
+                <div className="mt-6 flex flex-col items-center gap-2 border-t border-foreground/5 pt-6">
+                  <PaginationControls
+                    currentPage={pagination.currentPage}
+                    totalPages={pagination.totalPages}
+                    canGoPrev={pagination.canGoPrev}
+                    canGoNext={pagination.canGoNext}
+                    onPageChange={pagination.setPage}
+                    getPageNumbers={pagination.getPageNumbers}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} &middot; Page {pagination.currentPage} of {pagination.totalPages}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>

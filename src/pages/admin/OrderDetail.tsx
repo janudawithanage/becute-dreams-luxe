@@ -1,8 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
-import { Input } from "@/shared/components/ui/input";
-import { Textarea } from "@/shared/components/ui/textarea";
 import { Label } from "@/shared/components/ui/label";
 import {
   Select,
@@ -12,6 +10,7 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select";
 import { ArrowLeft, Package, Truck, CheckCircle, XCircle, Clock } from "lucide-react";
+import { SendEmailDialog } from "@/components/admin/SendEmailDialog";
 import { useNavigate, useParams } from "react-router-dom";
 import { useOrdersStore, type OrderStatus, type OrderWithItems } from "@/features/orders";
 import { format } from "date-fns";
@@ -26,7 +25,6 @@ export function OrderDetail() {
   const [order, setOrder] = useState<OrderWithItems | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [newStatus, setNewStatus] = useState<OrderStatus | "">("");
-  const [statusNote, setStatusNote] = useState("");
 
   useEffect(() => {
     if (id) {
@@ -47,7 +45,6 @@ export function OrderDetail() {
       await updateOrderStatus(order.id, newStatus as OrderStatus);
       toast.success("Order status updated successfully");
       setNewStatus("");
-      setStatusNote("");
       // Refresh order data
       const updatedOrder = await getOrderById(order.id);
       setOrder(updatedOrder);
@@ -302,12 +299,12 @@ export function OrderDetail() {
                 </Button>
 
                 <div className="pt-4 border-t border-foreground/10 space-y-3">
-                  <Button
-                    variant="outline"
-                    className="w-full h-12 rounded-full border-foreground/20 text-xs uppercase tracking-[0.2em] hover:border-foreground"
-                  >
-                    Send Email to Customer
-                  </Button>
+                  <SendEmailDialog
+                    customerEmail={order.customer_email}
+                    customerName={order.customer_name}
+                    orderNumber={order.order_number}
+                    currentStatus={order.status}
+                  />
                   <Button
                     variant="outline"
                     className="w-full h-12 rounded-full border-foreground/20 text-xs uppercase tracking-[0.2em] hover:border-foreground"
