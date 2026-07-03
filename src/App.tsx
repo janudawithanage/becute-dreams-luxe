@@ -30,6 +30,8 @@ import { AdminCategories } from "@/pages/admin/AdminCategories";
 import { CategoryForm } from "@/pages/admin/CategoryForm";
 import { AdminCollections } from "@/pages/admin/AdminCollections";
 import { CollectionForm } from "@/pages/admin/CollectionForm";
+import { AdminGallery } from "@/pages/admin/AdminGallery";
+import { GalleryForm } from "@/pages/admin/GalleryForm";
 import { Orders } from "@/pages/admin/Orders";
 import { OrderDetail as AdminOrderDetail } from "@/pages/admin/OrderDetail";
 import { Customers } from "@/pages/admin/Customers";
@@ -91,6 +93,9 @@ export default function App() {
           <Route path="collections" element={<AdminCollections />} />
           <Route path="collections/new" element={<CollectionForm />} />
           <Route path="collections/:id/edit" element={<CollectionForm />} />
+          <Route path="gallery" element={<AdminGallery />} />
+          <Route path="gallery/new" element={<GalleryForm />} />
+          <Route path="gallery/:id/edit" element={<GalleryForm />} />
           <Route path="orders" element={<Orders />} />
           <Route path="orders/:id" element={<AdminOrderDetail />} />
           <Route path="customers" element={<Customers />} />

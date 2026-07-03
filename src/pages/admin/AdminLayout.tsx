@@ -11,6 +11,7 @@ import {
   Sparkles,
   Layers,
   Tag,
+  Image,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/shared/utils/cn";
@@ -22,6 +23,7 @@ const navigation = [
   { name: "Products", href: "/admin/products", icon: Package },
   { name: "Categories", href: "/admin/categories", icon: Tag },
   { name: "Collections", href: "/admin/collections", icon: Layers },
+  { name: "Gallery", href: "/admin/gallery", icon: Image },
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { name: "Customers", href: "/admin/customers", icon: Users },
   { name: "Settings", href: "/admin/settings", icon: Settings },
