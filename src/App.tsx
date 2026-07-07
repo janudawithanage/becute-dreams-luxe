@@ -5,8 +5,6 @@ import { ProtectedRoute } from "@/shared/components/auth/ProtectedRoute";
 import { Toaster } from "@/shared/components/ui/sonner";
 import { useAuthStore } from '@/features/auth';
 import { useCart } from '@/features/cart';
-import './test-env';
-
 // Public pages — lazy loaded so each route gets its own chunk
 const Home = lazy(() => import("@/pages/Home").then(m => ({ default: m.Home })));
 const Shop = lazy(() => import("@/pages/Shop").then(m => ({ default: m.Shop })));
