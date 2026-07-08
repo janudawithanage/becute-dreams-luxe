@@ -31,37 +31,185 @@ export const adminService = {
   // Dashboard Stats
   async getDashboardStats() {
     try {
-      // Get total orders
-      const { count: ordersCount } = await supabase
-        .from('orders')
-        .select('id', { count: 'exact', head: true });
+      // Run all count/aggregation queries in parallel
+      const [
+        { count: ordersCount },
+        { count: productsCount },
+        { count: customersCount },
+        { count: pendingCount },
+        { data: revenueRows },
+        // Previous month stats for change calculation
+        { data: lastMonthRevRows },
+        { count: lastMonthOrdersCount },
+      ] = await Promise.all([
+        supabase.from('orders').select('id', { count: 'exact', head: true }),
+        supabase.from('products').select('id', { count: 'exact', head: true }),
+        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'customer'),
+        supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('orders').select('total, created_at'),
+        // last calendar month
+        supabase
+          .from('orders')
+          .select('total')
+          .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1).toISOString())
+          .lt('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
+        supabase
+          .from('orders')
+          .select('id', { count: 'exact', head: true })
+          .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1).toISOString())
+          .lt('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
+      ]);
 
-      // Get total products
-      const { count: productsCount } = await supabase
-        .from('products')
-        .select('id', { count: 'exact', head: true });
+      const totalRevenue = revenueRows?.reduce((sum, o) => sum + Number(o.total), 0) || 0;
 
-      // Get total revenue
-      const { data: orders } = await supabase
-        .from('orders')
-        .select('total');
+      // Current month revenue
+      const now = new Date();
+      const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const currentMonthRevenue = (revenueRows || [])
+        .filter((o) => o.created_at >= currentMonthStart)
+        .reduce((sum, o) => sum + Number(o.total), 0);
 
-      const totalRevenue = orders?.reduce((sum, order) => sum + Number(order.total), 0) || 0;
+      const lastMonthRevenue = (lastMonthRevRows || []).reduce((sum, o) => sum + Number(o.total), 0);
+      const revenueChange = lastMonthRevenue > 0
+        ? ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100
+        : 0;
 
-      // Get pending orders
-      const { count: pendingCount } = await supabase
-        .from('orders')
-        .select('id', { count: 'exact', head: true })
-        .eq('status', 'pending');
+      const ordersChange = (lastMonthOrdersCount || 0) > 0
+        ? (((ordersCount || 0) - (lastMonthOrdersCount || 0)) / (lastMonthOrdersCount || 0)) * 100
+        : 0;
 
       return {
         totalOrders: ordersCount || 0,
         totalProducts: productsCount || 0,
         totalRevenue,
         pendingOrders: pendingCount || 0,
+        totalCustomers: customersCount || 0,
+        revenueChange: parseFloat(revenueChange.toFixed(1)),
+        ordersChange: parseFloat(ordersChange.toFixed(1)),
       };
     } catch (error) {
       console.error('Failed to fetch dashboard stats:', error);
+      throw error;
+    }
+  },
+
+  // Top selling products by quantity sold (from order_items)
+  async getTopSellingProducts(limit = 5) {
+    try {
+      const { data, error } = await supabase
+        .from('order_items')
+        .select(`
+          product_id,
+          product_name,
+          product_image_url,
+          quantity,
+          subtotal
+        `);
+
+      if (error) throw error;
+
+      // Aggregate by product_id in JS
+      const productMap = new Map<string, {
+        product_id: string | null;
+        product_name: string;
+        product_image_url: string | null;
+        total_quantity: number;
+        total_revenue: number;
+      }>();
+
+      for (const item of data || []) {
+        const key = item.product_id ?? item.product_name;
+        const existing = productMap.get(key);
+        if (existing) {
+          existing.total_quantity += item.quantity;
+          existing.total_revenue += Number(item.subtotal);
+        } else {
+          productMap.set(key, {
+            product_id: item.product_id,
+            product_name: item.product_name,
+            product_image_url: item.product_image_url,
+            total_quantity: item.quantity,
+            total_revenue: Number(item.subtotal),
+          });
+        }
+      }
+
+      const sorted = Array.from(productMap.values())
+        .sort((a, b) => b.total_quantity - a.total_quantity)
+        .slice(0, limit);
+
+      // Fetch current stock for each product
+      const productIds = sorted
+        .filter((p) => p.product_id)
+        .map((p) => p.product_id as string);
+
+      let stockMap = new Map<string, number>();
+      if (productIds.length > 0) {
+        const { data: stockData } = await supabase
+          .from('products')
+          .select('id, stock_quantity')
+          .in('id', productIds);
+
+        for (const p of stockData || []) {
+          stockMap.set(p.id, p.stock_quantity);
+        }
+      }
+
+      return sorted.map((p, index) => ({
+        rank: index + 1,
+        product_id: p.product_id,
+        product_name: p.product_name,
+        product_image_url: p.product_image_url,
+        total_quantity: p.total_quantity,
+        total_revenue: parseFloat(p.total_revenue.toFixed(2)),
+        current_stock: p.product_id ? (stockMap.get(p.product_id) ?? null) : null,
+      }));
+    } catch (error) {
+      console.error('Failed to fetch top selling products:', error);
+      throw error;
+    }
+  },
+
+  // Low stock products (stock_quantity <= threshold)
+  async getLowStockProducts(threshold = 5) {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, name, image_url, stock_quantity, in_stock')
+        .lte('stock_quantity', threshold)
+        .order('stock_quantity', { ascending: true })
+        .limit(8);
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Failed to fetch low stock products:', error);
+      throw error;
+    }
+  },
+
+  // Order status breakdown counts
+  async getOrderStatusBreakdown() {
+    try {
+      const statuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'] as const;
+      const results = await Promise.all(
+        statuses.map((status) =>
+          supabase
+            .from('orders')
+            .select('id', { count: 'exact', head: true })
+            .eq('status', status)
+        )
+      );
+
+      return statuses.reduce(
+        (acc, status, i) => {
+          acc[status] = results[i].count || 0;
+          return acc;
+        },
+        {} as Record<(typeof statuses)[number], number>
+      );
+    } catch (error) {
+      console.error('Failed to fetch order status breakdown:', error);
       throw error;
     }
   },
