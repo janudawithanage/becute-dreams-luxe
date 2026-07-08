@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, ShoppingBag, X } from "lucide-react";
 import { useProductsStore } from "@/features/products";
 import { useCategoriesStore } from "@/features/categories";
-import { useCollectionsStore } from "@/features/collections";
 import { useCart } from "@/features/cart";
 import { useAuthStore } from "@/features/auth";
 import { Link } from "react-router-dom";
@@ -18,10 +17,8 @@ export function Shop() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const categorySlug = searchParams.get("category") || undefined;
-  const collectionSlug = searchParams.get("collection") || undefined;
   const q = searchParams.get("q") || undefined;
   const [query, setQuery] = useState(q ?? "");
-  const [searchOpen, setSearchOpen] = useState(false);
 
   const add = useCart((s) => s.add);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -30,21 +27,13 @@ export function Shop() {
   const categories = useCategoriesStore((s) => s.categories);
   const fetchCategories = useCategoriesStore((s) => s.fetchCategories);
 
-  const collections = useCollectionsStore((s) => s.collections);
-  const fetchCollections = useCollectionsStore((s) => s.fetchCollections);
-
   useEffect(() => {
     fetchProducts({ inStock: true });
     fetchCategories();
-    fetchCollections();
-  }, [fetchProducts, fetchCategories, fetchCollections]);
+  }, [fetchProducts, fetchCategories]);
 
   const filtered = products.filter((p) => {
     if (categorySlug && p.category?.slug !== categorySlug) return false;
-    if (collectionSlug) {
-      const hasCollection = p.collections?.some((c) => c.slug === collectionSlug);
-      if (!hasCollection) return false;
-    }
     if (query && !p.name.toLowerCase().includes(query.toLowerCase())) return false;
     return true;
   });
@@ -53,21 +42,17 @@ export function Shop() {
 
   // Reset to page 1 whenever filters change
   const prevFilterKey = useRef('');
-  const filterKey = `${categorySlug}|${collectionSlug}|${query}`;
+  const filterKey = `${categorySlug}|${query}`;
   if (filterKey !== prevFilterKey.current) {
     prevFilterKey.current = filterKey;
     if (pagination.currentPage !== 1) pagination.setPage(1);
   }
 
-  const updateSearch = (updates: { category?: string; collection?: string; q?: string }) => {
+  const updateSearch = (updates: { category?: string; q?: string }) => {
     const newParams = new URLSearchParams(searchParams);
     if (updates.category !== undefined) {
       if (updates.category) newParams.set("category", updates.category);
       else newParams.delete("category");
-    }
-    if (updates.collection !== undefined) {
-      if (updates.collection) newParams.set("collection", updates.collection);
-      else newParams.delete("collection");
     }
     if (updates.q !== undefined) {
       if (updates.q) newParams.set("q", updates.q);
@@ -106,7 +91,7 @@ export function Shop() {
     );
   }
 
-  const hasFilter = Boolean(categorySlug || collectionSlug || query);
+  const hasFilter = Boolean(categorySlug || query);
 
   return (
     <div className="page-enter mx-auto max-w-[1400px] px-6 py-16 lg:px-12 lg:py-24">
@@ -171,9 +156,9 @@ export function Shop() {
         className="mt-10 flex flex-wrap gap-2"
       >
         <button
-          onClick={() => updateSearch({ category: undefined, collection: undefined })}
+          onClick={() => updateSearch({ category: undefined })}
           className={`rounded-full border px-5 py-2 text-xs uppercase tracking-[0.2em] transition-all duration-300 ${
-            !categorySlug && !collectionSlug
+            !categorySlug
               ? "border-foreground bg-foreground text-background"
               : "border-foreground/15 hover:border-foreground/40"
           }`}
@@ -184,27 +169,9 @@ export function Shop() {
         {categories.map((c) => (
           <button
             key={`cat-${c.id}`}
-            onClick={() => updateSearch({ category: c.slug, collection: undefined })}
+            onClick={() => updateSearch({ category: c.slug })}
             className={`rounded-full border px-5 py-2 text-xs uppercase tracking-[0.2em] transition-all duration-300 ${
               categorySlug === c.slug
-                ? "border-foreground bg-foreground text-background"
-                : "border-foreground/15 hover:border-foreground/40"
-            }`}
-          >
-            {c.name}
-          </button>
-        ))}
-
-        {categories.length > 0 && collections.length > 0 && (
-          <div className="w-px bg-foreground/15 self-stretch" />
-        )}
-
-        {collections.map((c) => (
-          <button
-            key={`col-${c.id}`}
-            onClick={() => updateSearch({ collection: c.slug, category: undefined })}
-            className={`rounded-full border px-5 py-2 text-xs uppercase tracking-[0.2em] transition-all duration-300 ${
-              collectionSlug === c.slug
                 ? "border-foreground bg-foreground text-background"
                 : "border-foreground/15 hover:border-foreground/40"
             }`}
@@ -242,7 +209,7 @@ export function Shop() {
               <button
                 onClick={() => {
                   setQuery("");
-                  updateSearch({ category: undefined, collection: undefined, q: undefined });
+                  updateSearch({ category: undefined, q: undefined });
                 }}
                 className="mt-6 text-xs uppercase tracking-[0.25em] text-foreground/60 hover:text-foreground transition"
               >
