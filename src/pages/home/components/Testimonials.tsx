@@ -1,29 +1,74 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { reviewsService, type Review } from "@/features/reviews";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-const quotes = [
-  {
-    q: "It feels like opening a small piece of someone's diary. Absolutely in love.",
-    a: "Mia",
-    location: "Paris",
-    rating: 5,
-  },
-  {
-    q: "The quality is honestly unreal. Everything is so softly luxurious.",
-    a: "Hana",
-    location: "Tokyo",
-    rating: 5,
-  },
-  {
-    q: "I gift Becute packs to all my best friends. It's our love language now.",
-    a: "Sara",
-    location: "Cairo",
-    rating: 5,
-  },
-];
+function ReviewCard({
+  q,
+  a,
+  location,
+  rating,
+  index,
+}: {
+  q: string;
+  a: string;
+  location: string | null;
+  rating: number;
+  index: number;
+}) {
+  return (
+    <motion.figure
+      initial={{ y: 30, opacity: 0 }}
+      whileInView={{ y: 0, opacity: 1 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.8, ease, delay: index * 0.12 }}
+      whileHover={{ y: -4 }}
+      className="glass rounded-3xl p-8 transition-shadow duration-500 hover:shadow-luxe"
+    >
+      <div className="flex gap-1">
+        {Array.from({ length: rating }).map((_, si) => (
+          <span key={si} className="text-gold text-sm">★</span>
+        ))}
+      </div>
+
+      <span className="mt-4 block font-display text-6xl leading-none text-foreground/20">"</span>
+      <blockquote className="-mt-4 font-display text-2xl leading-snug text-balance">{q}</blockquote>
+
+      <figcaption className="mt-8 flex items-center gap-3">
+        <div
+          className="h-8 w-8 rounded-full flex items-center justify-center text-background text-xs font-medium shrink-0"
+          style={{ background: "var(--gradient-ink)" }}
+        >
+          {a[0]}
+        </div>
+        <div>
+          <p className="text-xs font-medium">{a}</p>
+          {location && (
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{location}</p>
+          )}
+        </div>
+      </figcaption>
+    </motion.figure>
+  );
+}
 
 export function Testimonials() {
+  const [reviews, setReviews] = useState<Review[] | null>(null);
+
+  useEffect(() => {
+    reviewsService
+      .getDisplayReviews()
+      .then(setReviews)
+      .catch(() => setReviews([]));
+  }, []);
+
+  // Still loading — render nothing to avoid layout shift
+  if (reviews === null) return null;
+
+  // Admin hasn't marked any reviews for display yet — hide the section entirely
+  if (reviews.length === 0) return null;
+
   return (
     <section className="bg-gradient-blush py-24 lg:py-32">
       <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
@@ -47,45 +92,15 @@ export function Testimonials() {
         </motion.h2>
 
         <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-3">
-          {quotes.map((t, i) => (
-            <motion.figure
-              key={i}
-              initial={{ y: 30, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.8, ease, delay: i * 0.12 }}
-              whileHover={{ y: -4 }}
-              className="glass rounded-3xl p-8 transition-shadow duration-500 hover:shadow-luxe"
-            >
-              {/* Stars */}
-              <div className="flex gap-1">
-                {Array.from({ length: t.rating }).map((_, si) => (
-                  <span key={si} className="text-gold text-sm">★</span>
-                ))}
-              </div>
-
-              <span className="mt-4 block font-display text-6xl leading-none text-foreground/20">
-                "
-              </span>
-              <blockquote className="-mt-4 font-display text-2xl leading-snug text-balance">
-                {t.q}
-              </blockquote>
-              <figcaption className="mt-8 flex items-center gap-3">
-                {/* Avatar placeholder */}
-                <div
-                  className="h-8 w-8 rounded-full flex items-center justify-center text-background text-xs font-medium"
-                  style={{ background: "var(--gradient-ink)" }}
-                >
-                  {t.a[0]}
-                </div>
-                <div>
-                  <p className="text-xs font-medium">{t.a}</p>
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                    {t.location}
-                  </p>
-                </div>
-              </figcaption>
-            </motion.figure>
+          {reviews.map((r, i) => (
+            <ReviewCard
+              key={r.id}
+              q={r.body}
+              a={r.customer_name}
+              location={r.customer_location}
+              rating={r.rating}
+              index={i}
+            />
           ))}
         </div>
       </div>

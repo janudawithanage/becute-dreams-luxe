@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { OrderWithItems, OrderItem } from "@/features/orders/orders.service";
+import { ReviewForm } from "@/features/reviews/components/ReviewForm";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -269,6 +270,11 @@ export function OrderDetail() {
           </div>
         </motion.div>
       </div>
+
+      {/* Review section — only for delivered orders */}
+      {order.status === "delivered" && user && (
+        <ReviewForm orderId={order.id} user={user} />
+      )}
     </div>
   );
 }

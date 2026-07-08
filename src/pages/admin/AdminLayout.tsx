@@ -12,6 +12,7 @@ import {
   Layers,
   Tag,
   Image,
+  MessageSquare,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/shared/utils/cn";
@@ -26,6 +27,7 @@ const navigation = [
   { name: "Gallery", href: "/admin/gallery", icon: Image },
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { name: "Customers", href: "/admin/customers", icon: Users },
+  { name: "Reviews", href: "/admin/reviews", icon: MessageSquare },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
