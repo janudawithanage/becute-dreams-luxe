@@ -10,7 +10,7 @@ const stats = [
   ["06", "Years of soft work"],
   ["100%", "Small-batch made"],
   ["320+", "Unique designs"],
-  ["12k", "Soft hearts"],
+  ["500+", "Soft hearts"],
 ];
 
 const values = [

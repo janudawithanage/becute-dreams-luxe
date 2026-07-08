@@ -101,7 +101,7 @@ export function Hero() {
             className="mt-16 grid max-w-md grid-cols-3 gap-6 text-xs"
           >
             {[
-              ["12k+", "Soft hearts"],
+              ["500+", "Soft hearts"],
               ["320+", "Designs"],
               ["4.9★", "Adored"],
             ].map(([n, l]) => (
