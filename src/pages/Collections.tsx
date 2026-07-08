@@ -106,21 +106,46 @@ export function Collections() {
                           {String((pagination.currentPage - 1) * pagination.pageSize + i + 1).padStart(2, "0")}
                         </span>
                       </div>
+                      {/* discount badge on image */}
+                      {collection.discount_percentage != null && collection.discount_percentage > 0 && (
+                        <div className="absolute right-4 top-4">
+                          <div className="flex flex-col items-center justify-center rounded-full bg-rose-500 shadow-lg h-16 w-16">
+                            <span className="font-bold text-white text-xl leading-none">
+                              {collection.discount_percentage}%
+                            </span>
+                            <span className="text-[9px] uppercase tracking-widest text-white/90 leading-none mt-0.5">
+                              off
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   {/* Text */}
                   <div className="flex items-center justify-between px-8 py-8 md:col-span-7 md:px-12 md:py-12">
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                        Collection
-                      </p>
+                      <div className="flex items-center gap-3">
+                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                          Collection
+                        </p>
+                        {collection.discount_percentage != null && collection.discount_percentage > 0 && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-rose-500 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-white shadow-sm">
+                            {collection.discount_percentage}% off
+                          </span>
+                        )}
+                      </div>
                       <h3 className="mt-2 font-display text-4xl leading-tight lg:text-6xl">
                         {collection.name}
                       </h3>
                       {collection.description && (
                         <p className="mt-3 max-w-md text-sm leading-relaxed text-foreground/70">
                           {collection.description}
+                        </p>
+                      )}
+                      {collection.discount_percentage != null && collection.discount_percentage > 0 && (
+                        <p className="mt-3 text-xs text-rose-500 font-medium">
+                          Get {collection.discount_percentage}% off when you order this full collection
                         </p>
                       )}
                       <p className="mt-6 text-xs uppercase tracking-[0.25em] text-muted-foreground transition group-hover:text-foreground">

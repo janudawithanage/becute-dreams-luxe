@@ -1,21 +1,15 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ShoppingBag, Plus, Minus, Trash2, Tag, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ShoppingBag, Plus, Minus, Tag, ArrowUpRight, Package } from "lucide-react";
 import { useCollectionsStore } from "@/features/collections";
 import { useProductsStore } from "@/features/products";
 import { useCart } from "@/features/cart";
 import { useAuthStore } from "@/features/auth";
 import { getOptimizedImageUrl } from "@/lib/cloudinary";
-import type { Product } from "@/features/products/products.service";
 import type { Collection } from "@/features/collections";
 
 const ease = [0.22, 1, 0.36, 1] as const;
-
-interface CollectionItem {
-  product: Product;
-  qty: number;
-}
 
 export function CollectionDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -23,7 +17,8 @@ export function CollectionDetail() {
 
   const [collection, setCollection] = useState<Collection | null>(null);
   const [collectionLoading, setCollectionLoading] = useState(true);
-  const [selectionItems, setSelectionItems] = useState<CollectionItem[]>([]);
+  // bundleQty = how many times the customer wants the full collection
+  const [bundleQty, setBundleQty] = useState(1);
   const [isAddingAll, setIsAddingAll] = useState(false);
 
   const getCollectionBySlug = useCollectionsStore((s) => s.getCollectionBySlug);
@@ -51,44 +46,14 @@ export function CollectionDetail() {
     fetchProducts({ inStock: true });
   }, [fetchProducts]);
 
-  // Filter products belonging to this collection and init selection
+  // All products belonging to this collection — all included, no picking
   const collectionProducts = products.filter((p) =>
     p.collections?.some((c) => c.slug === slug)
   );
 
-  // Initialise selection when products load
-  useEffect(() => {
-    if (collectionProducts.length > 0 && selectionItems.length === 0) {
-      setSelectionItems(collectionProducts.map((p) => ({ product: p, qty: 1 })));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [collectionProducts.length]);
-
-  const setItemQty = (productId: string, qty: number) => {
-    setSelectionItems((prev) =>
-      prev.map((item) =>
-        item.product.id === productId ? { ...item, qty: Math.max(0, qty) } : item
-      )
-    );
-  };
-
-  const removeItem = (productId: string) => {
-    setSelectionItems((prev) => prev.filter((item) => item.product.id !== productId));
-  };
-
-  const addItem = (product: Product) => {
-    setSelectionItems((prev) => {
-      const existing = prev.find((i) => i.product.id === product.id);
-      if (existing) {
-        return prev.map((i) => (i.product.id === product.id ? { ...i, qty: i.qty + 1 } : i));
-      }
-      return [...prev, { product, qty: 1 }];
-    });
-  };
-
-  const activeItems = selectionItems.filter((i) => i.qty > 0);
-
-  const rawTotal = activeItems.reduce((sum, i) => sum + i.product.price * i.qty, 0);
+  // Per-item price × bundleQty for each product (qty is always 1 per item per bundle)
+  const singleBundleTotal = collectionProducts.reduce((sum, p) => sum + p.price, 0);
+  const rawTotal = singleBundleTotal * bundleQty;
   const discount = collection?.discount_percentage ?? 0;
   const discountAmount = (rawTotal * discount) / 100;
   const finalTotal = rawTotal - discountAmount;
@@ -104,12 +69,12 @@ export function CollectionDetail() {
       return;
     }
 
-    if (activeItems.length === 0) return;
+    if (collectionProducts.length === 0) return;
 
     setIsAddingAll(true);
     try {
-      for (const item of activeItems) {
-        await add(item.product, item.qty);
+      for (const product of collectionProducts) {
+        await add(product, bundleQty);
       }
       setOpen(true);
     } finally {
@@ -248,10 +213,6 @@ export function CollectionDetail() {
               </motion.p>
               <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3">
                 {collectionProducts.map((product, i) => {
-                  const selItem = selectionItems.find((s) => s.product.id === product.id);
-                  const qty = selItem?.qty ?? 0;
-                  const isInSelection = qty > 0;
-
                   return (
                     <motion.div
                       key={product.id}
@@ -272,51 +233,11 @@ export function CollectionDetail() {
                             className="h-full w-full object-cover transition duration-[1000ms] ease-out group-hover:scale-105"
                           />
                         </Link>
-
-                        {/* Qty overlay on hover / when selected */}
-                        <div
-                          className={`absolute inset-x-0 bottom-0 flex items-center justify-between rounded-b-2xl bg-background/95 px-3 py-2 backdrop-blur-sm transition-all duration-300 ${
-                            isInSelection
-                              ? "translate-y-0 opacity-100"
-                              : "translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => setItemQty(product.id, qty - 1)}
-                              aria-label="Decrease"
-                              className="flex h-7 w-7 items-center justify-center rounded-full border text-muted-foreground transition hover:bg-foreground hover:text-background"
-                            >
-                              <Minus className="h-3 w-3" />
-                            </button>
-                            <span className="w-4 text-center text-xs tabular-nums font-medium">
-                              {qty}
-                            </span>
-                            <button
-                              onClick={() => setItemQty(product.id, qty + 1)}
-                              aria-label="Increase"
-                              className="flex h-7 w-7 items-center justify-center rounded-full border text-muted-foreground transition hover:bg-foreground hover:text-background"
-                            >
-                              <Plus className="h-3 w-3" />
-                            </button>
-                          </div>
-                          {isInSelection ? (
-                            <button
-                              onClick={() => removeItem(product.id)}
-                              aria-label="Remove from selection"
-                              className="text-muted-foreground transition hover:text-destructive"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => addItem(product)}
-                              aria-label="Add to selection"
-                              className="text-muted-foreground transition hover:text-foreground"
-                            >
-                              <Plus className="h-3.5 w-3.5" />
-                            </button>
-                          )}
+                        {/* Included badge */}
+                        <div className="absolute left-3 top-3">
+                          <span className="rounded-full bg-background/90 px-2.5 py-1 text-[9px] uppercase tracking-widest text-foreground backdrop-blur-sm">
+                            Included
+                          </span>
                         </div>
                       </div>
 
@@ -355,151 +276,128 @@ export function CollectionDetail() {
                 className="sticky top-28 rounded-3xl border border-foreground/10 bg-background p-6 shadow-soft"
               >
                 <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                  Your selection
+                  Collection bundle
                 </p>
-                <h2 className="mt-1 font-display text-2xl">Collection order</h2>
+                <h2 className="mt-1 font-display text-2xl">{collection.name}</h2>
 
-                {/* Selected items */}
-                <div className="mt-6 space-y-3 max-h-[280px] overflow-y-auto pr-1">
-                  <AnimatePresence initial={false}>
-                    {activeItems.length === 0 ? (
-                      <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-sm text-muted-foreground py-4 text-center"
-                      >
-                        No items selected. Hover a product to set its quantity.
-                      </motion.p>
-                    ) : (
-                      activeItems.map((item) => (
-                        <motion.div
-                          key={item.product.id}
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.25, ease }}
-                          className="flex items-center gap-3 overflow-hidden"
-                        >
-                          <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-muted">
-                            <img
-                              src={getOptimizedImageUrl(item.product.image_url, {
-                                width: 80,
-                                format: "auto",
-                              })}
-                              alt={item.product.name}
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium">{item.product.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {item.qty} × Rs.{" "}
-                              {item.product.price.toLocaleString("en-LK", {
-                                minimumFractionDigits: 2,
-                              })}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              onClick={() => setItemQty(item.product.id, item.qty - 1)}
-                              className="flex h-6 w-6 items-center justify-center rounded-full border text-muted-foreground hover:bg-foreground hover:text-background transition"
-                              aria-label="Decrease"
-                            >
-                              <Minus className="h-2.5 w-2.5" />
-                            </button>
-                            <span className="w-3 text-center text-xs tabular-nums">
-                              {item.qty}
-                            </span>
-                            <button
-                              onClick={() => setItemQty(item.product.id, item.qty + 1)}
-                              className="flex h-6 w-6 items-center justify-center rounded-full border text-muted-foreground hover:bg-foreground hover:text-background transition"
-                              aria-label="Increase"
-                            >
-                              <Plus className="h-2.5 w-2.5" />
-                            </button>
-                          </div>
-                        </motion.div>
-                      ))
-                    )}
-                  </AnimatePresence>
+                {/* Items included list */}
+                <div className="mt-5 space-y-2 max-h-[200px] overflow-y-auto pr-1">
+                  {collectionProducts.map((product) => (
+                    <div key={product.id} className="flex items-center gap-2.5">
+                      <div className="h-8 w-8 shrink-0 overflow-hidden rounded-lg bg-muted">
+                        <img
+                          src={getOptimizedImageUrl(product.image_url, {
+                            width: 60,
+                            format: "auto",
+                          })}
+                          alt={product.name}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+                        {product.name}
+                      </p>
+                      <p className="shrink-0 text-xs tabular-nums">
+                        Rs.{" "}
+                        {product.price.toLocaleString("en-LK", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Bundle qty stepper */}
+                <div className="mt-6 flex items-center justify-between rounded-2xl border border-foreground/10 px-4 py-3">
+                  <div className="flex items-center gap-1.5">
+                    <Package className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    <span className="text-[11px] font-medium text-foreground">
+                      Quantity
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setBundleQty((q) => Math.max(1, q - 1))}
+                      disabled={bundleQty <= 1}
+                      aria-label="Decrease bundle quantity"
+                      className="flex h-8 w-8 items-center justify-center rounded-full border text-muted-foreground transition hover:bg-foreground hover:text-background disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      <Minus className="h-3 w-3" />
+                    </button>
+                    <span className="w-6 text-center text-sm font-semibold tabular-nums">
+                      {bundleQty}
+                    </span>
+                    <button
+                      onClick={() => setBundleQty((q) => q + 1)}
+                      aria-label="Increase bundle quantity"
+                      className="flex h-8 w-8 items-center justify-center rounded-full border text-muted-foreground transition hover:bg-foreground hover:text-background"
+                    >
+                      <Plus className="h-3 w-3" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Pricing */}
-                {activeItems.length > 0 && (
+                <AnimatePresence>
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="mt-6 space-y-2 border-t border-foreground/10 pt-4"
+                    className="mt-5 space-y-2.5 border-t border-foreground/10 pt-4"
                   >
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Subtotal</span>
-                      <span>
-                        Rs.{" "}
-                        {rawTotal.toLocaleString("en-LK", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs text-muted-foreground">
+                        {collectionProducts.length} item{collectionProducts.length !== 1 ? "s" : ""} × {bundleQty}
+                      </span>
+                      <span className="text-xs tabular-nums">
+                        Rs. {rawTotal.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
                     </div>
                     {discount > 0 && (
-                      <div className="flex items-center justify-between text-sm text-emerald-600">
-                        <span className="flex items-center gap-1.5">
-                          <Tag className="h-3.5 w-3.5" />
-                          Collection discount ({discount}%)
+                      <div className="flex items-start justify-between gap-3 text-emerald-600">
+                        <span className="flex items-center gap-1 text-xs">
+                          <Tag className="h-3 w-3 shrink-0 mt-px" />
+                          {discount}% discount
                         </span>
-                        <span>
-                          − Rs.{" "}
-                          {discountAmount.toLocaleString("en-LK", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
+                        <span className="text-xs tabular-nums shrink-0">
+                          − Rs. {discountAmount.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </div>
                     )}
-                    <div className="flex items-baseline justify-between border-t border-foreground/10 pt-3">
-                      <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                    <div className="flex items-baseline justify-between gap-2 border-t border-foreground/10 pt-3">
+                      <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground shrink-0">
                         Total
                       </span>
-                      <span className="font-display text-3xl">
-                        Rs.{" "}
-                        {finalTotal.toLocaleString("en-LK", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
+                      <span className="font-display text-2xl leading-none tabular-nums">
+                        Rs. {finalTotal.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
                     </div>
-                    {discount > 0 && (
-                      <p className="text-xs text-muted-foreground">
-                        Discount applied at checkout. Cart items are added at full price; present your collection order confirmation for the discount.
-                      </p>
-                    )}
                   </motion.div>
-                )}
+                </AnimatePresence>
 
                 {/* CTA */}
                 <button
                   onClick={handleAddToCart}
-                  disabled={activeItems.length === 0 || isAddingAll}
-                  className="mt-6 group flex h-14 w-full items-center justify-center gap-3 rounded-full bg-foreground pl-6 pr-4 text-xs uppercase tracking-[0.2em] text-background transition disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90"
+                  disabled={collectionProducts.length === 0 || isAddingAll}
+                  className="mt-6 group flex h-12 w-full items-center justify-between gap-2 rounded-full bg-foreground px-5 text-xs uppercase tracking-[0.15em] text-background transition disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90"
                 >
                   {isAddingAll ? (
-                    <span className="flex items-center gap-2">
+                    <span className="flex w-full items-center justify-center gap-2">
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-background/30 border-t-background" />
                       Adding…
                     </span>
                   ) : (
                     <>
-                      <ShoppingBag className="h-4 w-4" />
-                      Add to cart
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-background text-foreground transition group-hover:rotate-45 ml-auto">
+                      <ShoppingBag className="h-4 w-4 shrink-0" />
+                      <span className="flex-1 text-center">Add to cart</span>
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-background text-foreground transition group-hover:rotate-45">
                         <ArrowUpRight className="h-3.5 w-3.5" />
                       </span>
                     </>
                   )}
                 </button>
 
-                <p className="mt-3 text-center text-xs text-muted-foreground">
-                  Adjust quantities above before adding to cart
+                <p className="mt-3 text-center text-[11px] text-muted-foreground">
+                  All {collectionProducts.length} item{collectionProducts.length !== 1 ? "s" : ""} added · {bundleQty} set{bundleQty !== 1 ? "s" : ""}
                 </p>
               </motion.div>
             </div>
