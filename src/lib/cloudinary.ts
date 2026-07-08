@@ -76,10 +76,36 @@ export function getOptimizedImageUrl(
   return `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/${transformation}/${publicIdOrUrl}`;
 }
 
-// Helper to delete images (requires backend/admin API)
-export async function deleteFromCloudinary(_publicId: string): Promise<void> {
-  console.warn('Delete requires backend API with API secret. Implement server-side endpoint.');
-  // This should be implemented via your backend/Supabase Edge Function
+// Helper to delete images via a Supabase Edge Function that holds the API secret.
+// Direct deletion from the browser is not possible — Cloudinary's destroy endpoint
+// requires the API secret which must never be exposed client-side.
+//
+// Deploy the edge function at: supabase/functions/delete-cloudinary-image/index.ts
+// It should call: cloudinary.uploader.destroy(publicId) with server-side credentials.
+export async function deleteFromCloudinary(publicId: string): Promise<void> {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase configuration is missing. Check your .env.local file.');
+  }
+
+  const response = await fetch(
+    `${supabaseUrl}/functions/v1/delete-cloudinary-image`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+      },
+      body: JSON.stringify({ publicId }),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to delete image: ${error}`);
+  }
 }
 
 // Backward compatibility - keep the old function name
