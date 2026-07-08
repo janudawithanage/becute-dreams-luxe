@@ -16,6 +16,7 @@ import {
 import { useEffect, useState } from "react";
 import type { OrderWithItems, OrderItem } from "@/features/orders/orders.service";
 import { ReviewForm } from "@/features/reviews/components/ReviewForm";
+import { formatLKR } from "@/shared/utils/format";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -187,11 +188,11 @@ export function OrderDetail() {
                 <div className="flex-1 min-w-0">
                   <p className="font-display leading-tight truncate">{item.product_name}</p>
                   <p className="text-xs text-muted-foreground">
-                    Rs. {item.price.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} × {item.quantity}
+                    {formatLKR(item.price)} × {item.quantity}
                   </p>
                 </div>
                 <p className="text-sm tabular-nums shrink-0">
-                  Rs. {(item.price * item.quantity).toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {formatLKR(item.price * item.quantity)}
                 </p>
               </div>
             ))}
@@ -200,20 +201,18 @@ export function OrderDetail() {
           <div className="mt-6 space-y-2.5 border-t pt-6">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Subtotal</span>
-              <span>Rs. {order.subtotal.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span>{formatLKR(order.subtotal)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Shipping</span>
               <span>
-                {order.shipping_cost === 0
-                  ? "Free"
-                  : `Rs. ${order.shipping_cost.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                {order.shipping_cost === 0 ? "Free" : formatLKR(order.shipping_cost)}
               </span>
             </div>
             <div className="flex items-baseline justify-between border-t pt-3">
               <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Total</span>
               <span className="font-display text-2xl">
-                Rs. {order.total.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {formatLKR(order.total)}
               </span>
             </div>
           </div>

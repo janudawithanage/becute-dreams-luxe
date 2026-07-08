@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { X, Minus, Plus, Trash2, ShoppingBag, ArrowUpRight } from "lucide-react";
 import { useCart } from "@/features/cart";
 import { getOptimizedImageUrl } from "@/lib/cloudinary";
+import { formatLKR } from "@/shared/utils/format";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -113,17 +114,11 @@ export function CartDrawer() {
                           <div className="flex items-start justify-between gap-2">
                             <p className="font-display text-lg leading-tight">{item.product.name}</p>
                             <p className="shrink-0 text-sm tabular-nums">
-                              Rs. {(item.product.price * item.quantity).toLocaleString("en-LK", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              })}
+                              {formatLKR(item.product.price * item.quantity)}
                             </p>
                           </div>
                           <p className="text-xs uppercase tracking-wider text-muted-foreground">
-                            Rs. {item.product.price.toLocaleString("en-LK", {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })} each
+                            {formatLKR(item.product.price)} each
                           </p>
                           <div className="mt-auto flex items-center justify-between pt-3">
                             <div className="flex items-center gap-3 rounded-full border px-3 py-1.5">
@@ -166,10 +161,7 @@ export function CartDrawer() {
                       Subtotal
                     </span>
                     <span className="font-display text-3xl">
-                      Rs. {total().toLocaleString("en-LK", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
+                      {formatLKR(total())}
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground">

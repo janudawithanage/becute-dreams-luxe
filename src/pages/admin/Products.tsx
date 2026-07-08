@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import {
@@ -24,6 +24,7 @@ import { useProductsStore } from "@/features/products";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { getOptimizedImageUrl } from "@/lib/cloudinary";
+import { formatLKR } from "@/shared/utils/format";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -227,7 +228,7 @@ export function Products() {
                       <TableCell className="capitalize text-sm">
                         {product.category?.name || 'Uncategorized'}
                       </TableCell>
-                      <TableCell className="font-display text-lg">Rs. {product.price.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                      <TableCell className="font-display text-lg">{formatLKR(product.price)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           <Button

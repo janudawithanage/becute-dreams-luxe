@@ -25,6 +25,7 @@ import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { usePagination } from "@/shared/hooks";
 import { PaginationControls } from "@/shared/components/ui/PaginationControls";
+import { formatLKR } from "@/shared/utils/format";
 
 const ORDER_STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled"] as const;
 
@@ -271,7 +272,7 @@ export function Orders() {
                       </Badge>
                     </TableCell>
                     <TableCell className="font-display text-lg">
-                      Rs. {order.total.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {formatLKR(order.total)}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button

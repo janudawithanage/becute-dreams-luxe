@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import { getOptimizedImageUrl } from "@/lib/cloudinary";
 import { usePagination } from "@/shared/hooks";
 import { PaginationControls } from "@/shared/components/ui/PaginationControls";
+import { formatLKR } from "@/shared/utils/format";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -321,11 +322,7 @@ export function Shop() {
                     <div className="mt-4 flex items-baseline justify-between gap-2">
                       <p className="font-display text-lg leading-tight">{p.name}</p>
                       <p className="shrink-0 text-sm tabular-nums">
-                        Rs.{" "}
-                        {p.price.toLocaleString("en-LK", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
+                        {formatLKR(p.price)}
                       </p>
                     </div>
                     {p.category && (

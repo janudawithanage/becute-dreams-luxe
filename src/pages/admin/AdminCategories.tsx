@@ -43,6 +43,7 @@ import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { getOptimizedImageUrl } from "@/lib/cloudinary";
+import { formatLKR } from "@/shared/utils/format";
 
 // ─── Category Products Sheet ──────────────────────────────────────────────────
 
@@ -221,10 +222,7 @@ function CategoryProductsSheet({ category, open, onClose }: CategoryProductsShee
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{product.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            Rs.{" "}
-                            {product.price.toLocaleString("en-LK", {
-                              minimumFractionDigits: 2,
-                            })}
+                            {formatLKR(product.price)}
                             {product.tags && product.tags.length > 0 && (
                               <span className="ml-2 opacity-60">· {product.tags[0]}</span>
                             )}
@@ -328,10 +326,7 @@ function CategoryProductsSheet({ category, open, onClose }: CategoryProductsShee
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium truncate">{product.name}</p>
                             <p className="text-xs text-muted-foreground">
-                              Rs.{" "}
-                              {product.price.toLocaleString("en-LK", {
-                                minimumFractionDigits: 2,
-                              })}
+                              {formatLKR(product.price)}
                               {product.category && (
                                 <span className="ml-2 opacity-60">
                                   · currently in {product.category.name}

@@ -4,6 +4,7 @@ import { useOrdersStore } from "@/features/orders";
 import { motion } from "framer-motion";
 import { Package, Clock, Truck, CheckCircle, XCircle, ShoppingBag, ArrowUpRight } from "lucide-react";
 import { useEffect } from "react";
+import { formatLKR } from "@/shared/utils/format";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -141,7 +142,7 @@ export function MyOrders() {
                         <p className="text-xs text-muted-foreground">× {item.quantity}</p>
                       </div>
                       <p className="text-sm tabular-nums shrink-0">
-                        Rs. {item.subtotal.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {formatLKR(item.subtotal)}
                       </p>
                     </div>
                   ))}
@@ -151,9 +152,9 @@ export function MyOrders() {
                 <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-foreground/8 pt-6">
                   <div>
                     <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Total</p>
-                    <p className="mt-0.5 font-display text-2xl">
-                      Rs. {order.total.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
+                      <p className="mt-0.5 font-display text-2xl">
+                        {formatLKR(order.total)}
+                      </p>
                   </div>
                   <Link
                     to={`/order/${order.id}`}

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useProductsStore } from "@/features/products";
 import { ShoppingBag } from "lucide-react";
 import { getOptimizedImageUrl } from "@/lib/cloudinary";
+import { formatLKR } from "@/shared/utils/format";
 
 export function Trending() {
   const products = useProductsStore((s) => s.products);
@@ -78,7 +79,7 @@ export function Trending() {
                 </div>
                 <div className="mt-5 flex items-baseline justify-between gap-3">
                   <p className="font-display text-xl leading-tight">{p.name}</p>
-                  <p className="text-sm tabular-nums">Rs. {p.price.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                  <p className="text-sm tabular-nums">{formatLKR(p.price)}</p>
                 </div>
                 <p className="mt-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">
                   {p.category?.name || 'Uncategorized'}

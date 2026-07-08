@@ -10,13 +10,14 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select";
 import { ArrowLeft, Package, Truck, CheckCircle, XCircle, Clock } from "lucide-react";
-import { SendEmailDialog } from "@/components/admin/SendEmailDialog";
+import { SendEmailDialog } from "@/shared/components/admin/SendEmailDialog";
 import { useNavigate, useParams } from "react-router-dom";
 import { useOrdersStore, type OrderStatus, type OrderWithItems } from "@/features/orders";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { formatLKR } from "@/shared/utils/format";
 
 export function OrderDetail() {
   const navigate = useNavigate();
@@ -184,7 +185,7 @@ export function OrderDetail() {
                         <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
                       </div>
                       <p className="font-display text-lg">
-                        Rs. {item.subtotal.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {formatLKR(item.subtotal)}
                       </p>
                     </div>
                   ))}
@@ -193,17 +194,17 @@ export function OrderDetail() {
                 <div className="mt-6 pt-6 border-t border-foreground/10 space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span>Rs. {order.subtotal.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    <span>{formatLKR(order.subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Shipping</span>
                     <span>
-                      {order.shipping_cost === 0 ? "Free" : `Rs. ${order.shipping_cost.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                      {order.shipping_cost === 0 ? "Free" : formatLKR(order.shipping_cost)}
                     </span>
                   </div>
                   <div className="flex justify-between font-display text-2xl pt-3 border-t border-foreground/10">
                     <span>Total</span>
-                    <span>Rs. {order.total.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    <span>{formatLKR(order.total)}</span>
                   </div>
                 </div>
               </CardContent>

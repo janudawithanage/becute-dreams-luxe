@@ -7,6 +7,7 @@ import { useCart } from "@/features/cart";
 import { useAuthStore } from "@/features/auth";
 import type { Product } from "@/features/products/products.service";
 import { getOptimizedImageUrl } from "@/lib/cloudinary";
+import { formatLKR } from "@/shared/utils/format";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -138,7 +139,7 @@ export function ProductDetail() {
             {product.name}
           </h1>
           <p className="mt-6 font-display text-3xl">
-            Rs. {product.price.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {formatLKR(product.price)}
           </p>
 
           <p className="mt-8 text-base leading-relaxed text-foreground/70 text-pretty">
@@ -266,7 +267,7 @@ export function ProductDetail() {
                   <div className="mt-3 flex items-baseline justify-between gap-2">
                     <p className="font-display text-lg leading-tight">{p.name}</p>
                     <p className="shrink-0 text-sm tabular-nums">
-                      Rs. {p.price.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {formatLKR(p.price)}
                     </p>
                   </div>
                 </Link>

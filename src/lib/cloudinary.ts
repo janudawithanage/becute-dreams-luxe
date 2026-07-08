@@ -77,7 +77,7 @@ export function getOptimizedImageUrl(
 }
 
 // Helper to delete images (requires backend/admin API)
-export async function deleteFromCloudinary(publicId: string): Promise<void> {
+export async function deleteFromCloudinary(_publicId: string): Promise<void> {
   console.warn('Delete requires backend API with API secret. Implement server-side endpoint.');
   // This should be implemented via your backend/Supabase Edge Function
 }

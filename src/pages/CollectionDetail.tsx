@@ -8,6 +8,7 @@ import { useCart } from "@/features/cart";
 import { useAuthStore } from "@/features/auth";
 import { getOptimizedImageUrl } from "@/lib/cloudinary";
 import type { Collection } from "@/features/collections";
+import { formatLKR } from "@/shared/utils/format";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -249,11 +250,7 @@ export function CollectionDetail() {
                           {product.name}
                         </Link>
                         <p className="shrink-0 text-sm tabular-nums">
-                          Rs.{" "}
-                          {product.price.toLocaleString("en-LK", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
+                          {formatLKR(product.price)}
                         </p>
                       </div>
                       {product.category && (
@@ -298,10 +295,7 @@ export function CollectionDetail() {
                         {product.name}
                       </p>
                       <p className="shrink-0 text-xs tabular-nums">
-                        Rs.{" "}
-                        {product.price.toLocaleString("en-LK", {
-                          minimumFractionDigits: 2,
-                        })}
+                        {formatLKR(product.price)}
                       </p>
                     </div>
                   ))}
@@ -349,7 +343,7 @@ export function CollectionDetail() {
                         {collectionProducts.length} item{collectionProducts.length !== 1 ? "s" : ""} × {bundleQty}
                       </span>
                       <span className="text-xs tabular-nums">
-                        Rs. {rawTotal.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {formatLKR(rawTotal)}
                       </span>
                     </div>
                     {discount > 0 && (
@@ -359,7 +353,7 @@ export function CollectionDetail() {
                           {discount}% discount
                         </span>
                         <span className="text-xs tabular-nums shrink-0">
-                          − Rs. {discountAmount.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          − {formatLKR(discountAmount)}
                         </span>
                       </div>
                     )}
@@ -368,7 +362,7 @@ export function CollectionDetail() {
                         Total
                       </span>
                       <span className="font-display text-2xl leading-none tabular-nums">
-                        Rs. {finalTotal.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {formatLKR(finalTotal)}
                       </span>
                     </div>
                   </motion.div>

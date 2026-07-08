@@ -25,6 +25,7 @@ import {
 import { adminService, type CustomerDetail as CustomerDetailType } from "@/features/admin/admin.service";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
+import { formatLKR } from "@/shared/utils/format";
 
 export function CustomerDetail() {
   const { id } = useParams<{ id: string }>();
@@ -161,9 +162,9 @@ export function CustomerDetail() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total Spent</p>
-                  <p className="text-2xl font-display">
-                    Rs. {customer.total_spent.toLocaleString('en-LK', { minimumFractionDigits: 2 })}
-                  </p>
+                      <p className="text-2xl font-display">
+                        {formatLKR(customer.total_spent)}
+                      </p>
                 </div>
               </div>
             </CardContent>
@@ -184,9 +185,9 @@ export function CustomerDetail() {
                 <div>
                   <p className="text-sm text-muted-foreground">Avg. Order Value</p>
                   <p className="text-2xl font-display">
-                    Rs. {customer.total_orders > 0 
-                      ? (customer.total_spent / customer.total_orders).toLocaleString('en-LK', { minimumFractionDigits: 2 })
-                      : '0.00'}
+                    {customer.total_orders > 0 
+                      ? formatLKR(customer.total_spent / customer.total_orders)
+                      : formatLKR(0)}
                   </p>
                 </div>
               </div>
@@ -328,7 +329,7 @@ export function CustomerDetail() {
                         {order.items_count} {order.items_count === 1 ? 'item' : 'items'}
                       </TableCell>
                       <TableCell className="font-display text-lg">
-                        Rs. {Number(order.total).toLocaleString('en-LK', { minimumFractionDigits: 2 })}
+                        {formatLKR(Number(order.total))}
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className={getStatusColor(order.status)}>

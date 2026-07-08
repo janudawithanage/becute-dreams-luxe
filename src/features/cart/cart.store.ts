@@ -54,7 +54,9 @@ export const useCart = create<CartState>()(
         const user = useAuthStore.getState().user;
         
         if (!user) {
-          alert('Please sign in to add items to cart');
+          // Callers (Shop, ProductDetail, etc.) already handle the unauthenticated
+          // case by redirecting to sign-in before calling add(). This is a last-resort
+          // guard — silently return rather than using a blocking alert().
           return;
         }
 

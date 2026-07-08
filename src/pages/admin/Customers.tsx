@@ -24,6 +24,7 @@ import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { usePagination } from "@/shared/hooks";
 import { PaginationControls } from "@/shared/components/ui/PaginationControls";
+import { formatLKR } from "@/shared/utils/format";
 
 export function Customers() {
   const navigate = useNavigate();
@@ -266,7 +267,7 @@ export function Customers() {
                     </TableCell>
                     <TableCell>{customer.total_orders}</TableCell>
                     <TableCell className="font-display text-lg">
-                      Rs. {customer.total_spent.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {formatLKR(customer.total_spent)}
                     </TableCell>
                   </TableRow>
                 ))}

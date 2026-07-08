@@ -5,7 +5,17 @@ import { ProtectedRoute } from "@/shared/components/auth/ProtectedRoute";
 import { Toaster } from "@/shared/components/ui/sonner";
 import { useAuthStore } from '@/features/auth';
 import { useCart } from '@/features/cart';
-// Public pages — lazy loaded so each route gets its own chunk
+
+/** Minimal full-page skeleton shown while a lazy route chunk is loading. */
+function PageFallback() {
+  return (
+    <div className="mx-auto max-w-[1400px] px-6 py-16 lg:px-12 lg:py-24 space-y-6">
+      <div className="shimmer h-4 w-28 rounded-full" />
+      <div className="shimmer h-16 w-1/2 rounded-2xl" />
+      <div className="shimmer h-[40vh] w-full rounded-3xl" />
+    </div>
+  );
+}// Public pages — lazy loaded so each route gets its own chunk
 const Home = lazy(() => import("@/pages/Home").then(m => ({ default: m.Home })));
 const Shop = lazy(() => import("@/pages/Shop").then(m => ({ default: m.Shop })));
 const ProductDetail = lazy(() => import("@/pages/ProductDetail").then(m => ({ default: m.ProductDetail })));
@@ -58,7 +68,7 @@ export default function App() {
 
   return (
     <>
-      <Suspense fallback={null}>
+      <Suspense fallback={<PageFallback />}>
         <Routes>
           {/* Public routes */}
           <Route element={<SiteLayout />}>

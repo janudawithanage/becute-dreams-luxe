@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, Send, CheckCircle } from "lucide-react";
+import { Star as _Star, Send, CheckCircle } from "lucide-react";
 import { reviewsService } from "@/features/reviews";
 import type { User } from "@/features/auth";
 import { cn } from "@/shared/utils/cn";

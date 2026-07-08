@@ -44,6 +44,7 @@ import { productsService } from "@/features/products/products.service";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { getOptimizedImageUrl } from "@/lib/cloudinary";
+import { formatLKR } from "@/shared/utils/format";
 
 // ─── Collection Products Sheet ────────────────────────────────────────────────
 
@@ -229,10 +230,7 @@ function CollectionProductsSheet({ collection, open, onClose }: CollectionProduc
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{product.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            Rs.{" "}
-                            {product.price.toLocaleString("en-LK", {
-                              minimumFractionDigits: 2,
-                            })}
+                            {formatLKR(product.price)}
                             {product.category && (
                               <span className="ml-2 opacity-60">· {product.category.name}</span>
                             )}
@@ -334,14 +332,11 @@ function CollectionProductsSheet({ collection, open, onClose }: CollectionProduc
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium truncate">{product.name}</p>
                             <p className="text-xs text-muted-foreground">
-                              Rs.{" "}
-                              {product.price.toLocaleString("en-LK", {
-                                minimumFractionDigits: 2,
-                              })}
-                              {product.category && (
-                                <span className="ml-2 opacity-60">· {product.category.name}</span>
-                              )}
-                            </p>
+                            {formatLKR(product.price)}
+                            {product.category && (
+                              <span className="ml-2 opacity-60">· {product.category.name}</span>
+                            )}
+                          </p>
                           </div>
                         </label>
                       );

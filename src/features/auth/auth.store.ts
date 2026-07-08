@@ -34,7 +34,7 @@ interface AuthState {
   error: string | null;
   
   // Actions
-  initialize: () => Promise<void>;
+  initialize: () => Promise<(() => void) | void>;
   login: (email: string, password: string) => Promise<boolean>;
   register: (data: CustomerRegistration) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;

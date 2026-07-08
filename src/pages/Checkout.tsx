@@ -8,14 +8,14 @@ import type { CreateOrderData } from "@/features/orders";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Check, Truck, Zap, ArrowUpRight } from "lucide-react";
-import { Label } from "@/shared/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/shared/components/ui/radio-group";
 import { getOptimizedImageUrl } from "@/lib/cloudinary";
+import { formatLKR } from "@/shared/utils/format";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
 export function Checkout() {
-  const { items, total, clear } = useCart();
+  const { items, total } = useCart();
   const { user, isAuthenticated } = useAuthStore();
   const { createOrder, isLoading } = useOrdersStore();
   const { settings, loadSettings, calculateShipping } = useSettingsStore();
@@ -296,7 +296,7 @@ export function Checkout() {
                         </div>
                       </div>
                       <span className="text-sm font-medium">
-                        {cost === 0 ? "Free" : `Rs. ${cost.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                        {cost === 0 ? "Free" : formatLKR(cost)}
                       </span>
                     </label>
                   );
@@ -367,7 +367,7 @@ export function Checkout() {
                     <p className="text-xs text-muted-foreground">Qty {item.quantity}</p>
                   </div>
                   <p className="text-sm tabular-nums shrink-0">
-                    Rs. {(item.product.price * item.quantity).toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {formatLKR(item.product.price * item.quantity)}
                   </p>
                 </div>
               ))}
@@ -376,16 +376,14 @@ export function Checkout() {
             <div className="mt-6 space-y-3 border-t pt-6">
               <div className="flex justify-between text-sm">
                 <span className="text-foreground/70">Subtotal</span>
-                <span>Rs. {total().toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span>{formatLKR(total())}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-foreground/70">
                   Shipping ({shippingMethod === "express" ? "Express" : "Standard"})
                 </span>
                 <span>
-                  {shippingCost === 0
-                    ? "Free"
-                    : `Rs. ${shippingCost.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  {shippingCost === 0 ? "Free" : formatLKR(shippingCost)}
                 </span>
               </div>
               <div className="flex items-baseline justify-between border-t pt-4">
@@ -393,7 +391,7 @@ export function Checkout() {
                   Total
                 </span>
                 <span className="font-display text-3xl">
-                  Rs. {orderTotal.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {formatLKR(orderTotal)}
                 </span>
               </div>
             </div>
