@@ -1,5 +1,33 @@
 import { supabase } from '@/lib/supabase';
 
+/**
+ * Decrement stock for a product when an order moves to "processing".
+ * Kept here (rather than importing from products.service) to avoid a
+ * circular dependency: orders ↔ products.
+ */
+async function decrementProductStock(productId: string, quantity: number): Promise<void> {
+  const { data: product, error: fetchError } = await supabase
+    .from('products')
+    .select('stock_quantity')
+    .eq('id', productId)
+    .single();
+
+  if (fetchError) throw fetchError;
+
+  const newStock = product.stock_quantity - quantity;
+
+  const { error } = await supabase
+    .from('products')
+    .update({
+      stock_quantity: Math.max(0, newStock),
+      in_stock: newStock > 0,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', productId);
+
+  if (error) throw error;
+}
+
 export interface CreateOrderData {
   customerEmail: string;
   customerName: string;
@@ -198,18 +226,14 @@ export const ordersService = {
     // If status changed to "processing", decrement stock for all items
     if (status === 'processing' && previousStatus !== 'processing') {
       const orderWithItems = orderData as OrderWithItems;
-      
-      // Import productsService at the top of the file
-      const { productsService } = await import('@/features/products/products.service');
-      
-      // Decrement stock for each order item
+
       for (const item of orderWithItems.order_items) {
         if (item.product_id) {
           try {
-            await productsService.decrementStock(item.product_id, item.quantity);
-          } catch (error) {
-            console.error(`Failed to decrement stock for product ${item.product_id}:`, error);
-            // Continue with other items even if one fails
+            await decrementProductStock(item.product_id, item.quantity);
+          } catch (err) {
+            console.error(`Failed to decrement stock for product ${item.product_id}:`, err);
+            // Continue processing remaining items even if one fails
           }
         }
       }

@@ -74,7 +74,8 @@ export const useAuthStore = create<AuthState>()(
           if (error) throw error;
 
           if (session?.user) {
-            // Fetch user profile
+            // Always re-fetch the profile from DB on session resume so that
+            // role changes (e.g. revoking admin) are reflected immediately.
             const { data: profile } = await supabase
               .from('profiles')
               .select('*')
@@ -90,7 +91,7 @@ export const useAuthStore = create<AuthState>()(
               });
             } else {
               // Profile doesn't exist yet (trigger may not have fired)
-              // Set basic user info from session
+              // Set basic user info from session with safe default role
               set({
                 user: {
                   id: session.user.id,
@@ -107,8 +108,8 @@ export const useAuthStore = create<AuthState>()(
             set({ isLoading: false });
           }
 
-          // Listen for auth changes
-          supabase.auth.onAuthStateChange(async (event, session) => {
+          // Listen for auth state changes and re-validate role from DB each time
+          const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_IN' && session?.user) {
               // Small delay to let the database trigger complete
               await new Promise(resolve => setTimeout(resolve, 500));
@@ -126,7 +127,7 @@ export const useAuthStore = create<AuthState>()(
                   isAuthenticated: true,
                 });
               } else {
-                // Fallback if profile doesn't exist yet
+                // Fallback — role defaults to 'customer', never elevated
                 set({
                   user: {
                     id: session.user.id,
@@ -140,8 +141,27 @@ export const useAuthStore = create<AuthState>()(
               }
             } else if (event === 'SIGNED_OUT') {
               set({ user: null, session: null, isAuthenticated: false });
+            } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+              // Re-validate role on every token refresh
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('id, role')
+                .eq('id', session.user.id)
+                .maybeSingle();
+
+              if (profile) {
+                const currentUser = get().user;
+                if (currentUser && currentUser.role !== profile.role) {
+                  set({ user: { ...currentUser, role: profile.role as 'admin' | 'customer' } });
+                }
+              }
             }
           });
+
+          // Store subscription for potential cleanup
+          // (global singleton — unsubscribe is not strictly needed but prevents
+          //  double-registration if initialize() is called more than once in StrictMode)
+          return () => subscription.unsubscribe();
         } catch (error) {
           console.error('Auth initialization error:', error);
           set({ isLoading: false, error: 'Failed to initialize authentication' });
