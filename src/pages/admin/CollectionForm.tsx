@@ -25,6 +25,11 @@ const collectionSchema = z.object({
   description: z.string().optional(),
   featured: z.boolean(),
   sort_order: z.number().min(0, "Sort order must be 0 or greater"),
+  discount_percentage: z
+    .number()
+    .min(0, "Discount must be 0 or greater")
+    .max(100, "Discount cannot exceed 100%")
+    .nullable(),
 });
 
 type CollectionFormData = z.infer<typeof collectionSchema>;
@@ -55,6 +60,7 @@ export function CollectionForm() {
     defaultValues: {
       featured: false,
       sort_order: 0,
+      discount_percentage: null,
     },
   });
 
@@ -70,6 +76,7 @@ export function CollectionForm() {
             description: collection.description || '',
             featured: collection.featured,
             sort_order: collection.sort_order,
+            discount_percentage: collection.discount_percentage ?? null,
           });
           setImage(collection.image_url);
         }
@@ -135,6 +142,7 @@ export function CollectionForm() {
         image_url: imageUrl,
         featured: data.featured,
         sort_order: data.sort_order,
+        discount_percentage: data.discount_percentage,
       };
 
       if (isEditing && id) {
@@ -312,6 +320,33 @@ export function CollectionForm() {
                       </span>
                     </div>
                   </div>
+                </div>
+
+                {/* Discount */}
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="discount_percentage"
+                    className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
+                  >
+                    Collection Discount (%)
+                  </Label>
+                  <Input
+                    id="discount_percentage"
+                    type="number"
+                    placeholder="e.g. 10"
+                    min={0}
+                    max={100}
+                    className="h-12 rounded-xl border-foreground/10"
+                    {...register("discount_percentage", {
+                      setValueAs: (v) => (v === "" || v === null ? null : Number(v)),
+                    })}
+                  />
+                  {errors.discount_percentage && (
+                    <p className="text-xs text-red-600">{errors.discount_percentage.message}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Optional. Customers ordering this full collection will see this discount applied. Leave blank for no discount.
+                  </p>
                 </div>
               </CardContent>
             </Card>

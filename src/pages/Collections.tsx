@@ -82,7 +82,7 @@ export function Collections() {
                 transition={{ duration: 0.8, ease, delay: i * 0.06 }}
               >
                 <Link
-                  to={`/shop?collection=${collection.slug}`}
+                  to={`/collections/${collection.slug}`}
                   className="group grid grid-cols-1 items-center gap-0 overflow-hidden rounded-3xl bg-muted transition-shadow duration-500 hover:shadow-luxe md:grid-cols-12"
                 >
                   {/* Image */}

@@ -8,6 +8,7 @@ export interface Collection {
   image_url: string;
   featured: boolean;
   sort_order: number;
+  discount_percentage: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -19,6 +20,7 @@ export interface CreateCollectionInput {
   image_url: string;
   featured?: boolean;
   sort_order?: number;
+  discount_percentage?: number | null;
 }
 
 export interface UpdateCollectionInput {
@@ -28,6 +30,7 @@ export interface UpdateCollectionInput {
   image_url?: string;
   featured?: boolean;
   sort_order?: number;
+  discount_percentage?: number | null;
 }
 
 export const collectionsService = {
@@ -92,6 +95,7 @@ export const collectionsService = {
         ...input,
         sort_order: input.sort_order ?? 0,
         featured: input.featured ?? false,
+        discount_percentage: input.discount_percentage ?? null,
       })
       .select()
       .single();
@@ -135,5 +139,13 @@ export const collectionsService = {
       console.error('Error deleting collection:', error);
       throw error;
     }
+  },
+
+  // Generate unique slug from name
+  generateSlug(name: string): string {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
   },
 };

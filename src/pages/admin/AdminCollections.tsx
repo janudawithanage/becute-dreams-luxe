@@ -29,7 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/shared/components/ui/alert-dialog";
-import { Plus, Search, Edit, Trash2, Star, X } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Star, X, Tag } from "lucide-react";
 import { useCollectionsStore } from "@/features/collections";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -176,6 +176,9 @@ export function AdminCollections() {
                     <TableHead className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
                       Order
                     </TableHead>
+                    <TableHead className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
+                      Discount
+                    </TableHead>
                     <TableHead className="text-right text-xs uppercase tracking-[0.15em] text-muted-foreground">
                       Actions
                     </TableHead>
@@ -184,7 +187,7 @@ export function AdminCollections() {
                 <TableBody>
                   {filteredCollections.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground py-12">
+                      <TableCell colSpan={6} className="text-center text-muted-foreground py-12">
                         No collections found
                       </TableCell>
                     </TableRow>
@@ -241,6 +244,19 @@ export function AdminCollections() {
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {collection.sort_order}
+                        </TableCell>
+                        <TableCell>
+                          {collection.discount_percentage ? (
+                            <Badge
+                              variant="secondary"
+                              className="gap-1 text-[10px] uppercase tracking-wider text-emerald-700"
+                            >
+                              <Tag className="h-3 w-3" />
+                              {collection.discount_percentage}% off
+                            </Badge>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-1">

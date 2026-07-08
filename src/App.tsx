@@ -10,6 +10,7 @@ const Home = lazy(() => import("@/pages/Home").then(m => ({ default: m.Home })))
 const Shop = lazy(() => import("@/pages/Shop").then(m => ({ default: m.Shop })));
 const ProductDetail = lazy(() => import("@/pages/ProductDetail").then(m => ({ default: m.ProductDetail })));
 const Collections = lazy(() => import("@/pages/Collections").then(m => ({ default: m.Collections })));
+const CollectionDetail = lazy(() => import("@/pages/CollectionDetail").then(m => ({ default: m.CollectionDetail })));
 const About = lazy(() => import("@/pages/About").then(m => ({ default: m.About })));
 const Contact = lazy(() => import("@/pages/Contact").then(m => ({ default: m.Contact })));
 const Checkout = lazy(() => import("@/pages/Checkout").then(m => ({ default: m.Checkout })));
@@ -63,6 +64,7 @@ export default function App() {
             <Route path="/shop" element={<Shop />} />
             <Route path="/product/:slug" element={<ProductDetail />} />
             <Route path="/collections" element={<Collections />} />
+            <Route path="/collections/:slug" element={<CollectionDetail />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/checkout" element={<Checkout />} />
