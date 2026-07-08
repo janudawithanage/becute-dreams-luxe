@@ -39,6 +39,7 @@ interface AuthState {
   register: (data: CustomerRegistration) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   isAdmin: () => boolean;
+  updateUser: (updates: Partial<User>) => void;
 }
 
 // Helper to map a profile row to our User shape
@@ -315,6 +316,13 @@ export const useAuthStore = create<AuthState>()(
       isAdmin: () => {
         const { user } = get();
         return user?.role === 'admin';
+      },
+
+      updateUser: (updates: Partial<User>) => {
+        const { user } = get();
+        if (user) {
+          set({ user: { ...user, ...updates } });
+        }
       },
     }),
     {

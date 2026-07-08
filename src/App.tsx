@@ -39,6 +39,7 @@ const Customers = lazy(() => import("@/pages/admin/Customers").then(m => ({ defa
 const CustomerDetail = lazy(() => import("@/pages/admin/CustomerDetail").then(m => ({ default: m.CustomerDetail })));
 const Settings = lazy(() => import("@/pages/admin/Settings").then(m => ({ default: m.Settings })));
 const AdminReviews = lazy(() => import("@/pages/admin/AdminReviews").then(m => ({ default: m.AdminReviews })));
+const AdminReviewDetail = lazy(() => import("@/pages/admin/AdminReviewDetail").then(m => ({ default: m.AdminReviewDetail })));
 
 export default function App() {
   const initialize = useAuthStore((state) => state.initialize);
@@ -105,6 +106,7 @@ export default function App() {
             <Route path="customers" element={<Customers />} />
             <Route path="customers/:id" element={<CustomerDetail />} />
             <Route path="reviews" element={<AdminReviews />} />
+            <Route path="reviews/:id" element={<AdminReviewDetail />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>

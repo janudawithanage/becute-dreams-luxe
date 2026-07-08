@@ -5,7 +5,47 @@ export interface PasswordChangeData {
   newPassword: string;
 }
 
+export interface ProfileUpdateData {
+  name: string;
+  phone: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  country: string;
+}
+
 export const accountService = {
+  /**
+   * Update user's profile (name, phone, address fields)
+   */
+  async updateProfile(
+    userId: string,
+    data: ProfileUpdateData,
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          full_name: data.name,
+          phone: data.phone,
+          address: data.address,
+          city: data.city,
+          postal_code: data.postalCode,
+          country: data.country,
+        })
+        .eq("id", userId);
+
+      if (error) return { success: false, error: error.message };
+      return { success: true };
+    } catch (error) {
+      console.error("Profile update error:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to update profile",
+      };
+    }
+  },
+
   /**
    * Update user's password
    * Requires current password for verification
