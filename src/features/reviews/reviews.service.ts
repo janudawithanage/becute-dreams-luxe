@@ -4,12 +4,11 @@ import type { Review, CreateReviewInput, UpdateReviewInput } from "./reviews.typ
 class ReviewsService {
   private readonly table = "reviews";
 
-  /** Fetch reviews approved for home-page display */
+  /** Fetch reviews marked for home-page display */
   async getDisplayReviews(): Promise<Review[]> {
     const { data, error } = await supabase
       .from(this.table)
       .select("*")
-      .eq("status", "approved")
       .eq("display_on_home", true)
       .order("created_at", { ascending: false });
 
@@ -63,7 +62,7 @@ class ReviewsService {
         customer_location: input.customer_location ?? null,
         rating: input.rating,
         body: input.body,
-        status: "pending",
+        status: "approved",
         display_on_home: false,
       })
       .select()

@@ -73,7 +73,7 @@ export function ReviewForm({ orderId, user }: ReviewFormProps) {
           <p className="font-display text-xl">Review submitted — thank you! 🩷</p>
         </div>
         <p className="mt-2 text-sm text-muted-foreground">
-          Your review is pending approval and will appear on the site soon.
+          Your review has been received. Thank you for your feedback!
         </p>
       </motion.div>
     );
@@ -106,7 +106,7 @@ export function ReviewForm({ orderId, user }: ReviewFormProps) {
             </div>
             <p className="font-display text-2xl">Thank you! 🩷</p>
             <p className="text-sm text-muted-foreground">
-              Your review is pending admin approval and will appear on our site soon.
+              Your review has been received. Thank you for your feedback!
             </p>
           </motion.div>
         ) : (

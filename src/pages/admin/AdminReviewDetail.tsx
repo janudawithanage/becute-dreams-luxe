@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Eye, EyeOff, MessageSquare } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, MessageSquare, Home } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { reviewsService, type Review } from "@/features/reviews";
@@ -44,6 +44,22 @@ export function AdminReviewDetail() {
           ? "Review is now displayed on the home page."
           : "Review hidden from home page.",
       );
+    } catch {
+      toast.error("Failed to update display status.");
+    }
+  };
+
+  const handleShowOnHomeAndGo = async () => {
+    if (!review) return;
+    try {
+      if (!review.display_on_home) {
+        const updated = await reviewsService.updateReview(review.id, {
+          display_on_home: true,
+        });
+        setReview(updated);
+        toast.success("Review is now displayed on the home page.");
+      }
+      navigate("/");
     } catch {
       toast.error("Failed to update display status.");
     }
@@ -180,6 +196,7 @@ export function AdminReviewDetail() {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.3, ease }}
+        className="flex flex-wrap gap-3"
       >
         <Button
           variant="outline"
@@ -197,6 +214,15 @@ export function AdminReviewDetail() {
               Show on Home Page
             </>
           )}
+        </Button>
+
+        <Button
+          variant="default"
+          onClick={handleShowOnHomeAndGo}
+          className="gap-2 rounded-full h-12 px-6 text-xs uppercase tracking-wider"
+        >
+          <Home className="h-4 w-4" />
+          {review.display_on_home ? "View on Home Page" : "Show & Go to Home Page"}
         </Button>
       </motion.div>
     </div>
