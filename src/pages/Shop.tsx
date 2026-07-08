@@ -16,6 +16,8 @@ const ease = [0.22, 1, 0.36, 1] as const;
 export function Shop() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  // Read filters from URL
   const categorySlug = searchParams.get("category") || undefined;
   const q = searchParams.get("q") || undefined;
   const [query, setQuery] = useState(q ?? "");
@@ -27,44 +29,64 @@ export function Shop() {
   const categories = useCategoriesStore((s) => s.categories);
   const fetchCategories = useCategoriesStore((s) => s.fetchCategories);
 
+  // Re-fetch products whenever the category filter changes so the
+  // server-side join filter is applied. Client-side search is kept local.
   useEffect(() => {
-    fetchProducts({ inStock: true });
-    fetchCategories();
-  }, [fetchProducts, fetchCategories]);
+    fetchProducts({ inStock: true, categorySlug });
+  }, [fetchProducts, categorySlug]);
 
-  const filtered = products.filter((p) => {
-    if (categorySlug && p.category?.slug !== categorySlug) return false;
-    if (query && !p.name.toLowerCase().includes(query.toLowerCase())) return false;
-    return true;
-  });
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  // Keep query state in sync when URL changes externally (e.g. browser back)
+  useEffect(() => {
+    setQuery(q ?? "");
+  }, [q]);
+
+  // Client-side search filter on top of the already category-filtered products
+  const filtered = query
+    ? products.filter((p) =>
+        p.name.toLowerCase().includes(query.toLowerCase())
+      )
+    : products;
 
   const pagination = usePagination(filtered, { pageSize: 16 });
 
   // Reset to page 1 whenever filters change
-  const prevFilterKey = useRef('');
+  const prevFilterKey = useRef("");
   const filterKey = `${categorySlug}|${query}`;
   if (filterKey !== prevFilterKey.current) {
     prevFilterKey.current = filterKey;
     if (pagination.currentPage !== 1) pagination.setPage(1);
   }
 
-  const updateSearch = (updates: { category?: string; q?: string }) => {
+  const updateSearch = (updates: { category?: string | null; q?: string | null }) => {
     const newParams = new URLSearchParams(searchParams);
-    if (updates.category !== undefined) {
+
+    if ("category" in updates) {
       if (updates.category) newParams.set("category", updates.category);
       else newParams.delete("category");
     }
-    if (updates.q !== undefined) {
+    if ("q" in updates) {
       if (updates.q) newParams.set("q", updates.q);
       else newParams.delete("q");
     }
+
     setSearchParams(newParams);
   };
 
+  const clearAll = () => {
+    setQuery("");
+    setSearchParams(new URLSearchParams());
+  };
+
+  const hasFilter = Boolean(categorySlug || query);
+
+  // ── Loading skeleton ─────────────────────────────────────────────────────
   if (isLoading) {
     return (
       <div className="mx-auto max-w-[1400px] px-6 py-16 lg:px-12 lg:py-24">
-        {/* Skeleton header */}
         <div className="shimmer h-8 w-40 rounded-full" />
         <div className="shimmer mt-4 h-20 w-2/3 rounded-2xl" />
         <div className="mt-14 grid grid-cols-2 gap-x-4 gap-y-12 md:grid-cols-3 lg:grid-cols-4 lg:gap-x-6">
@@ -80,21 +102,22 @@ export function Shop() {
     );
   }
 
+  // ── Error state ───────────────────────────────────────────────────────────
   if (error) {
     return (
       <div className="mx-auto max-w-[1400px] px-6 py-16 lg:px-12 lg:py-24">
-        <div className="text-center py-24">
-          <p className="text-red-600 font-display text-2xl">Error loading products</p>
+        <div className="py-24 text-center">
+          <p className="font-display text-2xl text-red-600">Error loading products</p>
           <p className="mt-2 text-sm text-muted-foreground">{error}</p>
         </div>
       </div>
     );
   }
 
-  const hasFilter = Boolean(categorySlug || query);
-
+  // ── Page ──────────────────────────────────────────────────────────────────
   return (
     <div className="page-enter mx-auto max-w-[1400px] px-6 py-16 lg:px-12 lg:py-24">
+
       {/* Header */}
       <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
         <div>
@@ -116,12 +139,12 @@ export function Shop() {
           </motion.h1>
         </div>
 
-        {/* Search */}
+        {/* Search bar */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease, delay: 0.2 }}
-          className="flex items-center gap-3 rounded-full border bg-background px-5 py-3 transition-shadow focus-within:shadow-soft w-full md:w-auto"
+          className="flex w-full items-center gap-3 rounded-full border bg-background px-5 py-3 transition-shadow focus-within:shadow-soft md:w-auto"
         >
           <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
           <input
@@ -129,7 +152,7 @@ export function Shop() {
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
-              updateSearch({ q: e.target.value || undefined });
+              updateSearch({ q: e.target.value || null });
             }}
             placeholder="Search stickers…"
             className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground md:w-56"
@@ -138,9 +161,10 @@ export function Shop() {
             <button
               onClick={() => {
                 setQuery("");
-                updateSearch({ q: undefined });
+                updateSearch({ q: null });
               }}
               className="text-muted-foreground hover:text-foreground"
+              aria-label="Clear search"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -148,15 +172,16 @@ export function Shop() {
         </motion.div>
       </div>
 
-      {/* Filter chips */}
+      {/* Category filter chips */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease, delay: 0.3 }}
-        className="mt-10 flex flex-wrap gap-2"
+        className="mt-10 flex flex-wrap items-center gap-2"
       >
+        {/* All */}
         <button
-          onClick={() => updateSearch({ category: undefined })}
+          onClick={() => updateSearch({ category: null })}
           className={`rounded-full border px-5 py-2 text-xs uppercase tracking-[0.2em] transition-all duration-300 ${
             !categorySlug
               ? "border-foreground bg-foreground text-background"
@@ -166,9 +191,10 @@ export function Shop() {
           All
         </button>
 
+        {/* One chip per category */}
         {categories.map((c) => (
           <button
-            key={`cat-${c.id}`}
+            key={c.id}
             onClick={() => updateSearch({ category: c.slug })}
             className={`rounded-full border px-5 py-2 text-xs uppercase tracking-[0.2em] transition-all duration-300 ${
               categorySlug === c.slug
@@ -180,18 +206,42 @@ export function Shop() {
           </button>
         ))}
 
-        {/* Active filter summary */}
+        {/* Result count when filtered */}
         {hasFilter && (
           <motion.span
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            className="ml-auto text-xs text-muted-foreground self-center"
+            className="ml-auto self-center text-xs text-muted-foreground"
           >
             {filtered.length} piece{filtered.length !== 1 ? "s" : ""}
           </motion.span>
         )}
       </motion.div>
+
+      {/* Active category label */}
+      {categorySlug && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease }}
+          className="mt-6 flex items-center gap-3"
+        >
+          <span className="text-sm text-muted-foreground">
+            Showing:{" "}
+            <span className="font-medium text-foreground capitalize">
+              {categories.find((c) => c.slug === categorySlug)?.name ?? categorySlug}
+            </span>
+          </span>
+          <button
+            onClick={() => updateSearch({ category: null })}
+            className="flex items-center gap-1 text-xs text-muted-foreground transition hover:text-foreground"
+            aria-label="Clear category filter"
+          >
+            <X className="h-3 w-3" />
+            Clear
+          </button>
+        </motion.div>
+      )}
 
       {/* Product grid */}
       <AnimatePresence mode="wait">
@@ -207,11 +257,8 @@ export function Shop() {
             <p className="font-display text-3xl text-muted-foreground">No pieces matched.</p>
             {hasFilter && (
               <button
-                onClick={() => {
-                  setQuery("");
-                  updateSearch({ category: undefined, q: undefined });
-                }}
-                className="mt-6 text-xs uppercase tracking-[0.25em] text-foreground/60 hover:text-foreground transition"
+                onClick={clearAll}
+                className="mt-6 text-xs uppercase tracking-[0.25em] text-foreground/60 transition hover:text-foreground"
               >
                 Clear filters
               </button>
@@ -220,7 +267,7 @@ export function Shop() {
         ) : (
           <>
             <motion.div
-              key={`grid-page-${pagination.currentPage}`}
+              key={`grid-page-${pagination.currentPage}-${categorySlug}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.4, ease }}
@@ -265,7 +312,7 @@ export function Shop() {
                           }
                           add(p);
                         }}
-                        aria-label="Quick add"
+                        aria-label="Quick add to cart"
                         className="absolute bottom-3 right-3 flex h-10 w-10 translate-y-2 items-center justify-center rounded-full bg-foreground text-background opacity-0 shadow-soft transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100"
                       >
                         <ShoppingBag className="h-3.5 w-3.5" />
@@ -274,7 +321,11 @@ export function Shop() {
                     <div className="mt-4 flex items-baseline justify-between gap-2">
                       <p className="font-display text-lg leading-tight">{p.name}</p>
                       <p className="shrink-0 text-sm tabular-nums">
-                        Rs. {p.price.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        Rs.{" "}
+                        {p.price.toLocaleString("en-LK", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </p>
                     </div>
                     {p.category && (
@@ -300,14 +351,15 @@ export function Shop() {
                   totalPages={pagination.totalPages}
                   canGoPrev={pagination.canGoPrev}
                   canGoNext={pagination.canGoNext}
-                  onPageChange={(p) => {
-                    pagination.setPage(p);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  onPageChange={(page) => {
+                    pagination.setPage(page);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
                   getPageNumbers={pagination.getPageNumbers}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Page {pagination.currentPage} of {pagination.totalPages} &middot; {filtered.length} pieces
+                  Page {pagination.currentPage} of {pagination.totalPages} &middot;{" "}
+                  {filtered.length} pieces
                 </p>
               </motion.div>
             )}
